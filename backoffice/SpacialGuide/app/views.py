@@ -3,6 +3,9 @@ from django.http import HttpRequest
 from django.http import HttpResponse
 from datetime import datetime
 
+from app import BD_Connector
+
+
 # Create your views here.
 def home(request):
     """Renders the home page."""
