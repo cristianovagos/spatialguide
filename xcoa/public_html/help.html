@@ -63,21 +63,116 @@
       </div>
     </nav>
 
-    <section class="download bg-primary text-center">
+    <section class="download bg-primary text-center" style="padding: 100px 0;">
       <div class="container">
         <div class="row">
           <div class="col-md-8 mx-auto">
             <h2 class="section-heading">Help</h2>
+            <p>What you need to know to use this app</p>
+            <hr>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="download text-center">
+    <section class="download" style="padding: 100px 0;">
       <div class="container">
         <div class="row">
+          <div class="col-md-4">
+            <ul class="navbar-nav sticky-top" style="padding-top: 100px;">
+              <li class="nav-item">
+                <a class="nav-link" href="#intro" style="color: black;">Introduction</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#sysreq" style="color: black;">System Requirements</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#sysfeatures" style="color: black;">System Features</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#app" style="color: black;">The App</a>
+              </li>
+            </ul>
+          </div>
           <div class="col-md-8 mx-auto">
-            <h2>Section in construction.</h2>
+            <h3 id="intro">Introduction</h3>
+            <br>
+            <p style="text-align: justify;">
+              Tourism is very important area of business. It stimulates the local economy and contributes positively to
+              culturally enrich every tourists and visitors. Currently, there are multiple services that offer tour guides 
+              to a city/region, showing the historical background of the different tour locations. Lots of these services 
+              are automatic, as they offer disposable headphones for the tour guide, playing sound according to the location
+              they are visiting.<br><br>
+              But... what if the sound actually comes from the location itself? Wouldn't be a greater and better experience
+              if the sound is coming from the location, instead of having the same explination "at your right you have..."?<br>
+              <br><b>SpatialGuide</b> is an app whose goal is to provide a immersive experience to tourists and travel enthusiasts, 
+              using audio spatialization (3D Audio) technology to make users hear sound coming from certain spots and locations.
+              This app will also allow tour companies to create tour routes, setting up points of interest and assign them 
+              audio files that will play according to the user's location, when approaching the assigned spot.
+            </p>
+            <br><br>
+            <h3 id="sysreq">System Requirements</h3>
+            <br>
+            <p style="text-align: justify;">
+              This app is meant to run on an smartphone, running Android operating system, with the following requirements:<br><br>
+              - Android Version: 4.0.1 or higher<br>
+              - CPU Clock: <i>(to be defined)</i><br>
+              - CPU Cores: <i>(to be defined)</i><br>
+              - RAM Memory: <i>(to be defined)</i><br>
+              - Memory space: <i>(to be defined)</i><br>
+              - GPS capable sensor location<br>
+              <br>
+              Also will need to use:<br>
+              - InertiaCube <i>(a head-tracker)</i><br>
+              - Noise-cancelling stereo headphones<br>
+            </p>
+            <br><br>
+            <h3 id="sysfeatures">System Features</h3>
+            <br>
+            <p style="text-align: justify;">
+              These are the main features of SpatialGuide:<br><br>
+              - Use GPS position to track user position;<br>
+              - Use the head position to track the user's position related to the point of interest (using InertiaCube);<br>
+              - Plays a previously defined audio (file) using audio spatialization when the user approaches a point of interest
+              defined in the tour route (Trigger Area);<br>
+              - Create, modify and delete new points of interest and new tour routes (set of points of interest);<br>
+              - Store of tour routes in a database;<br>
+              - Download of tour routes for offline usage;<br>
+              - Audio spatialization of the audio files to give feel that the sound comes from a given source and direction.<br>
+            </p>
+            <br><br>
+            <h3 id="app">The App</h3>
+            <br>
+            <p style="text-align: justify;">
+              To use the SpatialGuide app, one should register an account. Upon registration, user can enter the system by 
+              inserting their credentials to sign in the app:<br><br>
+            </p>
+            <div class="text-center">
+              <img src="img/demo-1.png" height="500"/>
+            </div>
+            <p style="text-align: justify;">
+              <br>
+              After entering in the system through the app, according to the city, the user can select one of the available 
+              tour routes for downloading, or insert a code for a specific route.<br>
+              Then, after the selecting the route, it's shown on the screen the user current location.<br><br>
+            </p>
+            <div class="text-center">
+              <img src="img/demo-3.png" height="500"/>
+              <img src="img/demo-4.png" height="500"/>
+            </div>
+            <p style="text-align: justify;">
+              <br>
+              When the user enters near a route point of interest, it is played an sound about that point of interest and
+              the app shows on screen some information and details about the given point of interest.
+            </p>
+            <div class="text-center">
+              <img src="img/demo-2.png" height="500"/>
+            </div>
+            <p style="text-align: justify;">
+              <br>
+              Check out <a href="dev-notes.html">Dev Notes</a> for more details about the development of this app, which is in 
+              development stage. The screenshots displayed here are mockups.
+            </p>
           </div>
         </div>
       </div>
