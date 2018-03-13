@@ -9,8 +9,8 @@ class Route(models.Model):
 
 class Point(models.Model):
     name = models.CharField(max_length=50)
-    x = models.FloatField()
-    y = models.FloatField()
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     def __str__(self):
         return "Name: %s ( %s, %s )" %(self.name,self.x,self.y)

@@ -30,8 +30,8 @@ urlpatterns = [
     url(r'^cards', views.cards, name='cards'),
 
 
-    url(r'^route/', views.RouteList.as_view()),
-    url(r'^point/', views.PointList.as_view()),
+    url(r'^route/<int:route_id>/$', views.RouteList.as_view()),
+    url(r'^point/$', views.PointList.as_view()),
 
 ]
 

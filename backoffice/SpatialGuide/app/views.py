@@ -13,14 +13,19 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import *
-from .serializer import RouteSerializer
+from .serializer import *
 
 
 # route/
 class RouteList(APIView):
 
-    def get(self,request):
-        routes = Route.objects.all()
+    def get(self,request,route_id=None):
+        if route_id:
+            routes = Route.objects.filter(id=route_id)
+        else:
+            routes = Route.objects.all()
+
+        print(route_id)
         serializer = RouteSerializer(routes,many=True)
         return Response(serializer.data)
 
@@ -32,7 +37,7 @@ class PointList(APIView):
 
     def get(self,request):
         points = Point.objects.all()
-        serializer = RouteSerializer(points,many=True)
+        serializer = PointSerializer(points,many=True)
         return Response(serializer.data)
 
     def post(self,request):
