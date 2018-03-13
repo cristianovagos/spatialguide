@@ -3,7 +3,42 @@ from django.http import HttpRequest
 from django.http import HttpResponse
 from datetime import datetime
 
-from app import BD_Connector
+
+
+#########################################
+
+
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import *
+from .serializer import RouteSerializer
+
+
+# route/
+class RouteList(APIView):
+
+    def get(self,request):
+        routes = Route.objects.all()
+        serializer = RouteSerializer(routes,many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        pass
+
+# point/
+class PointList(APIView):
+
+    def get(self,request):
+        points = Point.objects.all()
+        serializer = RouteSerializer(points,many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        pass
+
+##########################################
 
 
 # Create your views here.

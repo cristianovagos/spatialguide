@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin, auth
 
+from rest_framework.urlpatterns import format_suffix_patterns
 from app import views
 
 urlpatterns = [
@@ -28,4 +29,10 @@ urlpatterns = [
     url(r'^register', views.register, name='register'),
     url(r'^cards', views.cards, name='cards'),
 
+
+    url(r'^route/', views.RouteList.as_view()),
+    url(r'^point/', views.PointList.as_view()),
+
 ]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
