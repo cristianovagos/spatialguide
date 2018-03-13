@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">SpatialGuide</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="password_again">Re-enter Password</string>
+    <string name="login">Login</string>
+    <string name="create_account">Create Account</string>
+    <string name="authenticating">Authenticating...</string>
+    <string name="creating_account">Creating Account...</string>
+    <string name="already_member">Already member? Login now!</string>
+    <string name="no_account">No account yet? Create one now!</string>
+    <string name="error_name">Enter at least 3 characters</string>
+    <string name="error_email">Enter a valid email address</string>
+    <string name="error_password">Between 4 to 10 alphanumeric characters</string>
+    <string name="error_password_match">Passwords do not match</string>
+    <string name="error_login">Login failed</string>
+    <string name="error_signup">Signup failed</string>
+</resources>
