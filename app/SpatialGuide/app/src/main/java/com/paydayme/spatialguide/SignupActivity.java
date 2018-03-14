@@ -2,8 +2,11 @@ package com.paydayme.spatialguide;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Patterns;
@@ -30,6 +33,10 @@ public class SignupActivity extends AppCompatActivity {
     @BindView(R.id.input_reEnterPassword) EditText reEnterPasswordText;
     @BindView(R.id.btn_signup) Button signupButton;
     @BindView(R.id.link_login) TextView loginLink;
+    @BindView(R.id.tilName) TextInputLayout tilName;
+    @BindView(R.id.tilEmail) TextInputLayout tilEmail;
+    @BindView(R.id.tilPassword) TextInputLayout tilPassword;
+    @BindView(R.id.tilReEnterPassword) TextInputLayout tilReEnterPassword;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,6 +48,13 @@ public class SignupActivity extends AppCompatActivity {
 
         // Initializing click listeners
         initClickListeners();
+
+        // Changing the font
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        tilName.setTypeface(tf);
+        tilEmail.setTypeface(tf);
+        tilPassword.setTypeface(tf);
+        tilReEnterPassword.setTypeface(tf);
     }
 
     public void initClickListeners() {
@@ -103,6 +117,7 @@ public class SignupActivity extends AppCompatActivity {
     public void onSignupSuccess() {
         signupButton.setEnabled(true);
         setResult(RESULT_OK, null);
+        startActivity(new Intent(SignupActivity.this, MapActivity.class));
         finish();
     }
 
