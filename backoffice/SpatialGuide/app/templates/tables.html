@@ -10,47 +10,15 @@
         <li class="breadcrumb-item">
           <a href="{% url 'home' %}" >Dashboard</a>
         </li>
-        <li class="breadcrumb-item active">{{ title }}</li>
+        <li class="breadcrumb-item active">Tables</li>
       </ol>
       <!-- Example DataTables Card-->
       <div class="card mb-3">
         <div class="card-header">
-          <i class="fa fa-table"></i> All {{ title }}s</div>
+          <i class="fa fa-table"></i> Data Table Example</div>
         <div class="card-body">
-
-        <div>
-            <a class="btn btn-primary" href="{% url 'add_route' %}" id="toggleNavPosition">Add {{ title }}</a>
-        </div>
-
-
-        <div class="table-responsive">
+          <div class="table-responsive">
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-
-              <thead>
-                  <tr>
-                      {% for key in tab_names %}
-                          <th>{{ key }}</th>
-                      {% endfor %}
-                  </tr>
-              </thead>
-              <tfoot>
-                  <tr>
-                      {% for key in tab_names %}
-                          <th>{{ key }}</th>
-                      {% endfor %}
-                  </tr>
-              </tfoot>
-              <tbody>
-                {% for route in route_list %}
-                    <tr>
-                    {% for val in route.values %}
-                      <td>{{ val }}</td>
-                    {% endfor %}
-                    </tr>
-                {% endfor %}
-              </tbody>
-
-            <!--
               <thead>
                 <tr>
                   <th>Name</th>
@@ -529,7 +497,6 @@
                   <td>$112,000</td>
                 </tr>
               </tbody>
-            -->
             </table>
           </div>
         </div>
