@@ -17,7 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin, auth
 
 from rest_framework.urlpatterns import format_suffix_patterns
-from app import views
+from app import views,rest
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -30,8 +30,14 @@ urlpatterns = [
     url(r'^cards', views.cards, name='cards'),
 
 
-    url(r'^route/<int:route_id>/$', views.RouteList.as_view()),
-    url(r'^point/$', views.PointList.as_view()),
+    url(r'^show_routes/$', views.show_routes, name='show_routes'),
+    url(r'^show_points/$', views.show_points, name='show_points'),
+
+    url(r'^route/((?P<route_id>\d+))/$', rest.RouteList.as_view()),
+    url(r'^route/$', rest.RouteList.as_view()),
+    url(r'^add_route/$', views.add_route, name='add_route'),
+
+    url(r'^point/$', rest.PointList.as_view()),
 
 ]
 
