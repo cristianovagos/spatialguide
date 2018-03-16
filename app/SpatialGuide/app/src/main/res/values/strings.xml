@@ -22,4 +22,5 @@
     <string name="error_password_match">Passwords do not match</string>
     <string name="error_login">Login failed</string>
     <string name="error_signup">Signup failed</string>
+    <string name="title_activity_map">Map</string>
 </resources>

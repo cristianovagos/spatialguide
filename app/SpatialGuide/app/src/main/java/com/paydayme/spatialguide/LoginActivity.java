@@ -2,9 +2,13 @@ package com.paydayme.spatialguide;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextPaint;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
@@ -12,6 +16,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.lang.reflect.Field;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,6 +35,8 @@ public class LoginActivity extends AppCompatActivity {
     @BindView(R.id.input_password) EditText passwordText;
     @BindView(R.id.btn_login) Button loginButton;
     @BindView(R.id.link_signup) TextView signupLink;
+    @BindView(R.id.tilEmail) TextInputLayout tilEmail;
+    @BindView(R.id.tilPassword) TextInputLayout tilPassword;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,11 +46,16 @@ public class LoginActivity extends AppCompatActivity {
         // Binding the views defined above
         ButterKnife.bind(this);
 
-        // Initializing click listeners
+        // Initializing click listeners and fonts
         initClickListeners();
+
+        // Changing the font
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        tilEmail.setTypeface(tf);
+        tilPassword.setTypeface(tf);
     }
 
-    public void initClickListeners() {
+    private void initClickListeners() {
         // Login Button
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,6 +134,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void onLoginSuccess() {
         loginButton.setEnabled(true);
+        startActivity(new Intent(LoginActivity.this, MapActivity.class));
         finish();
     }
 
