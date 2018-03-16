@@ -24,10 +24,10 @@ class Route_contains_Point(models.Model):
     Point = models.ForeignKey(Point, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "Route '%s' contains point '%s'" %(self.route.name,self.point.name)
+        return "Route '%s' contains point '%s'" %(self.Route.Name,self.Point.Name)
 
 
-
+#################  FORMS  #############################
 
 class RouteForm(ModelForm):
     Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
@@ -35,4 +35,14 @@ class RouteForm(ModelForm):
 
     class Meta:
         model = Route
+        fields = '__all__'
+
+
+class PointForm(ModelForm):
+    Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
+    Latitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Latitude', 'readonly':'readonly'}))
+    Longitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Longitude', 'readonly':'readonly'}))
+
+    class Meta:
+        model = Point
         fields = '__all__'

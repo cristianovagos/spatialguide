@@ -1,0 +1,83 @@
+{% extends "navbar.html" %}
+
+{% block link %}
+
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+
+  <div class="container" style="float:left">
+    <div class="card card-login mx-auto mt-5 " >
+      <div class="card-header">Add {{ title }}</div>
+
+
+      <div class="card-body" >
+
+        <form method="post" target="_self">
+            {% csrf_token %}
+
+                {% for f in form_t %}
+                    <div class="form-group">
+                        <label>{{ f.name }}</label>
+                        {{ f }}
+                    </div>
+                {% endfor %}
+
+                <input type="submit" class="btn btn-primary btn-block" value="OK">
+
+        <!--
+          <div class="form-group">
+            <label for="exampleInputEmail1">Enter email</label>
+            <input class="form-control" id="exampleInputEmail1" type="email" aria-describedby="emailHelp" placeholder="Enter email">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Password</label>
+            <input class="form-control" id="exampleInputPassword1" type="password" placeholder="Password">
+          </div>
+        -->
+
+        </form>
+
+      </div>
+    </div>
+
+
+    <div id="map" style="width: 500px; height: 500px; float:right"></div>
+
+  </div>
+{% endblock %}
+
+{% block scripts %}
+
+    <script>
+            var point_array="{{ point_array }}";
+    </script>
+
+    <script src="../static/js/google_maps.js"></script>
+
+    <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o&callback=initMap">
+    </script>
+
+
+
+
+{% endblock %}
+
+
+
+<!--   APIkey            AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o              >

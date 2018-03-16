@@ -5,6 +5,9 @@ from datetime import datetime
 from .utils import *
 from .models import *
 
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
 def show_routes(request):
     assert isinstance(request, HttpRequest)
 
@@ -27,7 +30,6 @@ def add_route(request):
         # create a form instance and populate it with data from the request:
         form = RouteForm(request.POST)
         if form.is_valid():
-            print('Is Valid')
 
             name = request.POST.get('Name','')
             description= request.POST.get('Description','')
@@ -39,12 +41,11 @@ def add_route(request):
 
 
     tparams = {
-        'type': 'Route',
-        'post_target': 'add_route',
+        'title': 'Route',
         'form_t': RouteForm()
     }
 
-    return render(request, 'form.html', tparams)
+    return render(request, 'form_route.html', tparams)
 
 def show_points(request):
     assert isinstance(request, HttpRequest)
@@ -64,13 +65,28 @@ def show_points(request):
 def add_point(request):
     assert isinstance(request, HttpRequest)
 
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = PointForm(request.POST)
+        if form.is_valid():
+            name = request.POST.get('Name', '')
+            latitude = request.POST.get('Latitude', '')
+            longitude = request.POST.get('Longitude', '')
+
+            p = Point(Name=name, Latitude=float(latitude), Longitude=float(longitude))
+            p.save()
+
+        return show_points(request)
+
+    tab_names, point_list = get_allPoints()
+
     tparams = {
-        'type': 'Point',
-        'field_names': ['Name','Latitude','Longitude'],
-        'add_btn': 'show_points'
+        'title': 'Point',
+        'point_array': json.dumps(point_list),
+        'form_t': PointForm()
     }
 
-    return render(request, 'form.html', tparams)
+    return render(request, 'form_point.html', tparams)
 
 
 
