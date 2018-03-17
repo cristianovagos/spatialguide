@@ -13,8 +13,3 @@ class PointSerializer(serializers.ModelSerializer):
         model = Point
         fields = '__all__'
 
-class RouteContainsPointSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Route_contains_Point
-        fields = '__all__'

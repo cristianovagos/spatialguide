@@ -33,13 +33,14 @@ urlpatterns = [
     url(r'^show_routes/$', views.show_routes, name='show_routes'),
     url(r'^show_points/$', views.show_points, name='show_points'),
 
+    url(r'^add_route/$', views.add_route, name='add_route'),
+    url(r'^add_point/$', views.add_point, name='add_point'),
+
     url(r'^route/((?P<route_id>\d+))/$', rest.RouteList.as_view()),
     url(r'^route/$', rest.RouteList.as_view()),
-    url(r'^add_route/$', views.add_route, name='add_route'),
-
+    url(r'^route_points/((?P<route_id>\d+))/$', rest.Route_PointList.as_view()),
 
     url(r'^point/$', rest.PointList.as_view()),
-    url(r'^add_point/$', views.add_point, name='add_point'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

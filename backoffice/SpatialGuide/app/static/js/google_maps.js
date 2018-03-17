@@ -1,5 +1,6 @@
 var map;
 var pos = 30;
+var marker;
 
 function initMap() {
         var mapDiv = document.getElementById('map');
@@ -21,20 +22,29 @@ function initMap() {
                                   });
         }
 
-        map.addListener('click',function (e) {
-            var myLatLng = new google.maps.LatLng(e.latLng.lat(), e.latLng.lng());
-            var marker = new google.maps.Marker({
-                                                position: myLatLng,
-                                                map: map,
-                                                title: "Lol"
-                                          });
 
+        map.addListener('click',function (e) {
+
+            var mycursorLatLng = new google.maps.LatLng(e.latLng.lat(), e.latLng.lng());
+
+
+            if (!marker) {
+                marker = new google.maps.Marker({
+                    position: mycursorLatLng,
+                    map: map,
+                    title: "New Point"
+                });
+            }
+            else
+            {
+                marker.setPosition(mycursorLatLng);
+            }
 
             var lat = document.getElementById('id_Latitude');
             var lng = document.getElementById('id_Longitude');
 
-            lat.value = myLatLng.lat();
-            lng.value = myLatLng.lng();
+            lat.value = mycursorLatLng.lat();
+            lng.value = mycursorLatLng.lng();
 
         })
 
