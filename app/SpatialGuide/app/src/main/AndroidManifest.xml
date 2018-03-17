@@ -30,6 +30,9 @@
             android:name=".SignupActivity"
             android:theme="@style/AppTheme.Dark" />
         <activity
+            android:name=".RouteActivity"
+            android:theme="@style/AppTheme.Dark"/>
+        <activity
             android:name=".MapActivity"
             android:theme="@style/AppTheme.Dark"/>
         <!--

@@ -14,8 +14,8 @@
     <string name="create_account">Create Account</string>
     <string name="authenticating">Authenticating...</string>
     <string name="creating_account">Creating Account...</string>
-    <string name="already_member">Already member? Login now!</string>
-    <string name="no_account">No account yet? Create one now!</string>
+    <string name="already_member"><u>Already member? Login now!</u></string>
+    <string name="no_account"><u>No account yet? Create one now!</u></string>
     <string name="error_name">Enter at least 3 characters</string>
     <string name="error_email">Enter a valid email address</string>
     <string name="error_password">Between 4 to 10 alphanumeric characters</string>
@@ -23,4 +23,7 @@
     <string name="error_login">Login failed</string>
     <string name="error_signup">Signup failed</string>
     <string name="title_activity_map">Map</string>
+    <string name="welcome_text">Welcome to SpatialGuide!</string>
+    <string name="register_text">Register your account on SpatialGuide!</string>
+    <string name="select_route">Select one of the available routes:</string>
 </resources>

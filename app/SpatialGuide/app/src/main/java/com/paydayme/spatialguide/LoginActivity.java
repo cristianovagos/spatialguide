@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.TextPaint;
 import android.util.Log;
 import android.util.Patterns;
@@ -31,8 +32,8 @@ public class LoginActivity extends AppCompatActivity {
     private static final int REQUEST_SIGNUP = 0;
 
     // Reference the views
-    @BindView(R.id.input_email) EditText emailText;
-    @BindView(R.id.input_password) EditText passwordText;
+    @BindView(R.id.input_email) AppCompatEditText emailText;
+    @BindView(R.id.input_password) AppCompatEditText passwordText;
     @BindView(R.id.btn_login) Button loginButton;
     @BindView(R.id.link_signup) TextView signupLink;
     @BindView(R.id.tilEmail) TextInputLayout tilEmail;
@@ -134,7 +135,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void onLoginSuccess() {
         loginButton.setEnabled(true);
-        startActivity(new Intent(LoginActivity.this, MapActivity.class));
+        startActivity(new Intent(LoginActivity.this, RouteActivity.class));
         finish();
     }
 

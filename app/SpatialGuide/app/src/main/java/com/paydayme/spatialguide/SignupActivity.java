@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatEditText;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
@@ -27,10 +28,10 @@ public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
 
     // Reference the views
-    @BindView(R.id.input_name) EditText nameText;
-    @BindView(R.id.input_email) EditText emailText;
-    @BindView(R.id.input_password) EditText passwordText;
-    @BindView(R.id.input_reEnterPassword) EditText reEnterPasswordText;
+    @BindView(R.id.input_name) AppCompatEditText nameText;
+    @BindView(R.id.input_email) AppCompatEditText emailText;
+    @BindView(R.id.input_password) AppCompatEditText passwordText;
+    @BindView(R.id.input_reEnterPassword) AppCompatEditText reEnterPasswordText;
     @BindView(R.id.btn_signup) Button signupButton;
     @BindView(R.id.link_login) TextView loginLink;
     @BindView(R.id.tilName) TextInputLayout tilName;
@@ -117,7 +118,7 @@ public class SignupActivity extends AppCompatActivity {
     public void onSignupSuccess() {
         signupButton.setEnabled(true);
         setResult(RESULT_OK, null);
-        startActivity(new Intent(SignupActivity.this, MapActivity.class));
+        startActivity(new Intent(SignupActivity.this, RouteActivity.class));
         finish();
     }
 

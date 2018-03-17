@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/splash_layer"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="56dp"
         android:paddingLeft="24dp"
         android:paddingRight="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/welcome_text"
+            android:paddingTop="20dp"
+            android:paddingBottom="40dp"
+            android:layout_gravity="center_horizontal"
+            />
 
         <ImageView
             android:src="@drawable/logo"
@@ -38,8 +47,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp">
-            <EditText
+            <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_email"
+                android:drawableLeft="@drawable/ic_email"
+                android:drawableStart="@drawable/ic_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
@@ -53,8 +64,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp">
-            <EditText
+            <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_password"
+                android:drawableLeft="@drawable/ic_password"
+                android:drawableStart="@drawable/ic_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
@@ -63,11 +76,13 @@
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/btn_login"
+            android:background="@drawable/rounded_shape"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="24dp"
             android:text="@string/login"
+            android:textStyle="bold"
             android:padding="12dp"/>
         
         <TextView

@@ -46,4 +46,18 @@
         <item name="android:fontFamily">@font/catamaran</item>
     </style>
 
+    <style name="CustomDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/white</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:windowBackground">@color/primary</item>
+        <item name="android:fontFamily">@font/catamaran</item>
+    </style>
+
+    <style name="Toolbar.TitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <!--<item name="android:textSize">21sp</item>-->
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@font/catamaran</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+
 </resources>

@@ -1,11 +1,15 @@
 package com.paydayme.spatialguide;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -13,6 +17,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -20,9 +25,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,12 +53,15 @@ public class MapActivity extends AppCompatActivity
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
     private static final String TAG = "MapActivity";
-    private static final int TRIGGER_AREA_DISTANCE = 15;
+    private static final int TRIGGER_AREA_DISTANCE = 100;
 
     private GoogleMap googleMap;
+    private boolean isMapReady = false;
+    private boolean firstTime = true;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private Marker currentLocationMarker;
+    private long startTime, endTime, deltaTime;
 
     /**
      * For dummy purposes
@@ -90,8 +98,9 @@ public class MapActivity extends AppCompatActivity
         // Get the google maps client
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Setting action bar to the toolbar
+        // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(null);
 
         // Add listener to the hamburger icon on left
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -109,6 +118,17 @@ public class MapActivity extends AppCompatActivity
         mp = MediaPlayer.create(this, R.raw.tadahh);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startTime = SystemClock.elapsedRealtime();
+        firstTime = true;
+
+        if(isMapReady) {
+            doLocationRequests();
+        }
+    }
+
     /**
      * What to do when the back button is pressed
      */
@@ -118,7 +138,28 @@ public class MapActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+//            super.onBackPressed();
+
+            //Ask the user if they want to quit
+            AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                    .setTitle("Exit")
+                    .setMessage("Are you sure you want to quit?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            //Stop the activity
+                            finish();
+                        }
+
+                    })
+                    .setNegativeButton("No", null)
+                    .setCancelable(false)
+                    .show();
+            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+            textView.setTypeface(tf);
         }
     }
 
@@ -150,18 +191,14 @@ public class MapActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if (id == R.id.nav_website) {
+            String url = "http://xcoa.av.it.pt/~pei2017-2018_g09/";
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(Uri.parse(url));
+            startActivity(i);
+        } else if(id == R.id.nav_route){
+            startActivity(new Intent(MapActivity.this, RouteActivity.class));
+            finish();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -187,9 +224,14 @@ public class MapActivity extends AppCompatActivity
      */
     @Override
     public void onMapReady(GoogleMap googMap) {
+        isMapReady = true;
         googleMap = googMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
+        doLocationRequests();
+    }
+
+    private void doLocationRequests() {
         locationRequest = new LocationRequest();
         locationRequest.setInterval(60000); // one minute interval
         locationRequest.setFastestInterval(1500); // 15 seconds
@@ -213,18 +255,29 @@ public class MapActivity extends AppCompatActivity
             googleMap.setMyLocationEnabled(true);
         }
 
+        firstTime = true;
+
         /**
          * DUMMY LOCATION MARKER
          */
         dummyLocationMarker = new MarkerOptions();
-        dummyLocationMarker.position(new LatLng(40.635625, -8.647693));
+        //FANEPAO
+//        dummyLocationMarker.position(new LatLng(40.635625, -8.647693));
+
+        //DETI
+        dummyLocationMarker.position(new LatLng(40.633135, -8.659483));
         dummyLocationMarker.title("Dummy Fixed Position");
         dummyLocationMarker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
         googleMap.addMarker(dummyLocationMarker);
 
         dummyLocation = new Location("");
-        dummyLocation.setLatitude(40.635625);
-        dummyLocation.setLongitude(-8.647693);
+//        // Fanepao
+//        dummyLocation.setLatitude(40.635625);
+//        dummyLocation.setLongitude(-8.647693);
+
+//         DETI
+        dummyLocation.setLatitude(40.633135);
+        dummyLocation.setLongitude(-8.659483);
     }
 
     /**
@@ -338,8 +391,24 @@ public class MapActivity extends AppCompatActivity
                 tvDistance.setText("Distance: " + String.valueOf(location.distanceTo(dummyLocation)) + "m");
 
                 // if the current location is within the trigger area, we play the audio file
+                // to avoid playing multiple times, only play if the time elapsed greater than 1 minute
                 if(location.distanceTo(dummyLocation) <= TRIGGER_AREA_DISTANCE) {
-                    mp.start();
+                    currentLocationMarker.remove();
+                    markerOptions.title("You're at DETI!");
+                    markerOptions.snippet("O melhor departamento da Universidade de Aveiro!");
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    currentLocationMarker = googleMap.addMarker(markerOptions);
+
+                    endTime = SystemClock.elapsedRealtime();
+                    deltaTime = endTime - startTime;
+
+                    double secondsElapsed = deltaTime / 1000.0;
+
+                    if(firstTime || secondsElapsed >= (60 * 1)) {
+                        currentLocationMarker.showInfoWindow();
+                        mp.start();
+                        firstTime = false;
+                    }
                 }
             }
         }
