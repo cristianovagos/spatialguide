@@ -11,9 +11,7 @@ import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -25,9 +23,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -138,8 +138,6 @@ public class MapActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-//            super.onBackPressed();
-
             //Ask the user if they want to quit
             AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
                     .setTitle("Exit")
@@ -266,7 +264,7 @@ public class MapActivity extends AppCompatActivity
 
         //DETI
         dummyLocationMarker.position(new LatLng(40.633135, -8.659483));
-        dummyLocationMarker.title("Dummy Fixed Position");
+        dummyLocationMarker.title("DETI");
         dummyLocationMarker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
         googleMap.addMarker(dummyLocationMarker);
 
@@ -394,8 +392,8 @@ public class MapActivity extends AppCompatActivity
                 // to avoid playing multiple times, only play if the time elapsed greater than 1 minute
                 if(location.distanceTo(dummyLocation) <= TRIGGER_AREA_DISTANCE) {
                     currentLocationMarker.remove();
-                    markerOptions.title("You're at DETI!");
-                    markerOptions.snippet("O melhor departamento da Universidade de Aveiro!");
+                    markerOptions.title("You are at DETI!");
+                    markerOptions.snippet("DETI - Departamento de Eletrónica, Telecomunicações e Informática");
                     markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                     currentLocationMarker = googleMap.addMarker(markerOptions);
 
@@ -405,12 +403,56 @@ public class MapActivity extends AppCompatActivity
                     double secondsElapsed = deltaTime / 1000.0;
 
                     if(firstTime || secondsElapsed >= (60 * 1)) {
-                        currentLocationMarker.showInfoWindow();
+//                        currentLocationMarker.showInfoWindow();
                         mp.start();
+                        showInfoDialog();
                         firstTime = false;
                     }
                 }
             }
         }
     };
+
+    private void showInfoDialog() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_layout, null);
+
+        TextView dialogTitle = (TextView) view.findViewById(R.id.dialog_title);
+        dialogTitle.setText("DETI - Departamento de Eletrónica, Telecomunicações e Informática");
+
+        TextView dialogText = (TextView) view.findViewById(R.id.dialog_text);
+        dialogText.setText("O Departamento de Eletrónica, Telecomunicações e Informática (DETI) foi fundado em 1974, " +
+                "com o nome de Departamento de Eletrónica e Telecomunicações, tendo sido um dos primeiros " +
+                "departamentos a iniciar atividade após a criação da Universidade de Aveiro em 1973. " +
+                "Em 2006 foi alterada a sua designação por forma a espelhar a atividade existente no Departamento na área da Informática.");
+
+        ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
+        dialogImage.setImageResource(R.drawable.deti);
+
+        //Ask the user if they want to quit
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle("You are at DETI!")
+                .setView(view)
+                .setIcon(R.mipmap.ic_info)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setNeutralButton("Learn more", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String url = "https://www.ua.pt/deti/";
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(url));
+                        startActivity(intent);
+                    }
+                })
+                .setCancelable(true)
+                .show();
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
+    }
 }
