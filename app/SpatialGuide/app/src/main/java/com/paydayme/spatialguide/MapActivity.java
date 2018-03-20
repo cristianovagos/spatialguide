@@ -23,10 +23,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,7 +56,8 @@ public class MapActivity extends AppCompatActivity
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
     private static final String TAG = "MapActivity";
-    private static final int TRIGGER_AREA_DISTANCE = 100;
+    private static final int TRIGGER_AREA_DISTANCE = 25;
+//    private static final int TRIGGER_AREA_DISTANCE = 150;
 
     private GoogleMap googleMap;
     private boolean isMapReady = false;
@@ -61,7 +65,8 @@ public class MapActivity extends AppCompatActivity
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private Marker currentLocationMarker;
-    private long startTime, endTime, deltaTime;
+    private long startTime = SystemClock.elapsedRealtime(), endTime, deltaTime;
+    private AlertDialog dialog;
 
     /**
      * For dummy purposes
@@ -121,8 +126,6 @@ public class MapActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        startTime = SystemClock.elapsedRealtime();
-        firstTime = true;
 
         if(isMapReady) {
             doLocationRequests();
@@ -225,6 +228,19 @@ public class MapActivity extends AppCompatActivity
         isMapReady = true;
         googleMap = googMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Log.d(TAG, "onMarkerClick: marker " + marker.getTag());
+
+                /**
+                 * TODO check if user clicked on user marker or on location marker
+                 * Idea: if clicked on location marker display the info about it
+                 */
+
+                return false;
+            }
+        });
 
         doLocationRequests();
     }
@@ -253,8 +269,6 @@ public class MapActivity extends AppCompatActivity
             googleMap.setMyLocationEnabled(true);
         }
 
-        firstTime = true;
-
         /**
          * DUMMY LOCATION MARKER
          */
@@ -266,7 +280,8 @@ public class MapActivity extends AppCompatActivity
         dummyLocationMarker.position(new LatLng(40.633135, -8.659483));
         dummyLocationMarker.title("DETI");
         dummyLocationMarker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-        googleMap.addMarker(dummyLocationMarker);
+        Marker dummyMarker = googleMap.addMarker(dummyLocationMarker);
+        dummyMarker.setTag("location");
 
         dummyLocation = new Location("");
 //        // Fanepao
@@ -306,8 +321,6 @@ public class MapActivity extends AppCompatActivity
                         })
                         .create()
                         .show();
-
-
             } else {
                 // No explanation needed, we can request the permission.
                 ActivityCompat.requestPermissions(this,
@@ -377,8 +390,9 @@ public class MapActivity extends AppCompatActivity
                 MarkerOptions markerOptions = new MarkerOptions();
                 markerOptions.position(latLng);
                 markerOptions.title("Current Position");
-                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                markerOptions.icon(BitmapDescriptorFactory.fromResource(R.mipmap.logo_launcher));
                 currentLocationMarker = googleMap.addMarker(markerOptions);
+                currentLocationMarker.setTag("me");
 
                 // move map camera
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18));
@@ -394,19 +408,35 @@ public class MapActivity extends AppCompatActivity
                     currentLocationMarker.remove();
                     markerOptions.title("You are at DETI!");
                     markerOptions.snippet("DETI - Departamento de Eletrónica, Telecomunicações e Informática");
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+//                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.mipmap.logo_launcher));
                     currentLocationMarker = googleMap.addMarker(markerOptions);
+                    currentLocationMarker.setTag("me");
 
                     endTime = SystemClock.elapsedRealtime();
                     deltaTime = endTime - startTime;
 
                     double secondsElapsed = deltaTime / 1000.0;
 
+                    Log.d(TAG, "startTime: " + startTime);
+                    Log.d(TAG, "endTime: " + endTime);
+                    Log.d(TAG, "secondsElapsed: " + secondsElapsed);
+
                     if(firstTime || secondsElapsed >= (60 * 1)) {
-//                        currentLocationMarker.showInfoWindow();
+                        // play the sound
                         mp.start();
+
+                        // show the dialog with info of location
                         showInfoDialog();
+
+                        /**
+                         * TODO: Change this firsttime mechanism. Its dumb.
+                         * Idea: check if we already visited the point, so we need to show the
+                         * dialog info, otherwise check the time difference
+                         */
                         firstTime = false;
+
+                        startTime = endTime;
                     }
                 }
             }
@@ -414,6 +444,9 @@ public class MapActivity extends AppCompatActivity
     };
 
     private void showInfoDialog() {
+        // Check if the dialog exists and if its showing
+        if(dialog != null && dialog.isShowing()) return;
+
         LayoutInflater inflater = LayoutInflater.from(this);
         View view = inflater.inflate(R.layout.dialog_layout, null);
 
@@ -430,7 +463,7 @@ public class MapActivity extends AppCompatActivity
         dialogImage.setImageResource(R.drawable.deti);
 
         //Ask the user if they want to quit
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
                 .setTitle("You are at DETI!")
                 .setView(view)
                 .setIcon(R.mipmap.ic_info)
@@ -449,8 +482,19 @@ public class MapActivity extends AppCompatActivity
                         startActivity(intent);
                     }
                 })
-                .setCancelable(true)
-                .show();
+                .setCancelable(true);
+        dialog = builder.create();
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        lp.height = 1300;
+//        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER;
+
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+
         TextView textView = (TextView) dialog.findViewById(android.R.id.message);
         Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
         textView.setTypeface(tf);
