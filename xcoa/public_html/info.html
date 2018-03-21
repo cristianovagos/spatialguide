@@ -8,7 +8,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Features | SpatialGuide</title>
+    <title>info | SpatialGuide</title>
 
     <!-- Bootstrap core CSS -->
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -58,6 +58,7 @@
 			<li class="nav-item">
               <a class="nav-link" href="info.html">Info</a>
             </li>
+			
             <!-- <li class="nav-item">
               <a class="nav-link" href="index.html#contact">Contact</a>
             </li> -->
@@ -70,8 +71,8 @@
       <div class="container">
         <div class="row">
           <div class="col-md-8 mx-auto">
-            <h2 class="section-heading">Features</h2>
-            <p>The main features of our System</p>
+            <h2 class="section-heading">Info</h2>
+            <p>What? Why? How?</p>
             <hr>
           </div>
         </div>
@@ -81,39 +82,60 @@
     <section class="download" style="padding: 100px 0;">
       <div class="container">
         <div class="row">
-          <!-- div class="col-md-4">
+          <div class="col-md-4">
             <ul class="navbar-nav sticky-top" style="padding-top: 100px;">
               <li class="nav-item">
-                <a class="nav-link" href="#intro" style="color: black;">Introduction</a>
+                <a class="nav-link" href="#what" style="color: black;">What is Spatial Guide?</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#sysreq" style="color: black;">System Requirements</a>
+                <a class="nav-link" href="#why" style="color: black;">Why is it relevant?</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#sysfeatures" style="color: black;">System Features</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#app" style="color: black;">The App</a>
-              </li>
-            </ul>-->
+              
+			  
+			
+            </ul>
           </div>
           <div class="col-md-8 mx-auto">
-            <h3 id="intro">SpatialGuide features:</h3>
+            <h3 id="what">What is Spatial Guide?</h3>
             <br>
             <p style="text-align: justify;">
-              - GPS position to track user position;<br>
-              - Registers head position related to the point of interest;<br>
-			  - Stores the information of users, and points of interest in a database; <br> 
-			  - Register to store user information in order to provide a more customised experience;<br>
-              - Create, modify and delete new points of interest and new tour routes and save the audio explanation on the database;<br>
-              - Plays an audio explanation whenever the use approaches a point of interest;<br>
-			  - Auralization engine integrated with head tracking to envolve the user in an immersive experience;<br>
-              - Download of tour routes for offline usage;<br>
-              - Route visualization in real time to track your position and marks the next point of interest<br>
-            </p>
-            <br>
+              It is an audio guiding app for Android that tracks current location and gives visual and audio info on points of interest in tour routes.<br>
+			  The app aims to deliver a more immersive feeling using spatial audio effects to give the impression that the points of interest are talking with the tourist. This effect is achieved by a procedure called <b>Auralization</b>, which simulates the audible acoustic sceneries.<br>
+			  </p>
+			  <br>
+			  <img src="img/aura.JPG" height="500"/>
               <br>
-            </p>
+			  
+            <p style="text-align: justify;">
+			 
+              We are going to use a IMU (Inertia Measurment Unit) to track the user's head direction. <br>
+			   </p>
+            <br>
+			<div class="text-center">
+				<img src="img/htrd.jpg" height="250"/><br>
+			</div>
+			<p style="text-align: justify;">
+              Finally, using the GPS, the system tracks the tourist location and if the user is inside the trigger area, then the application will display the visual information on the smartphone's screen and
+combining the location and orientation, it will reproduce a stereo sound with the illusion that it is coming from the point of interest itself.	<br>
+			</p>
+			<div class="text-center">
+				<img src="img/triggerArea.jpg" height="250"/><br>
+			</div>
+            <br>
+            
+			<h3 id="why">Why is it relevant?</h3>
+            <br>
+            <p style="text-align: justify;">
+              Tourism is very profitable not only from a business point of view, it is also an enriching cultural activity. Just looking at the tourism statistics for Portugal alone we can see. </p>
+			  <br>
+			  <div class="text-center">
+				<img src="img/stats.jpg"/><br>
+			</div>
+			<br>
+			<p style="text-align: justify;">
+              Just imagine how is it for the entire world.
+			</p>
+			  
           </div>
         </div>
       </div>
