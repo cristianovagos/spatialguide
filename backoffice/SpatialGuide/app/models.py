@@ -4,7 +4,9 @@ from django import forms
 
 class Route(models.Model):
     Name = models.CharField(max_length=50)
-    Description = models.CharField(max_length=100)
+    Description = models.CharField(max_length=500)
+
+    # Set Route image
 
     def __str__(self):
         return "{'name': %s, 'description': %s}" % (self.Name,self.Description)
@@ -13,8 +15,11 @@ class Route(models.Model):
 
 class Point(models.Model):
     Name = models.CharField(max_length=50)
+    Url = models.CharField(max_length=100)
+    Description = models.CharField(max_length=500)
     Latitude = models.FloatField()
     Longitude = models.FloatField()
+    # Set Image Resource
 
     def __str__(self):
         return "Name: %s ( %s, %s )" %(self.Name,self.Latitude,self.Longitude)
@@ -25,6 +30,8 @@ class Route_contains_Point(models.Model):
 
     def __str__(self):
         return "Route '%s' contains point '%s'" %(self.Route.Name,self.Point.Name)
+
+
 
 
 #################  FORMS  #############################
@@ -40,6 +47,8 @@ class RouteForm(ModelForm):
 
 class PointForm(ModelForm):
     Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
+    Url = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Url'}))
+    Description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Description'}))
     Latitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Latitude', 'readonly':'readonly'}))
     Longitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Longitude', 'readonly':'readonly'}))
 

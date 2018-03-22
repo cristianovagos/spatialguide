@@ -4,28 +4,28 @@
 {% block content %}
 
   <div class="container">
-    <div class="card card-login mx-auto mt-5">
-      <div class="card-header">Add {{ title }}</div>
-      <div class="card-body">
+        <div class="card card-login mx-auto mt-5">
+          <div class="card-header">Add {{ title }}</div>
+          <div class="card-body">
 
-        <form method="post" target="_self">
-            {% csrf_token %}
+            <form method="post" target="_self">
+                {% csrf_token %}
 
-                {% for f in form_t %}
-                    <div class="form-group">
-                        <label>{{ f.name }}</label>
-                        {{ f }}
-                    </div>
-                {% endfor %}
+                    {% for f in form_t %}
+                        <div class="form-group">
+                            <label>{{ f.name }}</label>
+                            {{ f }}
+                        </div>
+                    {% endfor %}
 
-                <input type="submit" class="btn btn-primary btn-block" value="OK">
+                    <input type="submit" class="btn btn-primary btn-block" value="OK">
 
-        </form>
+            </form>
 
-      </div>
-    </div>
-   </div>
+          </div>
+        </div>
 
+  </div>
 
 {% endblock %}
 

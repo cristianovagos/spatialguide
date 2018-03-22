@@ -21,20 +21,22 @@ from app import views,rest
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$', views.home, name='home'),
-    url(r'^about', views.about, name='about'),
+    #url(r'^$', views.home, name='home'),
     url(r'^login/$', auth.login, name='login'),
     url(r'^tables$', views.tables, name='tables'),
     url(r'^charts', views.charts, name='charts'),
     url(r'^register', views.register, name='register'),
     url(r'^cards', views.cards, name='cards'),
 
-
+    url(r'^$', views.show_routes, name='home'),
     url(r'^show_routes/$', views.show_routes, name='show_routes'),
+    url(r'^display_route/((?P<route_id>\d+))/$', views.show_route , name='display_route'),
     url(r'^show_points/$', views.show_points, name='show_points'),
 
     url(r'^add_route/$', views.add_route, name='add_route'),
     url(r'^add_point/$', views.add_point, name='add_point'),
+
+    ############ Rest ####################
 
     url(r'^route/((?P<route_id>\d+))/$', rest.RouteList.as_view()),
     url(r'^route/$', rest.RouteList.as_view()),

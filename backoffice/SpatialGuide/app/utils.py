@@ -1,4 +1,5 @@
 from .serializer import *
+from django.forms.models import model_to_dict
 
 
 
@@ -16,6 +17,21 @@ def get_allRoutes():
         route_list.append(route)
 
     return (tab_names,route_list)
+
+
+def get_route(route_id):
+    route = Route.objects.get(pk=route_id)
+
+    route = model_to_dict(route)
+    return route
+
+
+def get_route_points(route_id):
+    points = Point.objects.filter(route_contains_point__Route_id=route_id)
+    serializer = PointSerializer(points, many=True)
+    points = serializer.data
+
+    return points
 
 
 def get_allPoints():

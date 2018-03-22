@@ -1,5 +1,3 @@
-
-
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -20,11 +18,9 @@ class RouteList(APIView):
 
 
         serializer = RouteSerializer(routes,many=True)
-        print(serializer)
         route_list=serializer.data
 
         route_list=route_list[0]['id']
-        print("Route ID: %s" % route_list)
 
 
         return Response(serializer.data)
@@ -43,11 +39,12 @@ class PointList(APIView):
     def post(self,request):
         pass
 
+# route_points/{route_id}
 class Route_PointList(APIView):
 
     def get(self,request,route_id):
         route_points = Point.objects.filter(route_contains_point__Route_id=route_id)
-        serializer = PointSerializer(route_points,many=True)
+        serializer = PointSerializer(route_points, many=True)
 
         return Response(serializer.data)
 
