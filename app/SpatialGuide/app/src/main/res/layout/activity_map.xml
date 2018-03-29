@@ -9,24 +9,56 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="350dp"
-        tools:context="com.paydayme.spatialguide.MapActivity" />
+        tools:context="com.paydayme.spatialguide.ui.MapActivity" />
+
+    <LinearLayout
+        android:id="@+id/buttonsLayout"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/map"
+        android:layout_margin="25dp"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/btn_play"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_shape"
+            android:text="Play last location"
+            android:padding="5dp"
+            android:drawableLeft="@drawable/ic_play"
+            android:layout_marginRight="20dp"/>
+
+        <Button
+            android:id="@+id/btn_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_shape"
+            android:padding="5dp"
+            android:drawableLeft="@drawable/ic_info"
+            android:text="Show Last location info"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvLatitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="5dp"
         android:text="Latitude"
         android:textSize="18sp"
-        android:layout_below="@+id/map"/>
+        android:layout_below="@+id/buttonsLayout"/>
 
     <TextView
         android:id="@+id/tvLongitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:text="Longitude"
         android:textSize="18sp"
         android:layout_below="@+id/tvLatitude"/>
@@ -36,7 +68,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:text="Distance"
         android:textSize="18sp"
         android:layout_below="@+id/tvLongitude"/>

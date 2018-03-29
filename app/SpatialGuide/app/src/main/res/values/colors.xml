@@ -4,10 +4,19 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="primary">#1e88e5</color>
-    <color name="primary_dark">#304FFE</color>
+    <!--<color name="primary">#1e88e5</color>-->
+    <!--<color name="primary_dark">#304FFE</color>-->
     <color name="primary_darker">#0031ca</color>
-    <color name="accent">#ffd600</color>
+    <!--<color name="accent">#ffd600</color>-->
+
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="primary_light">#BBDEFB</color>
+    <color name="accent">#FF9800</color>
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#757575</color>
+    <color name="icons">#FFFFFF</color>
+    <color name="divider">#BDBDBD</color>
 
     <color name="black">#000000</color>
     <color name="jet">#222222</color>

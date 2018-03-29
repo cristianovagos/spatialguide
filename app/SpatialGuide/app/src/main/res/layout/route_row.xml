@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="5dp"
+    android:layout_gravity="center"
+    app:cardElevation="5dp"
+    app:cardUseCompatPadding="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white">
+
+        <ImageView
+            android:id="@+id/routeImage"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/app_name" />
+
+        <TextView
+            android:id="@+id/routeName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@id/routeImage"
+            android:layout_alignEnd="@+id/routeImage"
+            android:layout_alignBottom="@id/routeImage"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:paddingEnd="15dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="5dp"
+            android:layout_centerVertical="true"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/catamaran"
+            android:background="#4000"/>
+
+        <TextView
+            android:id="@+id/routeDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/routeName"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:paddingEnd="15dp"
+            android:paddingRight="15dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="10dp"
+            android:layout_centerVertical="true"
+            android:textSize="15sp"
+            android:maxLines="3"
+            android:ellipsize="marquee"
+            android:textColor="@color/monsoon"
+            android:fontFamily="@font/catamaran"/>
+
+        <!--<TextView-->
+            <!--android:id="@+id/routeAvailableText"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_below="@+id/routeDescription"-->
+            <!--android:paddingStart="0dp"-->
+            <!--android:paddingEnd="5dp"-->
+            <!--android:paddingLeft="0dp"-->
+            <!--android:paddingRight="5dp"-->
+            <!--android:layout_marginBottom="5dp"-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:textSize="12sp"-->
+            <!--android:text="@string/route_stored"-->
+            <!--android:textColor="@color/monsoon"-->
+            <!--android:fontFamily="@font/catamaran"-->
+            <!--android:visibility="gone"-->
+            <!--tools:ignore="RtlHardcoded" />-->
+
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

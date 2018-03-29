@@ -12,8 +12,8 @@
     <string name="password_again">Re-enter Password</string>
     <string name="login">Login</string>
     <string name="create_account">Create Account</string>
-    <string name="authenticating">Authenticating...</string>
-    <string name="creating_account">Creating Account...</string>
+    <string name="authenticating">Authenticating…</string>
+    <string name="creating_account">Creating Account…</string>
     <string name="already_member"><u>Already member? Login now!</u></string>
     <string name="no_account"><u>No account yet? Create one now!</u></string>
     <string name="error_name">Enter at least 3 characters</string>
@@ -26,4 +26,25 @@
     <string name="welcome_text">Welcome to SpatialGuide!</string>
     <string name="register_text">Register your account on SpatialGuide!</string>
     <string name="select_route">Select one of the available routes:</string>
+    <string name="routes_failed">No available routes, sorry.</string>
+    <string name="route_available">Route available in this device!</string>
+    <string name="route_details">Details:</string>
+    <string name="map_not_available">Sorry, the map is not available.</string>
+    <string name="map_route_details">Map:</string>
+    <string name="go">GO</string>
+    <string name="date_added">Date added</string>
+    <string name="downloads">Downloads</string>
+    <string name="route_points">Points in this route:</string>
+    <string name="no_points_route_details">Sorry, this route has no points yet.</string>
+    <string name="map">Map</string>
+    <string name="downloading_route">Downloading route…</string>
+    <string name="download_route">Download Route</string>
+    <string name="download_route_prompt">Are you sure you want to download this Route?</string>
+    <string name="navigate_route">Navigate in this Route</string>
+    <string name="navigate_route_prompt">Are you sure you want to navigate in this Route?</string>
+    <string name="exit">Exit</string>
+    <string name="exit_prompt">Are you sure you want to quit?</string>
+    <string name="location_permission_title">Location Permission Needed</string>
+    <string name="location_permission_prompt">This app needs the Location permission, please accept to use location functionality</string>
+    <string name="route_stored">Stored on this device</string>
 </resources>
