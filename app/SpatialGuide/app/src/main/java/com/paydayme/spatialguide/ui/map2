@@ -1,5 +1,6 @@
-package com.paydayme.spatialguide;
+package com.paydayme.spatialguide.ui;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -30,7 +31,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,17 +48,39 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.paydayme.spatialguide.R;
+import com.paydayme.spatialguide.core.Constant;
+import com.paydayme.spatialguide.core.api.SGApiClient;
+import com.paydayme.spatialguide.model.Point;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
+import static com.paydayme.spatialguide.core.Constant.BASE_URL;
+
+/**
+ * MapActivity
+ *
+ * @author cvagos
+ *
+ * The activity responsible for handling the Google Maps, and displaying info about
+ * the SpatialGuide experience (location updates, etc).
+ *
+ * Fused Location Provider and Location Updates functioning based on Google example:
+ * https://github.com/googlesamples/android-play-location/
+ */
 public class MapActivity extends AppCompatActivity
         implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
-    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
-    private static final String TAG = "MapActivity";
-    private static final int TRIGGER_AREA_DISTANCE = 25;
-//    private static final int TRIGGER_AREA_DISTANCE = 150;
+    private static final String TAG = com.paydayme.spatialguide.ui.MapActivity.class.getSimpleName();
 
     private GoogleMap googleMap;
     private boolean isMapReady = false;
@@ -67,6 +90,11 @@ public class MapActivity extends AppCompatActivity
     private Marker currentLocationMarker;
     private long startTime = SystemClock.elapsedRealtime(), endTime, deltaTime;
     private AlertDialog dialog;
+    private int routeSelected;
+
+    private SGApiClient sgApiClient;
+    private List<Point> points = new ArrayList<>();
+    private Point lastPoint = new Point();
 
     /**
      * For dummy purposes
@@ -86,6 +114,8 @@ public class MapActivity extends AppCompatActivity
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.drawer_layout) DrawerLayout drawer;
     @BindView(R.id.nav_view) NavigationView navigationView;
+    @BindView(R.id.btn_info) Button btnInfo;
+    @BindView(R.id.btn_play) Button btnPlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +125,21 @@ public class MapActivity extends AppCompatActivity
         // Binding the views
         ButterKnife.bind(this);
 
+        // Get route selected on the previous screen
+        Intent intent = getIntent();
+        routeSelected = intent.getIntExtra("route", -1);
+        Log.d(TAG, "route selected: " + routeSelected);
+
+        init();
+
+        /**
+         * For dummy purposes
+         * - creating the media player that will play the audio file on "raw" folder on "res"
+         */
+        mp = MediaPlayer.create(this, R.raw.tadahh);
+    }
+
+    private void init() {
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -116,11 +161,28 @@ public class MapActivity extends AppCompatActivity
         // Set listener of navigation view to this class
         navigationView.setNavigationItemSelectedListener(this);
 
-        /**
-         * For dummy purposes
-         * - creating the media player that will play the audio file on "raw" folder on "res"
-         */
-        mp = MediaPlayer.create(this, R.raw.tadahh);
+        // Set button info click listener
+        btnInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showInfoDialog(false, lastPoint);
+            }
+        });
+
+        // Set button play click listener
+        btnPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!mp.isPlaying()) mp.start();
+            }
+        });
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        sgApiClient = retrofit.create(SGApiClient.class);
     }
 
     @Override
@@ -129,6 +191,15 @@ public class MapActivity extends AppCompatActivity
 
         if(isMapReady) {
             doLocationRequests();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //stop location updates when Activity is no longer active
+        if (fusedLocationProviderClient != null) {
+            fusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
         }
     }
 
@@ -143,9 +214,9 @@ public class MapActivity extends AppCompatActivity
         } else {
             //Ask the user if they want to quit
             AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
-                    .setTitle("Exit")
-                    .setMessage("Are you sure you want to quit?")
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    .setTitle(getString(R.string.exit))
+                    .setMessage(getString(R.string.exit_prompt))
+                    .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -155,7 +226,7 @@ public class MapActivity extends AppCompatActivity
                         }
 
                     })
-                    .setNegativeButton("No", null)
+                    .setNegativeButton(getString(android.R.string.no), null)
                     .setCancelable(false)
                     .show();
             TextView textView = (TextView) dialog.findViewById(android.R.id.message);
@@ -198,7 +269,7 @@ public class MapActivity extends AppCompatActivity
             i.setData(Uri.parse(url));
             startActivity(i);
         } else if(id == R.id.nav_route){
-            startActivity(new Intent(MapActivity.this, RouteActivity.class));
+            startActivity(new Intent(com.paydayme.spatialguide.ui.MapActivity.this, RouteActivity.class));
             finish();
         }
 
@@ -272,25 +343,25 @@ public class MapActivity extends AppCompatActivity
         /**
          * DUMMY LOCATION MARKER
          */
-        dummyLocationMarker = new MarkerOptions();
-        //FANEPAO
-//        dummyLocationMarker.position(new LatLng(40.635625, -8.647693));
-
-        //DETI
-        dummyLocationMarker.position(new LatLng(40.633135, -8.659483));
-        dummyLocationMarker.title("DETI");
-        dummyLocationMarker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-        Marker dummyMarker = googleMap.addMarker(dummyLocationMarker);
-        dummyMarker.setTag("location");
-
-        dummyLocation = new Location("");
-//        // Fanepao
-//        dummyLocation.setLatitude(40.635625);
-//        dummyLocation.setLongitude(-8.647693);
-
-//         DETI
-        dummyLocation.setLatitude(40.633135);
-        dummyLocation.setLongitude(-8.659483);
+//        dummyLocationMarker = new MarkerOptions();
+//        //FANEPAO
+////        dummyLocationMarker.position(new LatLng(40.635625, -8.647693));
+//
+//        //DETI
+//        dummyLocationMarker.position(new LatLng(40.633135, -8.659483));
+//        dummyLocationMarker.title("DETI");
+//        dummyLocationMarker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+//        Marker dummyMarker = googleMap.addMarker(dummyLocationMarker);
+//        dummyMarker.setTag("location");
+//
+//        dummyLocation = new Location("");
+////        // Fanepao
+////        dummyLocation.setLatitude(40.635625);
+////        dummyLocation.setLongitude(-8.647693);
+//
+////         DETI
+//        dummyLocation.setLatitude(40.633135);
+//        dummyLocation.setLongitude(-8.659483);
     }
 
     /**
@@ -308,14 +379,14 @@ public class MapActivity extends AppCompatActivity
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
                 new AlertDialog.Builder(this)
-                        .setTitle("Location Permission Needed")
-                        .setMessage("This app needs the Location permission, please accept to use location functionality")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        .setTitle(getString(R.string.location_permission_title))
+                        .setMessage(getString(R.string.location_permission_prompt))
+                        .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 //Prompt the user once explanation has been shown
-                                ActivityCompat.requestPermissions(MapActivity.this,
-                                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                                ActivityCompat.requestPermissions(com.paydayme.spatialguide.ui.MapActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                                         MY_PERMISSIONS_REQUEST_LOCATION );
                             }
                         })
@@ -367,23 +438,17 @@ public class MapActivity extends AppCompatActivity
 
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        //stop location updates when Activity is no longer active
-        if (fusedLocationProviderClient != null) {
-            fusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
-        }
-    }
-
     LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
-                Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
+                Log.d(TAG, "Location: " + location.getLatitude() + " " + location.getLongitude());
                 if (currentLocationMarker != null) {
                     currentLocationMarker.remove();
                 }
+                Point minPoint = new Point();
+                Location minLocation = new Location("");
+                float minDistance = Float.MAX_VALUE;
 
                 // Place current location marker
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -397,17 +462,30 @@ public class MapActivity extends AppCompatActivity
                 // move map camera
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18));
 
+                for(Point point : points) {
+                    Location loc = new Location("");
+                    loc.setLongitude(point.getPointLongitude());
+                    loc.setLatitude(point.getPointLatitude());
+
+                    if(loc.distanceTo(location) < minDistance) {
+                        minDistance = loc.distanceTo(location);
+                        minLocation = loc;
+                        minPoint = point;
+                    }
+                }
+
                 // update the textviews
                 tvLatitude.setText("Latitude: " + String.valueOf(location.getLatitude()));
                 tvLongitude.setText("Longitude: " + String.valueOf(location.getLongitude()));
-                tvDistance.setText("Distance: " + String.valueOf(location.distanceTo(dummyLocation)) + "m");
+                tvDistance.setText("Distance: " + String.valueOf(location.distanceTo(minLocation)) + "m");
 
                 // if the current location is within the trigger area, we play the audio file
                 // to avoid playing multiple times, only play if the time elapsed greater than 1 minute
-                if(location.distanceTo(dummyLocation) <= TRIGGER_AREA_DISTANCE) {
+                if(location.distanceTo(minLocation) <= Constant.TRIGGER_AREA_DISTANCE) {
+                    lastPoint = minPoint;
                     currentLocationMarker.remove();
-                    markerOptions.title("You are at DETI!");
-                    markerOptions.snippet("DETI - Departamento de Eletrónica, Telecomunicações e Informática");
+                    markerOptions.title("You are at " + minPoint.getPointName());
+                    markerOptions.snippet(minPoint.getPointName());
 //                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                     markerOptions.icon(BitmapDescriptorFactory.fromResource(R.mipmap.logo_launcher));
                     currentLocationMarker = googleMap.addMarker(markerOptions);
@@ -427,7 +505,7 @@ public class MapActivity extends AppCompatActivity
                         mp.start();
 
                         // show the dialog with info of location
-                        showInfoDialog();
+                        showInfoDialog(true, minPoint);
 
                         /**
                          * TODO: Change this firsttime mechanism. Its dumb.
@@ -443,7 +521,58 @@ public class MapActivity extends AppCompatActivity
         }
     };
 
-    private void showInfoDialog() {
+    // API STUFF
+    private void getRoutePoints(int id) {
+        Call<List<Point>> call = sgApiClient.getRoutePoints(id);
+
+        call.enqueue(new Callback<List<Point>>() {
+            @Override
+            public void onResponse(Call<List<Point>> call, Response<List<Point>> response) {
+                Log.d(TAG, "onResponse - getRoutePoints");
+
+            }
+
+            @Override
+            public void onFailure(Call<List<Point>> call, Throwable t) {
+
+            }
+        });
+    }
+
+    private void getPoints() {
+        Call<List<Point>> call = sgApiClient.getPoints();
+
+        call.enqueue(new Callback<List<Point>>() {
+            @Override
+            public void onResponse(Call<List<Point>> call, Response<List<Point>> response) {
+                Log.d(TAG, "onResponse");
+
+                for(int i = 0; i < response.body().size(); i++) {
+                    points.add(response.body().get(i));
+                }
+
+                /**
+                 * PUTTING ALL POINTS ON MAP
+                 */
+
+                for(int i = 0; i < points.size(); i++) {
+                    Point point = points.get(i);
+                    MarkerOptions location = new MarkerOptions();
+                    location.position(new LatLng(point.getPointLatitude(), point.getPointLongitude()));
+                    location.title(point.getPointName());
+                    location.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                    googleMap.addMarker(location);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Point>> call, Throwable t) {
+                Log.d(TAG, "onFailure: " + t.getMessage());
+            }
+        });
+    }
+
+    private void showInfoDialog(boolean inLocation, final Point point) {
         // Check if the dialog exists and if its showing
         if(dialog != null && dialog.isShowing()) return;
 
@@ -451,20 +580,20 @@ public class MapActivity extends AppCompatActivity
         View view = inflater.inflate(R.layout.dialog_layout, null);
 
         TextView dialogTitle = (TextView) view.findViewById(R.id.dialog_title);
-        dialogTitle.setText("DETI - Departamento de Eletrónica, Telecomunicações e Informática");
+        dialogTitle.setText(point.getPointName());
 
         TextView dialogText = (TextView) view.findViewById(R.id.dialog_text);
-        dialogText.setText("O Departamento de Eletrónica, Telecomunicações e Informática (DETI) foi fundado em 1974, " +
-                "com o nome de Departamento de Eletrónica e Telecomunicações, tendo sido um dos primeiros " +
-                "departamentos a iniciar atividade após a criação da Universidade de Aveiro em 1973. " +
-                "Em 2006 foi alterada a sua designação por forma a espelhar a atividade existente no Departamento na área da Informática.");
+//        dialogText.setText("O Departamento de Eletrónica, Telecomunicações e Informática (DETI) foi fundado em 1974, " +
+//                "com o nome de Departamento de Eletrónica e Telecomunicações, tendo sido um dos primeiros " +
+//                "departamentos a iniciar atividade após a criação da Universidade de Aveiro em 1973. " +
+//                "Em 2006 foi alterada a sua designação por forma a espelhar a atividade existente no Departamento na área da Informática.");
+        dialogText.setText(point.getPointDescription());
 
-        ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
-        dialogImage.setImageResource(R.drawable.deti);
+//        ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
+//        dialogImage.setImageResource(R.drawable.deti);
 
         //Ask the user if they want to quit
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
-                .setTitle("You are at DETI!")
                 .setView(view)
                 .setIcon(R.mipmap.ic_info)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -473,16 +602,25 @@ public class MapActivity extends AppCompatActivity
                         dialog.dismiss();
                     }
                 })
-                .setNeutralButton("Learn more", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        String url = "https://www.ua.pt/deti/";
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(url));
-                        startActivity(intent);
-                    }
-                })
                 .setCancelable(true);
+
+        if(!point.getPointURL().isEmpty() || point.getPointURL() != null) {
+            builder.setNeutralButton("Learn more", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    String url = point.getPointURL();
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse(url));
+                    startActivity(intent);
+                }
+            });
+        }
+
+        if (inLocation)
+            builder.setTitle("You are at " + point.getPointName());
+        else
+            builder.setTitle(point.getPointName());
+
         dialog = builder.create();
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();

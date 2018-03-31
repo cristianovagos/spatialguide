@@ -3,8 +3,9 @@
     package="com.paydayme.spatialguide">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:name=".core.InitApp"
@@ -33,10 +34,9 @@
             android:name=".ui.RouteActivity"
             android:theme="@style/AppTheme.Dark"/>
         <activity
-            android:name=".ui.MapActivity"
-            android:theme="@style/AppTheme.Dark"/>
-        <activity
             android:name=".ui.RouteDetailsActivity"
+            android:theme="@style/AppTheme.Dark"/>
+        <activity android:name=".ui.MapActivity"
             android:theme="@style/AppTheme.Dark"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.

@@ -28,6 +28,7 @@ import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
+import com.paydayme.spatialguide.utils.Utils;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -152,6 +153,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                                     try {
                                         InternalStorage.writeObject(getApplicationContext(), Constant.ROUTE_STORAGE_SEPARATOR + routeSelected, route);
                                         Toast.makeText(RouteDetailsActivity.this, getString(R.string.downloading_route), Toast.LENGTH_SHORT).show();
+                                        routeOnStorage = true;
                                         fabButton.setImageDrawable(null);
                                         fabText.setVisibility(View.VISIBLE);
                                     } catch (IOException e) {
@@ -173,13 +175,15 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Intent intent = new Intent(RouteDetailsActivity.this, MapActivity.class);
-                                    Bundle bundle = new Bundle();
+                                    if(Utils.isServicesOK(getApplicationContext(), TAG)) {
+                                        Intent intent = new Intent(RouteDetailsActivity.this, MapActivity.class);
+                                        Bundle bundle = new Bundle();
 
-                                    bundle.putInt("route", routeSelected);
-                                    intent.putExtras(bundle);
-                                    startActivity(intent);
-                                    finish();
+                                        bundle.putInt("route", routeSelected);
+                                        intent.putExtras(bundle);
+                                        startActivity(intent);
+                                        finish();
+                                    }
                                 }
                             })
                             .setNegativeButton(getString(android.R.string.no), null)
