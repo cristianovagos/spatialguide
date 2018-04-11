@@ -1,7 +1,12 @@
+import os
+
 from .serializer import *
 from django.forms.models import model_to_dict
+from django.conf import settings
+from .googleDrive import googledrive
 
 
+CREDENTIAL_PATH=os.path.join(settings.BASE_DIR,'app/googleDrive/google-drive-credencials.json')
 
 def get_allRoutes():
     routes = Route.objects.all()
@@ -48,3 +53,17 @@ def get_allPoints():
         point_list.append(point)
 
     return (tab_names,point_list)
+
+################  Google Drive  ################
+
+def save_image(name,path,img_type):
+    connection=googledrive.GoogleDriveConnector(CREDENTIAL_PATH)
+
+    img_id=connection.upload_image(name,path,img_type)
+
+    return img_id
+
+def listFiles():
+    connection=googledrive.GoogleDriveConnector(CREDENTIAL_PATH)
+    connection.listFiles(10)
+

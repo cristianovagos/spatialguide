@@ -45,7 +45,7 @@
                     <tr>
                         {% for val in route.values %}
                           <td>
-                              {% if title == 'Ap' %}
+                              {% if title == 'Route' %}
                                 <a href="{% url 'display_route' route.id %}">{{ val }}</a>
                               {% else %}
                                   {{ val }}

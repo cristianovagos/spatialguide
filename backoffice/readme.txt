@@ -17,6 +17,7 @@ Mysql:
 
 pip3 install django==2.0.3
 pip3 install djangorestframework
+pip3 install --upgrade google-api-python-client
 
 python3 manage.py makemigrations
 python3 manage.py migrate

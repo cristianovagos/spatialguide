@@ -1,10 +1,13 @@
 from django.shortcuts import render
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from django.http import HttpRequest
 from django.http import HttpResponse
 from datetime import datetime
 from .utils import *
 from .models import *
 from .rest import *
+
 
 import json
 
@@ -24,12 +27,11 @@ def show_routes(request):
     return render(request, 'tables.html', tparams)
 
 
-def show_route(request,route_id=None):
+def show_route(request,route_id):
     assert isinstance(request, HttpRequest)
 
     points = get_route_points(route_id)
     route = get_route(route_id)
-
 
     tparams = {
         'title': 'Route',
@@ -40,17 +42,24 @@ def show_route(request,route_id=None):
     return render(request, 'route.html', tparams)
 
 
+
 def add_route(request):
     assert isinstance(request, HttpRequest)
 
     if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = RouteForm(request.POST)
+
+        form = RouteForm(request.POST, request.FILES)
+
         if form.is_valid():
-            form.save()
+            data = request.FILES['Image']
 
-        return show_routes(request)
+            path = default_storage.save(str(data), ContentFile(data.read()))
+            tmp_file_path = os.path.join(settings.MEDIA_ROOT, path)
+            img_type = str(data).split('.')[1]
 
+            route = form.save()
+            route.Image = save_image(str(data),tmp_file_path,img_type)
+            route.save()
 
     tparams = {
         'title': 'Route',
@@ -80,9 +89,17 @@ def add_point(request):
 
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
-        form = PointForm(request.POST)
+        form = PointForm(request.POST,request.FILES)
         if form.is_valid():
-            form.save()
+            data = request.FILES['Image']
+
+            path = default_storage.save(str(data), ContentFile(data.read()))
+            tmp_file_path = os.path.join(settings.MEDIA_ROOT, path)
+            img_type = str(data).split('.')[1]
+
+            point = form.save()
+            point.Image = save_image(str(data), tmp_file_path, img_type)
+            point.save()
 
         return show_points(request)
 

@@ -1,10 +1,8 @@
-from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 
-from .models import *
 from .serializer import *
+from rest_framework import status
 
 
 # route/ or route/<id>
@@ -16,12 +14,10 @@ class RouteList(APIView):
         else:
             routes = Route.objects.all()
 
-
         serializer = RouteSerializer(routes,many=True)
         route_list=serializer.data
 
         route_list=route_list[0]['id']
-
 
         return Response(serializer.data)
 
@@ -51,3 +47,13 @@ class Route_PointList(APIView):
 
     def post(self,request):
         pass
+
+
+
+class HeatZoneForm(APIView):
+
+    def post(self,request):
+
+        print(request.data)
+
+        return Response(status=status.HTTP_200_OK)

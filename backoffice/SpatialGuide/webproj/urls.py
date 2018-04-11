@@ -14,6 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
+from django.conf.urls.static import static
+
+from django.conf import settings
 from django.contrib import admin, auth
 
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -21,7 +24,7 @@ from app import views,rest
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    #url(r'^$', views.home, name='home'),
+
     url(r'^login/$', auth.login, name='login'),
     url(r'^tables$', views.tables, name='tables'),
     url(r'^charts', views.charts, name='charts'),
@@ -43,6 +46,12 @@ urlpatterns = [
     url(r'^route_points/((?P<route_id>\d+))/$', rest.Route_PointList.as_view()),
 
     url(r'^point/$', rest.PointList.as_view()),
+
+    url(r'^heatzone/$', rest.HeatZoneForm.as_view()),
+
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns = format_suffix_patterns(urlpatterns)

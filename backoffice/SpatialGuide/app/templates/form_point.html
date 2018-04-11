@@ -24,7 +24,7 @@
       <div class="card-header">Add {{ title }}</div>
 
       <div class="card-body" >
-        <form method="post" target="_self">
+        <form method="post" enctype="multipart/form-data" target="_self">
             {% csrf_token %}
 
                 {% for f in form_t %}

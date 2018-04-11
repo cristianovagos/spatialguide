@@ -36,6 +36,14 @@
             <span class="nav-link-text">Routes</span>
           </a>
         </li>
+
+        <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Add Route">
+          <a class="nav-link" href="{% url 'add_route' %}">
+            <i class="fa fa-fw fa-long-arrow-up"></i>
+            <span class="nav-link-text">Add Route</span>
+          </a>
+        </li>
+
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Points">
           <a class="nav-link" href="{% url 'show_points' %}">
             <i class="fa fa-fw fa-dot-circle-o"></i>
@@ -43,6 +51,12 @@
           </a>
         </li>
 
+        <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Add Point">
+          <a class="nav-link" href="{% url 'add_point' %}">
+            <i class="fa fa-fw fa-dot-circle-o"></i>
+            <span class="nav-link-text">Add Point</span>
+          </a>
+        </li>
 
 
 
@@ -287,12 +301,10 @@
   <script src="{% static "vendor/jquery/jquery.min.js" %}"></script>
   <script src="{% static "vendor/bootstrap/js/bootstrap.bundle.min.js" %}"></script>
   <script src="{% static "vendor/jquery-easing/jquery.easing.min.js" %}"></script>
-  <script src="{% static "vendor/chart.js/Chart.mi" %}"></script>
   <script src="{% static "vendor/datatables/jquery.dataTables.js" %}"></script>
   <script src="{% static "vendor/datatables/dataTables.bootstrap4.js" %}"></script>
   <script src="{% static "js/sb-admin.min.js" %}"></script>
   <script src="{% static "js/sb-admin-datatables.min.js" %}"></script>
-  <script src="{% static "js/sb-admin-charts.min.js" %}"></script>
 
 
   {% block scripts %}{% endblock %}
