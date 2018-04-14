@@ -55,8 +55,11 @@
             <li class="nav-item">
               <a class="nav-link" href="help.html">Help</a>
             </li>
-			<li class="nav-item">
-              <a class="nav-link js-scroll-trigger" href="info.html">Info</a>
+			      <li class="nav-item">
+              <a class="nav-link" href="info.html">Info</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="https://docs.google.com/spreadsheets/d/1D6Y0aspkWNaWYTZMGtGeGsF_NTN8KbvxjTiDwygukso/edit?usp=sharing">Time Sheet</a>
             </li>
             <!-- <li class="nav-item">
               <a class="nav-link" href="index.html#contact">Contact</a>
@@ -83,8 +86,11 @@
         <div class="row">
           <div class="col-md-4">
             <ul class="navbar-nav sticky-top" style="padding-top: 100px;">
-			<li class="nav-item">
-                <a class="nav-link" href="#Arch" style="color: black;">System Architecture</a>
+              <li class="nav-item">
+                <a class="nav-link" href="#intro" style="color: black;">Introduction</a>
+              </li>    
+			        <li class="nav-item">
+                <a class="nav-link" href="#arch" style="color: black;">System Architecture</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#userstories" style="color: black;">User Stories</a>
@@ -92,36 +98,67 @@
               <li class="nav-item">
                 <a class="nav-link" href="#userscenarios" style="color: black;">User Scenarios</a>
               </li>
-			  <li class="nav-item">
+              <li class="nav-item">
+                <a class="nav-link" href="#appfunctioning" style="color: black;">App development</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#headposition" style="color: black;">Getting the head position</a>
+              </li>
+			        <li class="nav-item">
                 <a class="nav-link" href="#nextWork" style="color: black;">What is next</a>
               </li>
-			  <li class="nav-item">
+			        <li class="nav-item">
                 <a class="nav-link" href="#timesheet" style="color: black;">Time Sheet</a>
               </li> 
             </ul>
           </div>
           <div class="col-md-8 mx-auto">
-			<h3 id="Arch">Introduction</h3>
+			<h3 id="intro">Introduction</h3>
 			<p style="text-align: justify;">
-			  
-            </p>
-			<h3 id="Arch">System Architecture</h3>
+        Welcome to the Dev Notes section of our website!<br>
+        Here we will be explaining the development challenges and decisions we made under the development stages of our system.<br><br>
+        <b>NOTE: </b>This section is going to suffer multiple updates as soon as we add more features or development decisions.<br><br>
+        
+        At first glance of the system, we needed to gather opinion about what technologies to choose, and what primary decisions about the
+        system architecture and steps to do further upon development. So, we asked multiple teachers from our department to help us go to the correct
+        path.<br><br>
+        Diogo Gomes and João Paulo Barraca were the teachers which prontly answered to us and with them, we got multiple ideas and possible features to be
+        added. One of the main difficulties we found was the technology choice (which languages, which database, which platform we could choose were some of the
+        questions asked). We would like to publicly thank them for the help provided, which got us on the right track for the begin of development.<br><br>
+
+        After some team meetings with Guilherme Campos, we got the theory behind spatial audio and the main feature of the app explained, and we were ready to start
+        developing the whole system.<br>
+        Today, we have weekly meetings to keep track of current development and for having feedback of it.
+        <br><br>
+      </p>
+			<h3 id="arch">System Architecture</h3>
 			  <br><br>
 				<img src="img/systemArch.jpg" class="img-fluid" alt="" >
 			  <br><br>
 			  <p style="text-align: justify;">
-			  We store all the important information (points of interest, user information, routes) in a Database. The communication between a smartphone and the database is done through a web app with a REST API. <br>
-				The application will run on a smartphone with Android and GPS. The application will also be able to read data from a IMU sensor. That app will have an auralization engine that given a mono sound file will convert it to a stereo sound. For the best experience we recommend headphones with noise cancellation.  
-            </p>
-            <br><br>
-		  
-            <h3 id="userstories">User Stories</h3>
-            <br>
-            <p style="text-align: justify;">
-              We gathered some user stories from people who are in the Tourism area (the scope of this app), so we at the 
-              development stage are pretty sure and focused on what the app should have in order to complete user's requirements.
-              <br><br>
-              <br><br>
+        As SpatialGuide system main use is deployed in a smartphone, we needed to know if we could go to a cross-platform way (React Native / Cordova / Ionic for instance),
+        or a native way (Android). Because of the connection with the IMU Sensor (to gather head position), and the suggested use of a audio library (first glance 
+        of spatial audio build) we needed to go to that path instead of having a web-based app. Here the decision was to build a native app with Android, which also 
+        eases the development as all team has Java language knowledge.<br><br>
+        
+        Then we needed to know what technologies we should choose for the backend and which database to choose to store the data (points of interest, user information, routes, etc). 
+        As some of the team members have already experience in Django and MySQL, we turned that way to build a traditional backend-frontend system, 
+        which will communicate with the Android app via a REST API.<br><br>
+
+        So, SpatialGuide will consist on a Android app supported by a web app that will store and send the data to be used in the app. The app runs on a Android 
+        smartphone, and should have GPS sensor and Bluetooth, as well as to be capable of connecting stereo headphones via jack port.<br><br>
+
+        The app will have an auralization engine that given a sound file will compute spatial sound (3D Audio) according to the users position. 
+        For best audio experience we recommend the use of stereo headphones with noise cancellation.
+        </p>
+        <br><br>
+
+      <h3 id="userstories">User Stories</h3>
+      <br>
+      <p style="text-align: justify;">
+        We gathered some user stories from people who are in the Tourism area (the scope of this app), so we at the 
+        development stage are pretty sure and focused on what the app should have in order to complete user's requirements.
+        <br><br>
 			  <img src="img/Jessica.jpg" class="img-fluid" alt="" >
 			  <br><br>
               Jessica is an architecture grad student that is very interested in historical landmarks and modern art. 
@@ -151,61 +188,95 @@
               able to fully understand his clients ultimate goal, as well as to easily provide them the best experience they 
               could have.
 
-			  <br><br>
+			  <!-- <br><br>
               <img src="img/Paul.jpg" class="img-fluid" alt="" >
               <br><br>
-			  Paul is one of the Administrators of SpatialGuide. His job is to make sure every user (tourist and guide) gets the best out of SpatialGuide.
-			  For that he needs to manage all the routes and user information so that everything goes right when the app is used.
-			  Paul is very good at what he does and is always on the lookout for new ways of perfecting his job and making it more efficient, since he loves the company and their ideas and,
-			  therefore he wants them to grow and be very successfull.
-			  
-            </p>
-			
-			
-            <h3 id="userscenarios">User Scenarios</h3>
-            <br>
-            <p style="text-align: justify;">
-              Use case: A Tourist who likes Historic places<br>
-              Actor: John<br><br>
-              Steps:<br>
-              John is very interested in history<br>
-              John hobby is travelling to visit historical places<br>
-              John walks on the street<br>
-              John connects head-tracking headphones on their smartphone<br>
-              John connects to SpatialGuide app<br>
-              John chooses route<br>
-              John continues walking<br>
-              John now can hear sound from different places<br>
-              John now can hear the monuments talk to him like their talking to a person<br>
-              John now can look to which monument he wants to hear from<br>
-              John now can enjoy his hobby more deeply involved<br>
-              <br><br>
-              Use case: Tourism Company Employee<br>
-              Actor: Steve<br><br>
-              Steps:<br>
-              Steve works for a company that uses SpacialGuide App<br>
-              Steve needs to add more tourist points on a specific area<br>
-              Steve opens SpatialGuide Admin Panel on a web browser<br>
-              Steve selects the desired point on the map<br>
-              Steve opens app on Smartphone<br>
-              Steve gives a name to the point<br>
-              Steve adds it to the database<br>
-              Steve chooses what narrative to play on which point<br>
-              <br><br>
- 
-            </p>
+              Paul is one of the Administrators of SpatialGuide. His job is to make sure every user (tourist and guide) gets the best out of SpatialGuide.
+              For that he needs to manage all the routes and user information so that everything goes right when the app is used.
+              Paul is very good at what he does and is always on the lookout for new ways of perfecting his job and making it more efficient, since he loves the company and their ideas and,
+              therefore he wants them to grow and be very successfull.
+         -->
             <br><br>
+            </p>
+			
+			
+        <h3 id="userscenarios">User Scenarios</h3>
+          <p style="text-align: justify;">
+            For each user, we have the ideal scenario of system use. Here we get to know what SpatialGuide will help these users for, and which are the key 
+            features and usage of the whole system.
+          </p>
+          <br><br>
+          <p style="text-align: justify;">
+            Use case: A Tourist who likes Historic places<br>
+            Actor: John<br><br>
+            Steps:<br>
+            John is very interested in history<br>
+            John hobby is travelling to visit historical places<br>
+            John walks on the street<br>
+            John connects head-tracking headphones on their smartphone<br>
+            John connects to SpatialGuide app<br>
+            John chooses route<br>
+            John continues walking<br>
+            John now can hear sound from different places<br>
+            John now can hear the monuments talk to him like their talking to a person<br>
+            John now can look to which monument he wants to hear from<br>
+            John now can enjoy his hobby more deeply involved<br>
+            <br><br>
+            Use case: Tourism Company Employee<br>
+            Actor: Steve<br><br>
+            Steps:<br>
+            Steve works for a company that uses SpacialGuide App<br>
+            Steve needs to add more tourist points on a specific area<br>
+            Steve opens SpatialGuide Admin Panel on a web browser<br>
+            Steve selects the desired point on the map<br>
+            Steve opens app on Smartphone<br>
+            Steve gives a name to the point<br>
+            Steve adds it to the database<br>
+            Steve chooses what narrative to play on which point<br>
+            <br><br>
+
+          </p>
+
+      <h3 id="appfunctioning">App development</h3>
+      <p style="text-align: justify;">
+        As a Android app which will have to have the basic user creation / access, the SpatialGuide makes use of it for new and existing users to use the app.
+        That is made so each user can make track of the routes already used.<br><br>
+        After the user enters the app, the user should choose the route which will use, which is downloaded and stored on the internal device storage and then used
+        upon selection. The routes information is fetched via the systems REST API. For REST requests, it's used <a href="http://square.github.io/retrofit/" target="_blank">Retrofit</a>
+        for a safe, easy request onto our API. The REST API provides the information about the points of interest, among many other useful related information. 
+        The images URL fetched is injected using <a href="http://square.github.io/picasso/" target="_blank">Picasso</a>, which downloads and caches the image in a easy 
+        and straight-forward way.<br><br>
+      
+        After the route selection, the user will enter the map which will track the user current location with GPS, with all the markers of the route points of interest.
+        When the user location approaches the point of interest, a popup will appear with the point information, and will start playing the sound spatialized of that point,
+        according to the user head position.
+      </p>
+      <br><br>
+
+      <h3 id="headposition">Getting the head position</h3>
+			<p style="text-align: justify;">
+        Initially, the goal was to fetch the head position (yah, pitch, roll) of the user using a IMU Sensor (the equipment provided to us were InertiaCube BT).
+        However, as the device's SDK and Bluetooth had issues on how to get the coordinates, and spend lots of time trying to fix the problem, we switched to another way to 
+        get the user head position, with simply using another smartphone to provide the users head position with the gyroscope sensor of the smartphone.<br><br>
+        
+        That way, we can easily attach a smartphone to the headphones to test this approach, and use Bluetooth to communicate with both devices (SpatialGuide app and head position app).
+        For now, it's a easy solution to our problem. We need to develop another app and the functioning of communicating both ways.
+        Then we can provide the user position to the auralization engine to then compute the spatial audio to the user position and the position related to the point of interest.
+      </p>
+      <br><br>
+
 			<h3 id="nextWork">What is next?</h3>
 			<p style="text-align: justify;">
-				<br>- Auralization Engine;
-				<br>- Communication with Database;
-				<br>- Pairing with another smartphone that will be used as head-tracking sensor.
-            </p>
-			<br><br>
+        <br>- Auralization Engine development and usage within the app;
+        <br>- Pairing with another smartphone that will be used as head-tracking sensor;
+        <br>- Add more features overall.
+      </p>
+      <br><br>
+      
 			<h3 id="timesheet">Time Sheet</h3>
 			<p style="text-align: justify;">
               Here you can see the time each team member spent on working this project. 
-			<br> NOTE: it will redirect to a google Sheet file.			  
+			<br> NOTE: it will redirect to a Google Sheet file.			  
             </p>
 			<div class="row">
 				<div class="col-lg-12 text-center features-btn">
