@@ -54,16 +54,30 @@ def get_allPoints():
 
     return (tab_names,point_list)
 
+def get_heatPoints():
+    heat_points = Heat_Point.objects.all()
+    serializer = HeatPointSerializer(heat_points, many=True)
+
+
+    point_list = []
+    for p in serializer.data:
+        tmp={
+            'Latitude':p['Latitude'],
+            'Longitude': p['Longitude']
+        }
+        point_list.append(tmp)
+
+
+    return point_list
+
+
 ################  Google Drive  ################
 
-def save_image(name,path,img_type):
+def save_media(name,path):
     connection=googledrive.GoogleDriveConnector(CREDENTIAL_PATH)
 
-    img_id=connection.upload_image(name,path,img_type)
+    file_id=connection.upload_file(name,path)
 
-    return img_id
+    return file_id
 
-def listFiles():
-    connection=googledrive.GoogleDriveConnector(CREDENTIAL_PATH)
-    connection.listFiles(10)
 
