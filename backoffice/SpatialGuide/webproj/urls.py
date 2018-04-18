@@ -23,31 +23,29 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from app import views,rest
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-
-    url(r'^login/$', auth.login, name='login'),
-    url(r'^tables$', views.tables, name='tables'),
-    url(r'^charts', views.charts, name='charts'),
-    url(r'^register', views.register, name='register'),
-    url(r'^cards', views.cards, name='cards'),
+    #url(r'^admin/', admin.site.urls),
 
     url(r'^$', views.show_routes, name='home'),
     url(r'^show_routes/$', views.show_routes, name='show_routes'),
     url(r'^display_route/((?P<route_id>\d+))/$', views.show_route , name='display_route'),
     url(r'^show_points/$', views.show_points, name='show_points'),
 
-    url(r'^add_route/$', views.add_route, name='add_route'),
-    url(r'^add_point/$', views.add_point, name='add_point'),
+    url(r'^add_route/$', rest.addRoute.as_view(), name='add_route'),
+    url(r'^add_point/$', rest.addPoint.as_view(), name='add_point'),
 
     ############ Rest ####################
 
     url(r'^route/((?P<route_id>\d+))/$', rest.RouteList.as_view()),
-    url(r'^route/$', rest.RouteList.as_view()),
+    url(r'^route/$', rest.RouteList.as_view(),),
     url(r'^route_points/((?P<route_id>\d+))/$', rest.Route_PointList.as_view()),
 
     url(r'^point/$', rest.PointList.as_view()),
 
-    url(r'^heatzone/$', rest.HeatZoneForm.as_view()),
+    url(r'^heatmap/$', rest.HeatMap.as_view(),name='heatmap'),
+
+    url(r'^register/$', rest.UserCreateView.as_view(), name='register'),
+    url(r'^login/$', rest.UserLoginView.as_view(), name='login'),
+    url(r'^logout/$', rest.UserLogoutView.as_view(), name='logout')
 
 ]
 if settings.DEBUG:

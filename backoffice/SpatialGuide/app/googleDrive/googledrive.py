@@ -50,12 +50,12 @@ class GoogleDriveConnector():
                 print(item)
                 print('\t{0} ({1})'.format(item['name'], item['id']))
 
-    def upload_image(self, filename,filepath,file_type,folder=None):
+    def upload_file(self,filename,filepath,folder=None):
         file_metadata = {'name': filename}
         if folder:
             file_metadata['parents'] = [folder]
 
-        media = MediaFileUpload(filepath, mimetype='image/'+file_type, resumable=True)
+        media = MediaFileUpload(filepath, mimetype='application/octet-stream', resumable=True)
         request = self.drive_service.files().create(body=file_metadata, media_body=media)
 
         response = None
@@ -65,24 +65,6 @@ class GoogleDriveConnector():
                 print("Uploaded %d%%." % int(status.progress() * 100))
 
         print ('File ID: %s' % response.get('id'))
-        return response.get('id')
-
-    def upload_song(self, filename, filepath, folder=None):
-        file_metadata = {'name': filename}
-        if folder:
-            file_metadata['parents'] = [folder]
-            
-        media = MediaFileUpload(filepath, mimetype='application/octet-stream', resumable=True)
-        request = self.drive_service.files().create(body=file_metadata, media_body=media)
-
-        response = None
-        while response is None:
-            status, response = request.next_chunk()
-            if status:
-                print("Uploaded %d%%." % int(status.progress() * 100))
-        
-        print("Upload Complete!")                                    
-        print('File ID: %s' % response.get('id'))
         return response.get('id')
 
     def download(self, file_id,file_path):
