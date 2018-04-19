@@ -158,7 +158,7 @@ class UserCreateView(CreateAPIView):
         return render(request, 'register.html')
 
     def post(self,request):
-        serializer = UserCreateSerializer(data=request.POST)
+        serializer = UserCreateSerializer(data=request.data)
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
