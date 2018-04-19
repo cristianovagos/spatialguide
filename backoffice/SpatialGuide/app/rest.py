@@ -178,7 +178,7 @@ class UserLoginView(APIView):
         return render(request, 'login.html')
 
     def post(self,request, *args, **kwargs):
-        serializer = UserLoginSerializer(data=request.POST)
+        serializer = UserLoginSerializer(data=request.data)
 
         if serializer.is_valid(raise_exception=True):
             new_data = serializer.data
