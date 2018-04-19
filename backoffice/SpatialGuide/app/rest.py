@@ -185,13 +185,12 @@ class UserLoginView(APIView):
             username = new_data['username']
             password = request.POST['password']
 
-            user = User.objects.filter(username=username).first()
+            user = User.objects.filter(Q(username=username) | Q(email=username)).first()
 
             if user:
                 user = authenticate(username=user.username, password=password)
             if user:
                 login(request,user)
-                return redirect('home')
             else:
                 raise ValidationError('Password is incorrect.')
 
