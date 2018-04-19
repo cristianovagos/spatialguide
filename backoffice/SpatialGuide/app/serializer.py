@@ -32,6 +32,7 @@ User = get_user_model()
 
 class UserCreateSerializer(ModelSerializer):
     password2 = CharField()
+    email = EmailField(label='Email')
     email2 = EmailField(label='Confirm Email')
 
     class Meta:
