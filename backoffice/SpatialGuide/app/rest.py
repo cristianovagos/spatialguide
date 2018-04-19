@@ -163,6 +163,8 @@ class UserCreateView(CreateAPIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             new_data=serializer.data
+            del new_data['password2']
+            del new_data['email2']
             return Response(new_data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

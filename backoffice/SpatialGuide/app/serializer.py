@@ -46,8 +46,11 @@ class UserCreateSerializer(ModelSerializer):
             'last_name'
         ]
         extra_kwargs = {'password':
-                            {"write_only":True}
+                            {"write_only":True},
+                        'password2':
+                            {"write_only": True}
                         }
+
     def validate_username(self, value):
         username = value
 
@@ -92,14 +95,13 @@ class UserCreateSerializer(ModelSerializer):
                 email = email
         )
 
-        if 'firs_name' in list(validated_data.keys()):
+        if 'first_name' in list(validated_data.keys()):
             user_obj.first_name = validated_data['first_name']
         if 'last_name' in list(validated_data.keys()):
             user_obj.last_name = validated_data['last_name']
 
         user_obj.set_password(password)
         user_obj.save()
-
         return validated_data
 
 
