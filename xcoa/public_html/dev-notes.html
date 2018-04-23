@@ -59,7 +59,7 @@
               <a class="nav-link" href="info.html">Info</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="https://docs.google.com/spreadsheets/d/1D6Y0aspkWNaWYTZMGtGeGsF_NTN8KbvxjTiDwygukso/edit?usp=sharing">Time Sheet</a>
+              <a class="nav-link" href="https://docs.google.com/spreadsheets/d/1D6Y0aspkWNaWYTZMGtGeGsF_NTN8KbvxjTiDwygukso/edit?usp=sharing" target="_blank">Time Sheet</a>
             </li>
             <!-- <li class="nav-item">
               <a class="nav-link" href="index.html#contact">Contact</a>
@@ -239,29 +239,35 @@
 
       <h3 id="appfunctioning">App development</h3>
       <p style="text-align: justify;">
-        As a Android app which will have to have the basic user creation / access, the SpatialGuide makes use of it for new and existing users to use the app.
-        That is made so each user can make track of the routes already used.<br><br>
-        After the user enters the app, the user should choose the route which will use, which is downloaded and stored on the internal device storage and then used
-        upon selection. The routes information is fetched via the systems REST API. For REST requests, it's used <a href="http://square.github.io/retrofit/" target="_blank">Retrofit</a>
-        for a safe, easy request onto our API. The REST API provides the information about the points of interest, among many other useful related information. 
-        The images URL fetched is injected using <a href="http://square.github.io/picasso/" target="_blank">Picasso</a>, which downloads and caches the image in a easy 
+        As one of the main uses of the system is the Android app, it should have the basic user creation / access, to let users use the app and the system, 
+        so they can make track of the routes and points, and use the system anywhere.<br><br>
+
+        After the successful sign in, the user should then choose the route which will navigate on, which data is downloaded and stored on the internal device storage and then used
+        upon selection. The route data is fetched via our system REST API. To handle REST requests, it's used the library <a href="http://square.github.io/retrofit/" target="_blank">Retrofit</a>
+        for a safe, easy and async request onto our API. The REST API provides the information we need about routes, points of interest, among many other useful related information to the general app usage. 
+        The images URL fetched on the REST API is then injected on Android's ImageView using <a href="http://square.github.io/picasso/" target="_blank">Picasso</a>, which downloads and caches the image in a easy 
         and straight-forward way.<br><br>
       
-        After the route selection, the user will enter the map which will track the user current location with GPS, with all the markers of the route points of interest.
-        When the user location approaches the point of interest, a popup will appear with the point information, and will start playing the sound spatialized of that point,
+        After the route selection, the user will enter in the route map screen, which will track the user current location with GPS, and with the markers of the route points of interest,
+        as well as the directions to the points of interest, fetched with <a href="https://developers.google.com/maps/documentation/directions/">Google Directions API</a>. 
+        We also offer the possibility of the user changing the order of the points to visit, by using drag and drop in the selection menu, and the user can also select one of two modes for it: 
+        "Shortest Path", which will take on the shortest route between the points selected, and "Adventure Mode", which will randomize the order of the point visit. 
+        The map will show the recommended direction based on the order of the points selected or the mode selected.<br><br>
+
+        When the user location approaches the point of interest, a popup window will appear with the point information, and the app will start playing the sound spatialized of that point,
         according to the user head position.
       </p>
       <br><br>
 
       <h3 id="headposition">Getting the head position</h3>
 			<p style="text-align: justify;">
-        Initially, the goal was to fetch the head position (yah, pitch, roll) of the user using a IMU Sensor (the equipment provided to us were InertiaCube BT).
+        Initially, the goal was to fetch the head position (yaw, pitch, roll) of the user using a IMU Sensor (the equipment provided to us were InertiaCube BT).
         However, as the device's SDK and Bluetooth had issues on how to get the coordinates, and spend lots of time trying to fix the problem, we switched to another way to 
         get the user head position, with simply using another smartphone to provide the users head position with the gyroscope sensor of the smartphone.<br><br>
         
         That way, we can easily attach a smartphone to the headphones to test this approach, and use Bluetooth to communicate with both devices (SpatialGuide app and head position app).
-        For now, it's a easy solution to our problem. We need to develop another app and the functioning of communicating both ways.
-        Then we can provide the user position to the auralization engine to then compute the spatial audio to the user position and the position related to the point of interest.
+        For now, it's a easy solution to our problem, given the deadline. For this communication to work, we need to develop another app for the "sensor smartphone", being able to communicating both ways.
+        Then we can provide the user position to the auralization engine to then compute the spatial audio according to the user position and the position related to the point of interest.
       </p>
       <br><br>
 
