@@ -101,13 +101,12 @@ public class SignupActivity extends AppCompatActivity {
     public void onBackPressed() {
         //Ask the user if they want to quit
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
-                .setTitle(getString(R.string.exit_dialog_title))
-                .setMessage(getString(R.string.exit_dialog_prompt))
+                .setTitle(getString(R.string.exit))
+                .setMessage(getString(R.string.exit_prompt))
                 .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //Stop the activity
-                        finish();
+                        finishAffinity();
                     }
                 })
                 .setNegativeButton(getString(android.R.string.no), null)

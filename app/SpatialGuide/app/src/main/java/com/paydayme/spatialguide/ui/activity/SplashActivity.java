@@ -22,7 +22,7 @@ public class SplashActivity extends AppCompatActivity {
         if(Utils.isServicesOK(this, TAG)) {
             // Start main activity
 //            startActivity(new Intent(SplashActivity.this, LoginActivity.class));
-            startActivity(new Intent(SplashActivity.this, MapActivity.class));
+            startActivity(new Intent(SplashActivity.this, RouteActivity.class));
         } else {
             Log.d(TAG, "onCreate: Google Play Services not upgraded / installed");
             // TODO - show Google Play Services error with dialog to notify user

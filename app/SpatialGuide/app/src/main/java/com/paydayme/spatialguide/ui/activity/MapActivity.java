@@ -1052,14 +1052,10 @@ public class MapActivity extends AppCompatActivity implements
                     .setTitle(getString(R.string.exit))
                     .setMessage(getString(R.string.exit_prompt))
                     .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
-
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-
-                            //Stop the activity
-                            finish();
+                            finishAffinity();
                         }
-
                     })
                     .setNegativeButton(getString(android.R.string.no), null)
                     .setCancelable(false)

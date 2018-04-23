@@ -105,25 +105,25 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         spEditor = sharedPreferences.edit();
 
         // Get Authentication Header from SharedPreferences
-        authenticationHeader = sharedPreferences.getString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
-        if(authenticationHeader.isEmpty()) {
-            AlertDialog dialog = new AlertDialog.Builder(RouteActivity.this, R.style.CustomDialogTheme)
-                    .setTitle(getString(R.string.not_auth_dialog_title))
-                    .setMessage(getString(R.string.not_auth_dialog_message))
-                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(RouteActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                    })
-                    .setCancelable(false)
-                    .show();
-            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-            textView.setTypeface(tf);
-        }
+//        authenticationHeader = sharedPreferences.getString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
+//        if(authenticationHeader.isEmpty()) {
+//            AlertDialog dialog = new AlertDialog.Builder(RouteActivity.this, R.style.CustomDialogTheme)
+//                    .setTitle(getString(R.string.not_auth_dialog_title))
+//                    .setMessage(getString(R.string.not_auth_dialog_message))
+//                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            Intent intent = new Intent(RouteActivity.this, LoginActivity.class);
+//                            startActivity(intent);
+//                            finish();
+//                        }
+//                    })
+//                    .setCancelable(false)
+//                    .show();
+//            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+//            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+//            textView.setTypeface(tf);
+//        }
 
         getUserInfo();
 
@@ -138,10 +138,10 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 
     private void getFakeRoutes() {
         List<Point> tmpList = new ArrayList<>();
-        tmpList.add(new Point("Fórum Aveiro", 40.641475, -8.653675));
-        tmpList.add(new Point("Praça do Peixe", 40.642313, -8.655352));
-        tmpList.add(new Point("Estação de Comboios", 40.643304, -8.641302));
-        tmpList.add(new Point("Sé de Aveiro", 40.639469, -8.650397));
+        tmpList.add(new Point(1,"Fórum Aveiro", 40.641475, -8.653675, "examples/mp3/SoundHelix-Song-1.mp3"));
+        tmpList.add(new Point(2,"Praça do Peixe", 40.642313, -8.655352, "examples/mp3/SoundHelix-Song-2.mp3"));
+        tmpList.add(new Point(3,"Estação de Comboios", 40.643304, -8.641302, "examples/mp3/SoundHelix-Song-3.mp3"));
+        tmpList.add(new Point(4,"Sé de Aveiro", 40.639469, -8.650397, "examples/mp3/SoundHelix-Song-4.mp3"));
 
         routeList.add( new Route(1,
                 "Test Route 1",
@@ -223,9 +223,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-
-                            //Stop the activity
-                            finish();
+                            finishAffinity();
                         }
 
                     })

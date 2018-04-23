@@ -61,7 +61,8 @@ public class Point implements Serializable{
         this.pointLongitude = longitude;
     }
 
-    public Point(String name, double latitude, double longitude, String audioURL) {
+    public Point(int pointID, String name, double latitude, double longitude, String audioURL) {
+        this.pointID = pointID;
         this.pointName = name;
         this.pointLatitude = latitude;
         this.pointLongitude = longitude;

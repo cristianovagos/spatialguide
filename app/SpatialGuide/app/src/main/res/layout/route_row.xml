@@ -20,8 +20,10 @@
             android:layout_height="150dp"
             android:scaleType="centerCrop"
             android:contentDescription="@string/app_name"
-            app:label_backgroundColor="@color/primary"
-            app:label_orientation="LEFT_TOP"/>
+            app:label_backgroundColor="@color/primary_darker"
+            app:label_orientation="LEFT_TOP"
+            app:label_distance="40dp"
+            app:label_textSize="12dp"/>
 
         <TextView
             android:id="@+id/routeName"

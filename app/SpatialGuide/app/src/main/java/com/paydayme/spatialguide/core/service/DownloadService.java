@@ -54,17 +54,18 @@ public class DownloadService extends IntentService {
 
             if(route != null)
                 initDownload();
+        } else {
+            sendErrorIntent();
         }
-        sendErrorIntent();
     }
 
     private Route getRoute() {
         try {
             return (Route) InternalStorage.readObject(getApplicationContext(), Constant.ROUTE_STORAGE_SEPARATOR + routeID);
         } catch (IOException e) {
-            Log.d(TAG, "IOException: " + e.getMessage());
+            Log.e(TAG, "IOException: " + e.getMessage());
         } catch (ClassNotFoundException e) {
-            Log.d(TAG, "ClassNotFoundException: " + e.getMessage());
+            Log.e(TAG, "ClassNotFoundException: " + e.getMessage());
         }
         return null;
     }
@@ -136,14 +137,12 @@ public class DownloadService extends IntentService {
     }
 
     private void onDownloadComplete(int index) {
-        Log.d(TAG, "onDownloadComplete: file " + index + " download completed");
         Download download = new Download();
         download.setProgress(100);
         sendIntent(download, index);
     }
 
     private void sendIntent(Download download, int index) {
-        Log.d(TAG, "sendIntent: sending intent to the activity");
         Intent intent = new Intent(BROADCAST_MESSAGE_PROGRESS);
         intent.putExtra("download", download);
         intent.putExtra("index", index);
@@ -152,13 +151,11 @@ public class DownloadService extends IntentService {
     }
 
     private void sendErrorIntent() {
-        Log.e(TAG, "sendErrorIntent to main activity, some error occurred");
         Intent intent = new Intent(BROADCAST_ERROR_DOWNLOAD);
         LocalBroadcastManager.getInstance(DownloadService.this).sendBroadcast(intent);
     }
 
     private void sendCompletionIntent() {
-        Log.d(TAG, "sendCompletionIntent: all downloads completed successfully");
         Intent intent = new Intent(BROADCAST_DOWNLOAD_COMPLETED);
         LocalBroadcastManager.getInstance(DownloadService.this).sendBroadcast(intent);
     }

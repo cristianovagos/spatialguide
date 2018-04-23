@@ -13,6 +13,7 @@ import com.lid.lib.LabelImageView;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
+import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.squareup.picasso.Picasso;
 
@@ -68,8 +69,8 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
         }
 
         void bind(final Route item, final OnItemClickListener listener) {
-            if(isOnStorage(item.getRouteID(), context) != null) {
-                image.setLabelText(context.getResources().getString(R.string.available));
+            if(isOnStorage(item.getRouteID(), context)) {
+                image.setLabelText(context.getResources().getString(R.string.on_device));
             }
 
             name.setText(item.getRouteName());
@@ -87,15 +88,26 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
         }
     }
 
-    private static Route isOnStorage(int routeID, Context context) {
+    private static boolean isOnStorage(int routeID, Context context) {
         try {
-            return (Route) InternalStorage.readObject(context, Constant.ROUTE_STORAGE_SEPARATOR + routeID);
+            Route route = (Route) InternalStorage.readObject(context, Constant.ROUTE_STORAGE_SEPARATOR + routeID);
+            for(Point p : route.getRoutePoints()) {
+                try {
+                    if(InternalStorage.getFile(context, Constant.POINT_STORAGE_SEPARATOR + p.getPointID() + ".wav") == null)
+                        return false;
+                } catch (Exception e) {
+                    Log.d(TAG, "isOnStorage IOException: " + e.getMessage());
+                    return false;
+                }
+            }
+
+            return true;
         } catch (IOException e) {
-            Log.d(TAG, "IOException: " + e.getMessage());
-            return null;
+            Log.d(TAG, "isOnStorage IOException: " + e.getMessage());
+            return false;
         } catch (ClassNotFoundException e) {
-            Log.d(TAG, "ClassNotFoundException: " + e.getMessage());
-            return null;
+            Log.d(TAG, "isOnStorage ClassNotFoundException: " + e.getMessage());
+            return false;
         }
     }
 }

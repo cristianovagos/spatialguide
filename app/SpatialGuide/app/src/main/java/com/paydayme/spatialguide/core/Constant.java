@@ -16,7 +16,7 @@ public final class Constant {
      * Base URL of audio files
      * // TODO add the base url for downloading audio files
      */
-    public static final String FILES_BASE_URL = "";
+    public static final String FILES_BASE_URL = "https://www.soundhelix.com/";
 
     /**
      * Google Maps and Directions API Keys.

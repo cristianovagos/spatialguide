@@ -82,7 +82,7 @@
     <string name="recovering_password">Setting a new password...</string>
     <string name="goto_login"><u>Sign in now!</u></string>
     <string name="history_failed">Looks like you didn't gone travelling... Let's go!</string>
-    <string name="available">AVAILABLE</string>
+    <string name="on_device">ON DEVICE</string>
     <string name="not_auth_dialog_title">Not authenticated</string>
     <string name="not_auth_dialog_message">You must be authenticated to use this app.</string>
 </resources>

@@ -15,6 +15,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.GravityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -56,6 +57,7 @@ import static com.paydayme.spatialguide.core.Constant.BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_DOWNLOAD_COMPLETED;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_ERROR_DOWNLOAD;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_MESSAGE_PROGRESS;
+import static com.paydayme.spatialguide.core.Constant.ROUTE_STORAGE_SEPARATOR;
 
 /**
  * Created by cvagos on 22-03-2018.
@@ -125,8 +127,21 @@ public class RouteDetailsActivity extends AppCompatActivity {
                 getFakeData();
             updateUI();
         } else {
-            // TODO Route not selected! should present error
             Log.e(TAG, "Invalid route!");
+            AlertDialog dialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                    .setTitle(getString(R.string.not_auth_dialog_title))
+                    .setMessage(getString(R.string.not_auth_dialog_message))
+                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finishAffinity();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+            textView.setTypeface(tf);
         }
     }
 
@@ -162,24 +177,24 @@ public class RouteDetailsActivity extends AppCompatActivity {
         spEditor = sharedPreferences.edit();
 
         // Get Authentication Header from SharedPreferences
-        authenticationHeader = sharedPreferences.getString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
-        if(authenticationHeader.isEmpty()) {
-            AlertDialog dialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
-                    .setTitle(getString(R.string.not_auth_dialog_title))
-                    .setMessage(getString(R.string.not_auth_dialog_message))
-                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(RouteDetailsActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                    })
-                    .setCancelable(false)
-                    .show();
-            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-            textView.setTypeface(tf);
-        }
+//        authenticationHeader = sharedPreferences.getString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
+//        if(authenticationHeader.isEmpty()) {
+//            AlertDialog dialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+//                    .setTitle(getString(R.string.not_auth_dialog_title))
+//                    .setMessage(getString(R.string.not_auth_dialog_message))
+//                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            Intent intent = new Intent(RouteDetailsActivity.this, LoginActivity.class);
+//                            startActivity(intent);
+//                            finish();
+//                        }
+//                    })
+//                    .setCancelable(false)
+//                    .show();
+//            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+//            textView.setTypeface(tf);
+//        }
 
         fabButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -232,6 +247,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
         detailsProgress.setIndeterminate(true);
         mapProgress.setIndeterminate(true);
         pointsProgress.setIndeterminate(true);
+
+        registerReceiver();
     }
 
     private void onNavigateRoute() {
@@ -245,20 +262,19 @@ public class RouteDetailsActivity extends AppCompatActivity {
     }
 
     private void onDownloadRoute() {
-        try {
-            progressDialog = new ProgressDialog(RouteDetailsActivity.this, R.style.CustomDialogTheme);
-            progressDialog.setIndeterminate(true);
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.setMessage("Downloading files...");
-            progressDialog.show();
+        progressDialog = new ProgressDialog(RouteDetailsActivity.this, R.style.CustomDialogTheme);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.setMessage("Downloading files...");
+        progressDialog.show();
 
+        try {
             InternalStorage.writeObject(getApplicationContext(), Constant.ROUTE_STORAGE_SEPARATOR + routeSelected, route);
             Intent intent = new Intent(this, DownloadService.class);
             intent.putExtra("route", routeSelected);
             startService(intent);
         } catch (IOException e) {
-            Log.e(TAG, "onDownloadRoute: " + e.getMessage());
             onDownloadFailed();
         }
     }
@@ -275,6 +291,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive: intent " + intent.getAction());
             if(intent.getAction().equals(BROADCAST_MESSAGE_PROGRESS)){
                 Download download = intent.getParcelableExtra("download");
                 int index = intent.getIntExtra("index", -1);
@@ -284,8 +301,10 @@ public class RouteDetailsActivity extends AppCompatActivity {
                     progressDialog.setMessage("Downloading files...\n" + index + "/" + total + " completed");
                 }
             } else if (intent.getAction().equals(BROADCAST_ERROR_DOWNLOAD)) {
+                Log.e(TAG, "onReceive: going to on download failed");
                 onDownloadFailed();
             } else if (intent.getAction().equals(BROADCAST_DOWNLOAD_COMPLETED)) {
+                Log.d(TAG, "onReceive: download completed successfully");
                 onDownloadCompleted();
             }
         }
@@ -301,12 +320,23 @@ public class RouteDetailsActivity extends AppCompatActivity {
 
     private void onDownloadFailed() {
         progressDialog.dismiss();
+        InternalStorage.deleteFile(this, ROUTE_STORAGE_SEPARATOR + routeSelected);
         Toast.makeText(RouteDetailsActivity.this, "Error on download!", Toast.LENGTH_SHORT).show();
     }
 
     private boolean isOnStorage(int routeID) {
         try {
             route = (Route) InternalStorage.readObject(this, Constant.ROUTE_STORAGE_SEPARATOR + routeID);
+            for(Point p : route.getRoutePoints()) {
+                try {
+                    if(InternalStorage.getFile(this, Constant.POINT_STORAGE_SEPARATOR + p.getPointID() + ".wav") == null)
+                        return false;
+                } catch (Exception e) {
+                    Log.d(TAG, "isOnStorage IOException: " + e.getMessage());
+                    return false;
+                }
+            }
+
             long currentLastUpdate = getRouteLastUpdateAPI(routeID);
             Log.d(TAG, "isOnStorage - server LastUpdate: " + currentLastUpdate);
             Log.d(TAG, "isOnStorage - internal LastUpdate: " + route.getLastUpdate());
@@ -314,20 +344,20 @@ public class RouteDetailsActivity extends AppCompatActivity {
                 // NEEDS UPDATE!
             return true;
         } catch (IOException e) {
-            Log.d(TAG, "IOException: " + e.getMessage());
+            Log.d(TAG, "isOnStorage IOException: " + e.getMessage());
             return false;
         } catch (ClassNotFoundException e) {
-            Log.d(TAG, "ClassNotFoundException: " + e.getMessage());
+            Log.d(TAG, "isOnStorage ClassNotFoundException: " + e.getMessage());
             return false;
         }
     }
 
     private void getFakeData() {
         List<Point> tmpList = new ArrayList<>();
-        tmpList.add(new Point("Fórum Aveiro", 40.641475, -8.653675));
-        tmpList.add(new Point("Praça do Peixe", 40.642313, -8.655352));
-        tmpList.add(new Point("Estação de Comboios", 40.643304, -8.641302));
-        tmpList.add(new Point("Sé de Aveiro", 40.639469, -8.650397));
+        tmpList.add(new Point(1,"Fórum Aveiro", 40.641475, -8.653675, "examples/mp3/SoundHelix-Song-1.mp3"));
+        tmpList.add(new Point(2,"Praça do Peixe", 40.642313, -8.655352, "examples/mp3/SoundHelix-Song-2.mp3"));
+        tmpList.add(new Point(3,"Estação de Comboios", 40.643304, -8.641302, "examples/mp3/SoundHelix-Song-3.mp3"));
+        tmpList.add(new Point(4,"Sé de Aveiro", 40.639469, -8.650397, "examples/mp3/SoundHelix-Song-4.mp3"));
 
         route = new Route(1,
                 "Test Route",
@@ -449,5 +479,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
         });
     }
 
-
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(RouteDetailsActivity.this, RouteActivity.class));
+    }
 }

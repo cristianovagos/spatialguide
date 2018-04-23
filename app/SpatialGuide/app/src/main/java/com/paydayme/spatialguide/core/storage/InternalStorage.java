@@ -47,6 +47,11 @@ public final class InternalStorage {
         return file.delete();
     }
 
+    public static File getFile(Context context, String filename) {
+        File dir = context.getFilesDir();
+        return new File(dir, filename);
+    }
+
     public static void writeObject(Context context, String key, Object object) throws IOException {
         FileOutputStream fos = context.openFileOutput(key, Context.MODE_PRIVATE);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
