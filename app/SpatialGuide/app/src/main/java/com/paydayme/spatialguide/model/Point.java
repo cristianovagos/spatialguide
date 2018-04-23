@@ -49,6 +49,9 @@ public class Point implements Serializable{
      */
     private String pointImage;
 
+    // TODO BACKEND
+    private String pointAudioURL;
+
     // TODO BACKEND - Needs to be stored if the point has been visited by the user
     private boolean pointVisited;
 
@@ -56,6 +59,13 @@ public class Point implements Serializable{
         this.pointName = name;
         this.pointLatitude = latitude;
         this.pointLongitude = longitude;
+    }
+
+    public Point(String name, double latitude, double longitude, String audioURL) {
+        this.pointName = name;
+        this.pointLatitude = latitude;
+        this.pointLongitude = longitude;
+        this.pointAudioURL = audioURL;
     }
 
     @Override

@@ -6,14 +6,27 @@ package com.paydayme.spatialguide.core;
 
 public final class Constant {
     /**
-     * URL Endpoint of SpatialGuide backend (for API usage)
+     * Base URL of SpatialGuide backend (for API usage)
      */
 //    public static final String BASE_URL = "http://192.168.43.111:8000/";
 //    public static final String BASE_URL = "http://192.168.1.19:8000/";
     public static final String BASE_URL = "http://192.168.1.99:8000";
 
     /**
-     * URL Endpoint of RouteXL API (for route optimizations)
+     * Base URL of audio files
+     * // TODO add the base url for downloading audio files
+     */
+    public static final String FILES_BASE_URL = "";
+
+    /**
+     * Google Maps and Directions API Keys.
+     * Required to make requests to their APIs.
+     */
+    public static final String GOOGLE_MAPS_API_KEY = "AIzaSyDeglQrbGdL6r49ToFw2Ft1ugFJmma2oJM";
+    public static final String GOOGLE_DIRECTIONS_API_KEY = "AIzaSyADfY5DLDSx8J7D-SOV5jyBSmxECHALwOo";
+
+    /**
+     * Base URL of RouteXL API (for route optimizations)
      */
     public static final String ROUTE_XL_BASE_URL = "https://api.routexl.nl";
 
@@ -35,36 +48,37 @@ public final class Constant {
     public static final String ROUTE_STORAGE_SEPARATOR = "route-";
 
     /**
+     * String used to store/access the point audio file saved in internal device storage.
+     * Ex: for the Point with ID 12 -> point-12
+     */
+    public static final String POINT_STORAGE_SEPARATOR = "point-";
+
+    /**
      * Key to be stored on SharedPreferences for authentication token
      */
-    public static final String SHARED_PREFERENCES_AUTH_KEY = "com.paydayme.spatialguide.auth-token";
+    public static final String SHARED_PREFERENCES_AUTH_KEY = "com.paydayme.spatialguide.shared.auth-token";
 
     /**
      * Key to be stored on SharedPreferences for remember me checkbox
      */
-    public static final String SHARED_PREFERENCES_REMEMBER_ME = "com.paydayme.spatialguide.remember-me";
+    public static final String SHARED_PREFERENCES_REMEMBER_ME = "com.paydayme.spatialguide.shared.remember-me";
 
     /**
      * Key to be stored on SharedPreferences for login username/email
      */
-    public static final String SHARED_PREFERENCES_LOGIN_USERNAME = "com.paydayme.spatialguide.login-username";
+    public static final String SHARED_PREFERENCES_LOGIN_USERNAME = "com.paydayme.spatialguide.shared.login-username";
 
     /**
      * Key to be stored on SharedPreferences for user password
      */
-    public static final String SHARED_PREFERENCES_PASSWORD = "com.paydayme.spatialguide.login-password";
+    public static final String SHARED_PREFERENCES_PASSWORD = "com.paydayme.spatialguide.shared.login-password";
 
     /**
-     * Google Maps and Directions API Keys.
-     * Required to make requests to their APIs.
+     * Keys to be used on Intent filter of BroadcastReceiver
      */
-    public static final String GOOGLE_MAPS_API_KEY = "AIzaSyDeglQrbGdL6r49ToFw2Ft1ugFJmma2oJM";
-    public static final String GOOGLE_DIRECTIONS_API_KEY = "AIzaSyADfY5DLDSx8J7D-SOV5jyBSmxECHALwOo";
-
-    /**
-     * Google Directions Endpoint
-     */
-    public static final String GOOGLE_DIRECTIONS_ENDPOINT = "https://maps.googleapis.com/maps/api/directions/json?";
+    public static final String BROADCAST_MESSAGE_PROGRESS = "com.paydayme.spatialguide.intent.message_progress";
+    public static final String BROADCAST_ERROR_DOWNLOAD = "com.paydayme.spatialguide.intent.error_download";
+    public static final String BROADCAST_DOWNLOAD_COMPLETED = "com.paydayme.spatialguide.intent.download_completed";
 
     /**
      * Code used in requesting runtime permissions.

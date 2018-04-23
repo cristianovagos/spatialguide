@@ -1,7 +1,11 @@
 package com.paydayme.spatialguide.ui.activity;
 
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -9,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,9 +31,11 @@ import android.widget.Toast;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
+import com.paydayme.spatialguide.core.service.DownloadService;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
+import com.paydayme.spatialguide.model.download.Download;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.squareup.picasso.Picasso;
 
@@ -46,6 +53,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.BROADCAST_DOWNLOAD_COMPLETED;
+import static com.paydayme.spatialguide.core.Constant.BROADCAST_ERROR_DOWNLOAD;
+import static com.paydayme.spatialguide.core.Constant.BROADCAST_MESSAGE_PROGRESS;
 
 /**
  * Created by cvagos on 22-03-2018.
@@ -64,6 +74,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private SharedPreferences.Editor spEditor;
 
     private String authenticationHeader;
+
+    private ProgressDialog progressDialog;
 
     private int routeSelected;
     private PointAdapter pointAdapter;
@@ -234,15 +246,62 @@ public class RouteDetailsActivity extends AppCompatActivity {
 
     private void onDownloadRoute() {
         try {
-            InternalStorage.writeObject(getApplicationContext(), Constant.ROUTE_STORAGE_SEPARATOR + routeSelected, route);
-            Toast.makeText(RouteDetailsActivity.this, getString(R.string.downloading_route), Toast.LENGTH_SHORT).show();
+            progressDialog = new ProgressDialog(RouteDetailsActivity.this, R.style.CustomDialogTheme);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setCancelable(false);
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.setMessage("Downloading files...");
+            progressDialog.show();
 
-            routeOnStorage = true;
-            fabButton.setImageDrawable(null);
-            fabText.setVisibility(View.VISIBLE);
+            InternalStorage.writeObject(getApplicationContext(), Constant.ROUTE_STORAGE_SEPARATOR + routeSelected, route);
+            Intent intent = new Intent(this, DownloadService.class);
+            intent.putExtra("route", routeSelected);
+            startService(intent);
         } catch (IOException e) {
-            Log.d(TAG, e.getMessage());
+            Log.e(TAG, "onDownloadRoute: " + e.getMessage());
+            onDownloadFailed();
         }
+    }
+
+    private void registerReceiver() {
+        LocalBroadcastManager bManager = LocalBroadcastManager.getInstance(this);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BROADCAST_MESSAGE_PROGRESS);
+        intentFilter.addAction(BROADCAST_ERROR_DOWNLOAD);
+        intentFilter.addAction(BROADCAST_DOWNLOAD_COMPLETED);
+        bManager.registerReceiver(broadcastReceiver, intentFilter);
+    }
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(BROADCAST_MESSAGE_PROGRESS)){
+                Download download = intent.getParcelableExtra("download");
+                int index = intent.getIntExtra("index", -1);
+                int total = intent.getIntExtra("total", -1);
+
+                if(download.getProgress() == 100) {
+                    progressDialog.setMessage("Downloading files...\n" + index + "/" + total + " completed");
+                }
+            } else if (intent.getAction().equals(BROADCAST_ERROR_DOWNLOAD)) {
+                onDownloadFailed();
+            } else if (intent.getAction().equals(BROADCAST_DOWNLOAD_COMPLETED)) {
+                onDownloadCompleted();
+            }
+        }
+    };
+
+    private void onDownloadCompleted() {
+        progressDialog.dismiss();
+        routeOnStorage = true;
+        fabButton.setImageDrawable(null);
+        fabText.setVisibility(View.VISIBLE);
+        Toast.makeText(RouteDetailsActivity.this, "All downloads completed!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void onDownloadFailed() {
+        progressDialog.dismiss();
+        Toast.makeText(RouteDetailsActivity.this, "Error on download!", Toast.LENGTH_SHORT).show();
     }
 
     private boolean isOnStorage(int routeID) {

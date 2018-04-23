@@ -135,7 +135,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.paydayme.spatialguide.core.Constant.DEFAULT_ZOOM_VALUE;
 import static com.paydayme.spatialguide.core.Constant.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS;
 import static com.paydayme.spatialguide.core.Constant.GOOGLE_DIRECTIONS_API_KEY;
-import static com.paydayme.spatialguide.core.Constant.GOOGLE_DIRECTIONS_ENDPOINT;
 import static com.paydayme.spatialguide.core.Constant.MINIMUM_DISPLACEMENT;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_CHECK_SETTINGS;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_PERMISSIONS_REQUEST_CODE;
