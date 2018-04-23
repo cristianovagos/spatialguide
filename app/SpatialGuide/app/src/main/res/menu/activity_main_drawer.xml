@@ -5,15 +5,21 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_map"
-            android:icon="@drawable/ic_map"
-            android:title="Map" />
+            android:id="@+id/nav_userpanel"
+            android:icon="@drawable/ic_user_panel"
+            android:title="User Panel" />
         <item
             android:id="@+id/nav_route"
             android:icon="@drawable/ic_marker"
             android:title="Routes" />
         <item
-            android:title="More features soon..." />
+            android:id="@+id/nav_history"
+            android:icon="@drawable/ic_history"
+            android:title="History" />
+        <item
+            android:id="@+id/nav_favorites"
+            android:icon="@drawable/ic_favorite"
+            android:title="Favorites" />
     </group>
 
     <item android:title="Contact us">
@@ -25,4 +31,12 @@
         </menu>
     </item>
 
+    <item android:title="Exit">
+        <menu>
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/ic_power"
+                android:title="Sign out" />
+        </menu>
+    </item>
 </menu>

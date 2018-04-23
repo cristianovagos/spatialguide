@@ -1,9 +1,11 @@
-package com.paydayme.spatialguide.ui;
+package com.paydayme.spatialguide.ui.activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -28,7 +30,6 @@ import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
-import com.paydayme.spatialguide.utils.Utils;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -57,6 +58,12 @@ public class RouteDetailsActivity extends AppCompatActivity {
     // API Stuff
     private SGApiClient sgApiClient;
     private Route route;
+
+    // SharedPreferences to save authentication token
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor spEditor;
+
+    private String authenticationHeader;
 
     private int routeSelected;
     private PointAdapter pointAdapter;
@@ -106,7 +113,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                 getFakeData();
             updateUI();
         } else {
-            // Route not selected!! ERROR
+            // TODO Route not selected! should present error
             Log.e(TAG, "Invalid route!");
         }
     }
@@ -139,6 +146,29 @@ public class RouteDetailsActivity extends AppCompatActivity {
 
         sgApiClient = retrofit.create(SGApiClient.class);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        spEditor = sharedPreferences.edit();
+
+        // Get Authentication Header from SharedPreferences
+        authenticationHeader = sharedPreferences.getString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
+        if(authenticationHeader.isEmpty()) {
+            AlertDialog dialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                    .setTitle(getString(R.string.not_auth_dialog_title))
+                    .setMessage(getString(R.string.not_auth_dialog_message))
+                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(RouteDetailsActivity.this, LoginActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+            textView.setTypeface(tf);
+        }
+
         fabButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -150,15 +180,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    try {
-                                        InternalStorage.writeObject(getApplicationContext(), Constant.ROUTE_STORAGE_SEPARATOR + routeSelected, route);
-                                        Toast.makeText(RouteDetailsActivity.this, getString(R.string.downloading_route), Toast.LENGTH_SHORT).show();
-                                        routeOnStorage = true;
-                                        fabButton.setImageDrawable(null);
-                                        fabText.setVisibility(View.VISIBLE);
-                                    } catch (IOException e) {
-                                        Log.d(TAG, e.getMessage());
-                                    }
+                                    onDownloadRoute();
                                 }
                             })
                             .setNegativeButton(getString(android.R.string.no), null)
@@ -175,15 +197,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    if(Utils.isServicesOK(getApplicationContext(), TAG)) {
-                                        Intent intent = new Intent(RouteDetailsActivity.this, MapActivity.class);
-                                        Bundle bundle = new Bundle();
-
-                                        bundle.putInt("route", routeSelected);
-                                        intent.putExtras(bundle);
-                                        startActivity(intent);
-                                        finish();
-                                    }
+                                    onNavigateRoute();
                                 }
                             })
                             .setNegativeButton(getString(android.R.string.no), null)
@@ -206,6 +220,29 @@ public class RouteDetailsActivity extends AppCompatActivity {
         detailsProgress.setIndeterminate(true);
         mapProgress.setIndeterminate(true);
         pointsProgress.setIndeterminate(true);
+    }
+
+    private void onNavigateRoute() {
+        Intent intent = new Intent(RouteDetailsActivity.this, MapActivity.class);
+        Bundle bundle = new Bundle();
+
+        bundle.putInt("route", routeSelected);
+        intent.putExtras(bundle);
+        startActivity(intent);
+        finish();
+    }
+
+    private void onDownloadRoute() {
+        try {
+            InternalStorage.writeObject(getApplicationContext(), Constant.ROUTE_STORAGE_SEPARATOR + routeSelected, route);
+            Toast.makeText(RouteDetailsActivity.this, getString(R.string.downloading_route), Toast.LENGTH_SHORT).show();
+
+            routeOnStorage = true;
+            fabButton.setImageDrawable(null);
+            fabText.setVisibility(View.VISIBLE);
+        } catch (IOException e) {
+            Log.d(TAG, e.getMessage());
+        }
     }
 
     private boolean isOnStorage(int routeID) {
@@ -247,7 +284,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
         if (route.getRouteImage() != null) {
             Picasso.get()
                     .load(route.getRouteImage())
-                    .placeholder(R.drawable.not_available)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.drawable.not_available)
                     .into(routeImage);
             routeImage.setVisibility(View.VISIBLE);
         }
@@ -257,7 +295,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
         if(route.getRouteMapImage() != null) {
             Picasso.get()
                     .load(route.getRouteMapImage())
-                    .placeholder(R.drawable.not_available)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.drawable.not_available)
                     .into(routeMapImage);
             mapLayout.setVisibility(View.VISIBLE);
         }
@@ -283,7 +322,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     }
 
     private void getRouteDetailsAPI(int routeID) {
-        Call<List<Route>> call = sgApiClient.getRoute(routeID);
+        Call<List<Route>> call = sgApiClient.getRoute(authenticationHeader, routeID);
 
         call.enqueue(new Callback<List<Route>>() {
             @Override
@@ -305,7 +344,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     }
 
     private long getRouteLastUpdateAPI(int routeID) {
-        Call<RequestBody> call = sgApiClient.getRouteLastUpdate(routeID);
+        Call<RequestBody> call = sgApiClient.getRouteLastUpdate(authenticationHeader, routeID);
 
         call.enqueue(new Callback<RequestBody>() {
             @Override
@@ -325,7 +364,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     }
 
     private void getRoutePointsAPI(int routeID) {
-        Call<List<Point>> call = sgApiClient.getRoutePoints(routeID);
+        Call<List<Point>> call = sgApiClient.getRoutePoints(authenticationHeader, routeID);
 
         call.enqueue(new Callback<List<Point>>() {
             @Override

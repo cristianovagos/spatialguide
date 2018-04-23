@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.paydayme.spatialguide">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -16,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.SplashActivity"
+            android:name=".ui.activity.SplashActivity"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,18 +26,18 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.LoginActivity"
+            android:name=".ui.activity.LoginActivity"
             android:theme="@style/AppTheme.Dark" />
         <activity
-            android:name=".ui.SignupActivity"
+            android:name=".ui.activity.SignupActivity"
             android:theme="@style/AppTheme.Dark" />
         <activity
-            android:name=".ui.RouteActivity"
+            android:name=".ui.activity.RouteActivity"
             android:theme="@style/AppTheme.Dark"/>
         <activity
-            android:name=".ui.RouteDetailsActivity"
+            android:name=".ui.activity.RouteDetailsActivity"
             android:theme="@style/AppTheme.Dark"/>
-        <activity android:name=".ui.MapActivity"
+        <activity android:name=".ui.activity.MapActivity"
             android:theme="@style/AppTheme.Dark"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.

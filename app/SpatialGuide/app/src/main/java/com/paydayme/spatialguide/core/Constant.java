@@ -9,7 +9,18 @@ public final class Constant {
      * URL Endpoint of SpatialGuide backend (for API usage)
      */
 //    public static final String BASE_URL = "http://192.168.43.111:8000/";
-    public static final String BASE_URL = "http://192.168.1.19:8000/";
+//    public static final String BASE_URL = "http://192.168.1.19:8000/";
+    public static final String BASE_URL = "http://192.168.1.99:8000";
+
+    /**
+     * URL Endpoint of RouteXL API (for route optimizations)
+     */
+    public static final String ROUTE_XL_BASE_URL = "https://api.routexl.nl";
+
+    /**
+     * RouteXL auth key
+     */
+    public static final String ROUTE_XL_AUTH_KEY = "Basic Y3ZhZ29zOiFwYXlkYXltZQ==";
 
     /**
      * Distance of the Trigger Area, the minimum area required for the spatial audio
@@ -24,11 +35,36 @@ public final class Constant {
     public static final String ROUTE_STORAGE_SEPARATOR = "route-";
 
     /**
+     * Key to be stored on SharedPreferences for authentication token
+     */
+    public static final String SHARED_PREFERENCES_AUTH_KEY = "com.paydayme.spatialguide.auth-token";
+
+    /**
+     * Key to be stored on SharedPreferences for remember me checkbox
+     */
+    public static final String SHARED_PREFERENCES_REMEMBER_ME = "com.paydayme.spatialguide.remember-me";
+
+    /**
+     * Key to be stored on SharedPreferences for login username/email
+     */
+    public static final String SHARED_PREFERENCES_LOGIN_USERNAME = "com.paydayme.spatialguide.login-username";
+
+    /**
+     * Key to be stored on SharedPreferences for user password
+     */
+    public static final String SHARED_PREFERENCES_PASSWORD = "com.paydayme.spatialguide.login-password";
+
+    /**
      * Google Maps and Directions API Keys.
      * Required to make requests to their APIs.
      */
     public static final String GOOGLE_MAPS_API_KEY = "AIzaSyDeglQrbGdL6r49ToFw2Ft1ugFJmma2oJM";
     public static final String GOOGLE_DIRECTIONS_API_KEY = "AIzaSyADfY5DLDSx8J7D-SOV5jyBSmxECHALwOo";
+
+    /**
+     * Google Directions Endpoint
+     */
+    public static final String GOOGLE_DIRECTIONS_ENDPOINT = "https://maps.googleapis.com/maps/api/directions/json?";
 
     /**
      * Code used in requesting runtime permissions.
@@ -56,6 +92,11 @@ public final class Constant {
      */
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+
+    /**
+     * The minimum displacement (distance in meters) that location updates must occur.
+     */
+    public static final long MINIMUM_DISPLACEMENT = 5;
 
     /**
      * The default zoom value for the Google Maps camera.

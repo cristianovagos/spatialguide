@@ -1,4 +1,4 @@
-package com.paydayme.spatialguide.ui;
+package com.paydayme.spatialguide.ui.activity;
 
 import android.Manifest;
 import android.app.Activity;
@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.net.Uri;
@@ -13,25 +14,33 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -46,31 +55,92 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
+import com.google.maps.DirectionsApi;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.android.PolyUtil;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
+import com.google.maps.model.TravelMode;
+import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 import com.paydayme.spatialguide.BuildConfig;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
+import com.paydayme.spatialguide.core.api.RouteXLApiClient;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
+import com.paydayme.spatialguide.model.routexl.RouteXLRequest;
+import com.paydayme.spatialguide.model.routexl.RouteXLResponse;
+import com.paydayme.spatialguide.ui.adapter.PointAdapter;
+import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
+import com.paydayme.spatialguide.utils.Utils;
+import com.squareup.picasso.Picasso;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.DirectionsApi;
+import com.google.maps.GeoApiContext;
+import com.google.maps.android.PolyUtil;
+import com.google.maps.errors.ApiException;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
+import com.google.maps.model.TravelMode;
+
+import org.joda.time.DateTime;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
-import java.util.Locale;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.DEFAULT_ZOOM_VALUE;
 import static com.paydayme.spatialguide.core.Constant.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS;
+import static com.paydayme.spatialguide.core.Constant.GOOGLE_DIRECTIONS_API_KEY;
+import static com.paydayme.spatialguide.core.Constant.GOOGLE_DIRECTIONS_ENDPOINT;
+import static com.paydayme.spatialguide.core.Constant.MINIMUM_DISPLACEMENT;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_CHECK_SETTINGS;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_PERMISSIONS_REQUEST_CODE;
+import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_AUTH_KEY;
+import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.UPDATE_INTERVAL_IN_MILLISECONDS;
 
 /**
@@ -90,7 +160,7 @@ public class MapActivity extends AppCompatActivity implements
     private static final String TAG = MapActivity.class.getSimpleName();
 
     // Keys for storing activity state in the Bundle.
-    private final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
+//    private final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
     private final static String KEY_LOCATION = "location";
     private final static String KEY_LAST_UPDATED_TIME_STRING = "last-updated-time-string";
     private final static String KEY_ROUTE = "route";
@@ -146,23 +216,32 @@ public class MapActivity extends AppCompatActivity implements
      */
     private Route mRoute;
 
-    // Labels.
-    private String mLatitudeLabel;
-    private String mLongitudeLabel;
-    private String mLastUpdateTimeLabel;
+    /**
+     * Flag to represent if the shortestPath is activated
+     */
+    private boolean shortestPath = false;
+
+    /**
+     * Instance of the interface responsible for connecting with RouteXL API
+     */
+    private RouteXLApiClient routeXLApiClient;
 
     /**
      * Time when the location was updated represented as a String.
      */
     private String mLastUpdateTime;
 
+    /**
+     * Alert dialog for user prompts (exit, on trigger area showing point info)
+     */
+    private AlertDialog dialog;
+
     // UI Widgets.
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.drawer_layout) DrawerLayout drawer;
-    @BindView(R.id.latitude_text) TextView mLatitudeTextView;
-    @BindView(R.id.longitude_text) TextView mLongitudeTextView;
-    @BindView(R.id.last_update_time_text) TextView mLastUpdateTimeTextView;
     @BindView(R.id.nav_view) NavigationView navigationView;
+    @BindView(R.id.bottomNavView) BottomNavigationViewEx bottomNavigationViewEx;
+    @BindView(R.id.toolbarRoutename) TextView toolbarRoutename;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -179,7 +258,10 @@ public class MapActivity extends AppCompatActivity implements
             MarkerOptions options = new MarkerOptions()
                     .position(new LatLng(p.getPointLatitude(), p.getPointLongitude()))
                     .title(p.getPointName());
-            mMap.addMarker(options);
+            if(p.isPointVisited())
+                options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            Marker marker = mMap.addMarker(options);
+            marker.setTag(p);
         }
     }
 
@@ -197,10 +279,8 @@ public class MapActivity extends AppCompatActivity implements
         // Set listener of navigation view to this class
         navigationView.setNavigationItemSelectedListener(this);
 
-        // Set labels.
-        mLatitudeLabel = getResources().getString(R.string.latitude_label);
-        mLongitudeLabel = getResources().getString(R.string.longitude_label);
-        mLastUpdateTimeLabel = getResources().getString(R.string.last_update_time_label);
+        // Setting up bottom navigation view
+        setupBottomNavigationView();
 
         mLastUpdateTime = "";
 
@@ -210,7 +290,24 @@ public class MapActivity extends AppCompatActivity implements
         // Update values using data stored in the Bundle.
         updateValuesFromBundle(savedInstanceState);
 
+        initApis();
+
         Log.d(TAG, "route selected: " + mRouteSelected);
+
+        //TODO - change THIS!! DUMMY DATA
+//        mRoute = getRoute();
+        List<Point> tmpList = new ArrayList<>();
+        tmpList.add(new Point("Fórum Aveiro", 40.641475, -8.653675));
+        tmpList.add(new Point("Praça do Peixe", 40.642313, -8.655352));
+        tmpList.add(new Point("Estação de Comboios", 40.643304, -8.641302));
+        tmpList.add(new Point("Sé de Aveiro", 40.639469, -8.650397));
+        mRoute = new Route(1,
+                "Test Route 1",
+                "Welcome to the test route 1! Here it is how a route will look like in the SpatialGuide app.",
+                "https://i0.wp.com/gazetarural.com/wp-content/uploads/2017/12/Aveiro-Ria.jpg",
+                tmpList, 0, 20001024, System.currentTimeMillis());
+
+        toolbarRoutename.setText(mRoute.getRouteName());
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mSettingsClient = LocationServices.getSettingsClient(this);
@@ -220,6 +317,35 @@ public class MapActivity extends AppCompatActivity implements
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingsRequest();
+    }
+
+    private void initApis() {
+        // Initialization of Retrofit object for handling the RouteXL API requests
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ROUTE_XL_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        routeXLApiClient = retrofit.create(RouteXLApiClient.class);
+    }
+
+    private void setupBottomNavigationView() {
+        Log.d(TAG, "setupBottomNavigationView: setting up bottom nav view");
+        bottomNavigationViewEx.enableAnimation(false);
+        bottomNavigationViewEx.enableItemShiftingMode(false);
+        bottomNavigationViewEx.enableShiftingMode(false);
+
+        bottomNavigationViewEx.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.ic_sortroute: {
+                        showRouteOrderDialog();
+                    }
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -239,6 +365,14 @@ public class MapActivity extends AppCompatActivity implements
                 mCameraMoved = true;
             }
         });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Log.d(TAG, "onMarkerClick: marker " + marker.getTag());
+                showInfoDialog(false, (Point) marker.getTag());
+                return false;
+            }
+        });
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -246,7 +380,6 @@ public class MapActivity extends AppCompatActivity implements
         }
         mMap.setMyLocationEnabled(true);
 
-        mRoute = getRoute();
         addMarkers();
     }
 
@@ -322,6 +455,9 @@ public class MapActivity extends AppCompatActivity implements
         // Sets the fastest rate for active location updates. This interval is exact, and your
         // application will never receive updates faster than this value.
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+
+        //TODO - setting smallest displacement (DEBUG)
+//        mLocationRequest.setSmallestDisplacement(MINIMUM_DISPLACEMENT);
 
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
@@ -401,7 +537,7 @@ public class MapActivity extends AppCompatActivity implements
                 .addOnFailureListener(this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        int statusCode = ((ApiException) e).getStatusCode();
+                        int statusCode = ((com.google.android.gms.common.api.ApiException) e).getStatusCode();
                         switch (statusCode) {
                             case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                                 Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
@@ -442,16 +578,304 @@ public class MapActivity extends AppCompatActivity implements
         if (mCurrentLocation == null)
             return;
 
-        mLatitudeTextView.setText(String.format(Locale.ENGLISH, "%s: %f", mLatitudeLabel,
-                mCurrentLocation.getLatitude()));
-        mLongitudeTextView.setText(String.format(Locale.ENGLISH, "%s: %f", mLongitudeLabel,
-                mCurrentLocation.getLongitude()));
-        mLastUpdateTimeTextView.setText(String.format(Locale.ENGLISH, "%s: %s",
-                mLastUpdateTimeLabel, mLastUpdateTime));
+        Log.d(TAG, "updateLocationUI: lat: " + mCurrentLocation.getLatitude() +
+                ", lon: " + mCurrentLocation.getLongitude());
+        Log.d(TAG, "updateLocationUI: " + mLastUpdateTime);
 
+        // Check if the user moved the map (drag to see other stuff)
         if(!mCameraMoved) {
             moveCamera(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), DEFAULT_ZOOM_VALUE);
         }
+
+        DirectionsResult directionsResult = shortestPath ? getDirectionsDetails(mCurrentLocation, false) :
+                getDirectionsDetails(mCurrentLocation, true);
+
+        if(directionsResult != null) {
+            if(shortestPath) {
+                List<Point> pointList = new ArrayList<>();
+                for(int i : directionsResult.routes[0].waypointOrder) {
+                    pointList.add(mRoute.getRoutePoints().get(i));
+                }
+                pointList.add(mRoute.getRoutePoints().get(mRoute.getRoutePoints().size()-1));
+            }
+
+            mMap.clear();
+            addPolyline(directionsResult, mMap);
+            addMarkers();
+        }
+
+//        getOptimizedRoute(mCurrentLocation);
+
+        // Check nearest location and if we are in trigger area
+        Pair<Location, Point> locationPointPair = getNearestPointLocation(mCurrentLocation);
+        if(mCurrentLocation.distanceTo(locationPointPair.first) <= Constant.TRIGGER_AREA_DISTANCE) {
+            Log.d(TAG, "updateLocationUI: on trigger area of point " + locationPointPair.second.getPointName());
+
+            // point visited
+            locationPointPair.second.setPointVisited(true);
+
+            // show the dialog with info of location
+            showInfoDialog(true, locationPointPair.second);
+
+            // TODO insert auralization trigger here
+        }
+    }
+
+    private void getOptimizedRoute(Location mCurrentLocation) {
+        Gson gson = new Gson();
+        List<RouteXLRequest> requestList = new ArrayList<>();
+        requestList.add(new RouteXLRequest("current", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+
+        int i = 0;
+        for(Point p : mRoute.getRoutePoints()) {
+            requestList.add(new RouteXLRequest(String.valueOf(i), p.getPointLatitude(), p.getPointLongitude()));
+            i++;
+        }
+
+        Log.d(TAG, "getOptimizedRoute: " + gson.toJson(requestList));
+        RequestBody body = RequestBody.create(MediaType.parse("text/plain"), gson.toJson(requestList));
+
+        retrofit2.Call<RouteXLResponse> call = routeXLApiClient.getOptimizedRoute(body, ROUTE_XL_AUTH_KEY);
+        call.enqueue(new retrofit2.Callback<RouteXLResponse>() {
+            @Override
+            public void onResponse(retrofit2.Call<RouteXLResponse> call, retrofit2.Response<RouteXLResponse> response) {
+                if(response.isSuccessful()) {
+                    Log.d(TAG, "getOptimizedRoute - onResponse: " + response.body().toString());
+                } else {
+                    Log.e(TAG, "getOptimizedRoute - onResponse: " + response.errorBody());
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<RouteXLResponse> call, Throwable t) {
+                Log.e(TAG, "getOptimizedRoute - onFailure call: " + call.toString());
+                Log.e(TAG, "getOptimizedRoute - onFailure: " + t.getMessage());
+            }
+        });
+
+    }
+
+    private DirectionsResult getDirectionsDetails(Location currentLocation, boolean optimized) {
+        DateTime now = new DateTime();
+        List<com.google.maps.model.LatLng> waypoints = new ArrayList<>();
+        Point destination = mRoute.getRoutePoints().get(mRoute.getRoutePoints().size()-1);
+
+        for (Point p : mRoute.getRoutePoints()) {
+            if(p.equals(destination))
+                continue;
+            if(p.isPointVisited())
+                continue;
+            waypoints.add(new com.google.maps.model.LatLng(p.getPointLatitude(), p.getPointLongitude()));
+        }
+
+        try {
+            DirectionsApiRequest request = DirectionsApi.newRequest(getGeoContext())
+                    .mode(TravelMode.WALKING)
+                    .origin(new com.google.maps.model.LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()))
+                    .destination(new com.google.maps.model.LatLng(destination.getPointLatitude(), destination.getPointLongitude()))
+                    .departureTime(now)
+                    .waypoints(waypoints.toArray(new com.google.maps.model.LatLng[waypoints.size()]));
+            if(optimized)
+                request.optimizeWaypoints(true);
+            return request.await();
+        } catch (com.google.maps.errors.ApiException e) {
+            e.printStackTrace();
+            return null;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void addPolyline(DirectionsResult results, GoogleMap mMap) {
+        List<LatLng> decodedPath = PolyUtil.decode(results.routes[0].overviewPolyline.getEncodedPath());
+        mMap.addPolyline(new PolylineOptions().addAll(decodedPath).color(Color.BLUE));
+    }
+
+    private GeoApiContext getGeoContext() {
+        GeoApiContext geoApiContext = new GeoApiContext();
+        return geoApiContext
+                .setQueryRateLimit(3)
+                .setApiKey(GOOGLE_DIRECTIONS_API_KEY)
+                .setConnectTimeout(1, TimeUnit.SECONDS)
+                .setReadTimeout(1, TimeUnit.SECONDS)
+                .setWriteTimeout(1, TimeUnit.SECONDS);
+    }
+
+    private void showInfoDialog(boolean inLocation, final Point point) {
+        // Check if the dialog exists and if its showing
+        if(dialog != null && dialog.isShowing()) return;
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_layout, null);
+
+        TextView dialogTitle = (TextView) view.findViewById(R.id.dialog_title);
+        dialogTitle.setText(point.getPointName());
+
+        TextView dialogText = (TextView) view.findViewById(R.id.dialog_text);
+//        dialogText.setText("O Departamento de Eletrónica, Telecomunicações e Informática (DETI) foi fundado em 1974, " +
+//                "com o nome de Departamento de Eletrónica e Telecomunicações, tendo sido um dos primeiros " +
+//                "departamentos a iniciar atividade após a criação da Universidade de Aveiro em 1973. " +
+//                "Em 2006 foi alterada a sua designação por forma a espelhar a atividade existente no Departamento na área da Informática.");
+        dialogText.setText(point.getPointDescription());
+
+        final ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
+        Picasso.get()
+                .load(point.getPointImage())
+                .placeholder(R.drawable.progress_animation)
+                .into(dialogImage, new com.squareup.picasso.Callback() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        dialogImage.setVisibility(View.GONE);
+                    }
+                });
+//        ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
+//        dialogImage.setImageResource(R.drawable.deti);
+
+
+        //Ask the user if they want to quit
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setView(view)
+                .setIcon(R.mipmap.ic_info)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setCancelable(true);
+
+        if(!point.getPointURL().isEmpty() || point.getPointURL() != null) {
+            builder.setNeutralButton("Learn more", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    String url = point.getPointURL();
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse(url));
+                    startActivity(intent);
+                }
+            });
+        }
+
+        // Setting dialog title
+        if (inLocation)
+            builder.setTitle("You are at " + point.getPointName());
+        else
+            builder.setTitle(point.getPointName());
+
+        // Creating dialog and adjusting size
+        dialog = builder.create();
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        lp.height = 1300;
+//        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER;
+
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+
+        // Setting custom font to dialog
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
+    private void showRouteOrderDialog() {
+        // Check if the dialog exists and if its showing
+        if(dialog != null && dialog.isShowing()) return;
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_route_order, null);
+
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.routeDragRecyclerview);
+
+        final PointAdapter pointAdapter = new PointAdapter(this, mRoute.getRoutePoints());
+        recyclerView.setAdapter(pointAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Setting up the drag and drop functioning to the recycler view
+        RouteOrderRecyclerHelper.RouteOrderRecyclerCallback callback = new RouteOrderRecyclerHelper.RouteOrderRecyclerCallback() {
+            @Override
+            public void onItemMove(int initialPosition, int finalPosition) {
+                pointAdapter.onItemMove(initialPosition, finalPosition);
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new RouteOrderRecyclerHelper(callback));
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
+        //Ask the user if they want to quit
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle("Change Route Order")
+                .setView(view)
+                .setNegativeButton("Shortest Path", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        shortestPath = true;
+                        dialog.dismiss();
+                    }
+                })
+                .setNeutralButton("Adventure Mode", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Collections.shuffle(mRoute.getRoutePoints());
+                        shortestPath = false;
+                        dialog.dismiss();
+                    }
+                })
+                .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        shortestPath = false;
+                        dialog.dismiss();
+                    }
+                })
+                .setCancelable(false);
+
+        // Creating dialog and adjusting size
+        dialog = builder.create();
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        lp.height = 1300;
+//        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER;
+
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+
+        // Setting custom font to dialog
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
+    private Pair<Location, Point> getNearestPointLocation(Location currentLocation) {
+        float minDistance = Float.MAX_VALUE;
+        Location minLocation = new Location("");
+        Point minPoint = new Point();
+        for(Point point : mRoute.getRoutePoints()) {
+            Location loc = new Location("");
+            loc.setLongitude(point.getPointLongitude());
+            loc.setLatitude(point.getPointLatitude());
+
+            if(loc.distanceTo(currentLocation) < minDistance) {
+                minDistance = loc.distanceTo(currentLocation);
+                minLocation = loc;
+                minPoint = point;
+            }
+        }
+        return new Pair<>(minLocation, minPoint);
     }
 
     private void moveCamera(LatLng latLng, float defaultZoomValue) {

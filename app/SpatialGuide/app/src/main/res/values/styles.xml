@@ -49,9 +49,9 @@
     </style>
 
     <style name="CustomDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <item name="colorAccent">@color/white</item>
-        <item name="android:textColorPrimary">@color/white</item>
-        <item name="android:windowBackground">@color/primary</item>
+        <item name="colorAccent">@color/primary_dark</item>
+        <item name="android:textColorPrimary">@color/monsoon</item>
+        <item name="android:windowBackground">@color/white</item>
         <item name="android:fontFamily">@font/catamaran</item>
     </style>
 
@@ -60,6 +60,13 @@
         <item name="android:textStyle">bold</item>
         <item name="android:fontFamily">@font/catamaran</item>
         <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="TextAppearance.Design.CollapsingToolbar.Expanded.Shadow">
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowRadius">9</item>
+        <item name="android:shadowColor">@android:color/black</item>
     </style>
 
 </resources>

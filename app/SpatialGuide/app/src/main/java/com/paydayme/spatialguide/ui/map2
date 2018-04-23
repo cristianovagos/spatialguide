@@ -80,7 +80,7 @@ import static com.paydayme.spatialguide.core.Constant.BASE_URL;
 public class MapActivity extends AppCompatActivity
         implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
 
-    private static final String TAG = com.paydayme.spatialguide.ui.MapActivity.class.getSimpleName();
+    private static final String TAG = com.paydayme.spatialguide.ui.activity.MapActivity.class.getSimpleName();
 
     private GoogleMap googleMap;
     private boolean isMapReady = false;
@@ -269,7 +269,7 @@ public class MapActivity extends AppCompatActivity
             i.setData(Uri.parse(url));
             startActivity(i);
         } else if(id == R.id.nav_route){
-            startActivity(new Intent(com.paydayme.spatialguide.ui.MapActivity.this, RouteActivity.class));
+            startActivity(new Intent(com.paydayme.spatialguide.ui.activity.MapActivity.this, RouteActivity.class));
             finish();
         }
 
@@ -385,7 +385,7 @@ public class MapActivity extends AppCompatActivity
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 //Prompt the user once explanation has been shown
-                                ActivityCompat.requestPermissions(com.paydayme.spatialguide.ui.MapActivity.this,
+                                ActivityCompat.requestPermissions(com.paydayme.spatialguide.ui.activity.MapActivity.this,
                                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                                         MY_PERMISSIONS_REQUEST_LOCATION );
                             }

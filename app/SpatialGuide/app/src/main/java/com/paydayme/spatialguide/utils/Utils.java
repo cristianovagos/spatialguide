@@ -3,11 +3,27 @@ package com.paydayme.spatialguide.utils;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Credentials;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import static com.paydayme.spatialguide.core.Constant.ERROR_DIALOG_REQUEST;
 
@@ -16,6 +32,7 @@ import static com.paydayme.spatialguide.core.Constant.ERROR_DIALOG_REQUEST;
  */
 
 public final class Utils {
+    private static final String TAG = "Utils";
 
     public static boolean isServicesOK(Context context, String tag) {
         Log.d(tag, "isServicesOK: checking Google Services version");
@@ -35,5 +52,40 @@ public final class Utils {
             Toast.makeText(context, "You can't make map requests", Toast.LENGTH_SHORT).show();
         }
         return false;
+    }
+
+    public static Call fetchJSONfromURL(String url, Callback callback) {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        Call call = client.newCall(request);
+        call.enqueue(callback);
+        return call;
+    }
+
+    public static <T> Collection<List<T>> generatePermutationsNoRepetition(Set<T> availableNumbers) {
+        Collection<List<T>> permutations = new HashSet<>();
+
+        for (T number : availableNumbers) {
+            Set<T> numbers = new HashSet<>(availableNumbers);
+            numbers.remove(number);
+
+            if (!numbers.isEmpty()) {
+                Collection<List<T>> childPermutations = generatePermutationsNoRepetition(numbers);
+                for (List<T> childPermutation : childPermutations) {
+                    List<T> permutation = new ArrayList<>();
+                    permutation.add(number);
+                    permutation.addAll(childPermutation);
+                    permutations.add(permutation);
+                }
+            } else {
+                List<T> permutation = new ArrayList<>();
+                permutation.add(number);
+                permutations.add(permutation);
+            }
+        }
+
+        return permutations;
     }
 }

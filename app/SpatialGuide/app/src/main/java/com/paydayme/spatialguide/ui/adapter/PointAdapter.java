@@ -2,9 +2,12 @@ package com.paydayme.spatialguide.ui.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
@@ -35,7 +38,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.MyViewHolder
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(final MyViewHolder holder, int position) {
         Point point = pointList.get(position);
         holder.pointName.setText(point.getPointName());
     }
@@ -45,6 +48,22 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.MyViewHolder
         return pointList.size();
     }
 
+    public void onItemMove(int initialPosition, int finalPosition) {
+        if(initialPosition < pointList.size() && finalPosition < pointList.size()) {
+            if(initialPosition < finalPosition) {
+                for(int i = initialPosition; i < finalPosition; i++) {
+                    Collections.swap(pointList, i, i+1);
+                }
+            } else {
+                for(int i = initialPosition; i > finalPosition; i--) {
+                    Collections.swap(pointList, i, i-1);
+                }
+            }
+        }
+
+        notifyItemMoved(initialPosition, finalPosition);
+    }
+
     class MyViewHolder extends RecyclerView.ViewHolder {
 
         TextView pointName;
@@ -52,9 +71,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.MyViewHolder
         public MyViewHolder(View itemView) {
             super(itemView);
             pointName = (TextView) itemView.findViewById(R.id.pointName);
-
         }
-
 
     }
 }

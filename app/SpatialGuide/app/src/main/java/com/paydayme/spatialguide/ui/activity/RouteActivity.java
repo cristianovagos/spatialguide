@@ -1,11 +1,12 @@
-package com.paydayme.spatialguide.ui;
+package com.paydayme.spatialguide.ui.activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.res.ResourcesCompat;
@@ -19,17 +20,14 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
+import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
-import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.ui.adapter.RouteAdapter;
@@ -59,6 +57,12 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     private SGApiClient sgApiClient;
     private List<Route> routeList = new ArrayList<>();
 
+    // SharedPreferences to save authentication token
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor spEditor;
+
+    private String authenticationHeader;
+
     // Views
     @BindView(R.id.availableRoutesList) RecyclerView avaliableRoutesRV;
     @BindView(R.id.toolbar) Toolbar toolbar;
@@ -74,9 +78,6 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         ButterKnife.bind(this);
 
         init();
-
-//        getRoutesAPI();
-        getFakeRoutes();
     }
 
     private void init() {
@@ -99,6 +100,40 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
                 .build();
 
         sgApiClient = retrofit.create(SGApiClient.class);
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        spEditor = sharedPreferences.edit();
+
+        // Get Authentication Header from SharedPreferences
+        authenticationHeader = sharedPreferences.getString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
+        if(authenticationHeader.isEmpty()) {
+            AlertDialog dialog = new AlertDialog.Builder(RouteActivity.this, R.style.CustomDialogTheme)
+                    .setTitle(getString(R.string.not_auth_dialog_title))
+                    .setMessage(getString(R.string.not_auth_dialog_message))
+                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(RouteActivity.this, LoginActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+            textView.setTypeface(tf);
+        }
+
+        getUserInfo();
+
+//        getRoutesAPI();
+        getFakeRoutes();
+    }
+
+    private void getUserInfo() {
+        // TODO - get user info to be displayed on the menu
+        // first name, last name, email and image
     }
 
     private void getFakeRoutes() {
@@ -131,7 +166,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 
     private void updateUI() {
         // Setting the point adapter and the recyclerview to receive route points
-        RouteAdapter routeAdapter = new RouteAdapter(routeList, new RouteAdapter.OnItemClickListener() {
+        RouteAdapter routeAdapter = new RouteAdapter(this, routeList, new RouteAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Route item) {
                 Intent intent = new Intent(RouteActivity.this, RouteDetailsActivity.class);
@@ -152,7 +187,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     }
 
     private void getRoutesAPI() {
-        Call<List<Route>> call = sgApiClient.getRoutes();
+        Call<List<Route>> call = sgApiClient.getRoutes(authenticationHeader);
 
         call.enqueue(new Callback<List<Route>>() {
             @Override

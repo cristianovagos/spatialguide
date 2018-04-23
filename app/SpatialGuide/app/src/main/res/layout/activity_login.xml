@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:text="@string/welcome_text"
             android:paddingTop="20dp"
-            android:paddingBottom="40dp"
+            android:paddingBottom="20dp"
             android:layout_gravity="center_horizontal"
             />
 
@@ -40,7 +40,7 @@
             android:textColor="@color/white" />
 
 
-        <!-- Email label -->
+        <!-- Username or Email label -->
         <android.support.design.widget.TextInputLayout
             android:id="@+id/tilEmail"
             android:layout_width="match_parent"
@@ -49,12 +49,12 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_email"
-                android:drawableLeft="@drawable/ic_email"
-                android:drawableStart="@drawable/ic_email"
+                android:drawableLeft="@drawable/ic_user"
+                android:drawableStart="@drawable/ic_user"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
-                android:hint="@string/email"/>
+                android:hint="@string/username_or_email"/>
         </android.support.design.widget.TextInputLayout>
 
         <!-- Password label -->
@@ -74,9 +74,32 @@
                 android:hint="@string/password"/>
         </android.support.design.widget.TextInputLayout>
 
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+
+            <android.support.v7.widget.AppCompatCheckBox
+                android:id="@+id/checkbox_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/remember_me"
+                android:textSize="16sp"
+                android:layout_weight="1"/>
+
+            <TextView
+                android:id="@+id/link_forgot_pw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/forgot_password"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/btn_login"
-            android:background="@drawable/rounded_shape"
+            android:background="@drawable/blue_rounded_shape"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"

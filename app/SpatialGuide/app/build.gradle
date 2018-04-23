@@ -20,6 +20,10 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'com.android.support:design:27.1.0'
@@ -28,21 +32,39 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:27.1.0'
 
     //ButterKnife
-    compile 'com.jakewharton:butterknife:8.8.1'
+    implementation 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     // Google Play Services
-    compile 'com.google.android.gms:play-services:11.8.0'
+    implementation 'com.google.android.gms:play-services:11.8.0'
+
+    // Google Maps Services
+    implementation 'com.google.maps:google-maps-services:0.1.20'
+    implementation 'com.google.android.gms:play-services-maps:10.2.1'
+    implementation 'com.google.maps.android:android-maps-utils:0.5'
 
     // Retrofit
-    compile 'com.squareup.retrofit2:retrofit:2.4.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.4.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
 
     // Gson
-    compile 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.google.code.gson:gson:2.8.2'
 
     // Picasso
     implementation 'com.squareup.picasso:picasso:2.71828'
+
+    // Lombok
+    implementation 'org.projectlombok:lombok:1.16.20'
+    annotationProcessor 'org.projectlombok:lombok:1.16.20'
+
+    // BottomNavigationViewEx
+    implementation 'com.github.ittianyu:BottomNavigationViewEx:1.2.4'
+
+    // Labelview
+    implementation 'com.github.linger1216:labelview:v1.1.2'
+
+    // CircleImageView
+    implementation 'de.hdodenhof:circleimageview:2.2.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'

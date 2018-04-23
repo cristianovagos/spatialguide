@@ -12,12 +12,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import lombok.Data;
+
 import static com.paydayme.spatialguide.core.Constant.GOOGLE_MAPS_API_KEY;
 
 /**
  * Created by cvagos on 20-03-2018.
  */
-
+@Data
 public class Route implements Serializable {
     @SerializedName("id")
     @Expose
@@ -82,78 +84,5 @@ public class Route implements Serializable {
         url += "&key=" + GOOGLE_MAPS_API_KEY;
 
         return url;
-    }
-
-    /**
-     * GETTERS
-     */
-    public int getRouteID() {
-        return routeID;
-    }
-
-    public String getRouteName() {
-        return routeName;
-    }
-
-    public String getRouteDescription() {
-        return routeDescription;
-    }
-
-    public String getRouteImage() {
-        return routeImage;
-    }
-
-    public List<Point> getRoutePoints() {
-        return routePoints;
-    }
-
-    public String getRouteMapImage() {
-        return routeMapImage;
-    }
-
-    public int getRouteDownloads() {
-        return routeDownloads;
-    }
-
-    public String getRouteDate() {
-        return routeDate;
-    }
-
-    public long getLastUpdate() {
-        return lastUpdate;
-    }
-
-    /**
-     * SETTERS
-     */
-    public void setRouteName(String routeName) {
-        this.routeName = routeName;
-    }
-
-    public void setRouteDescription(String routeDescription) {
-        this.routeDescription = routeDescription;
-    }
-
-    public void setRouteImage(String routeImage) {
-        this.routeImage = routeImage;
-    }
-
-    public void setRoutePoints(List<Point> routePoints) {
-        this.routePoints = routePoints;
-    }
-
-    @Override
-    public String toString() {
-        return "Route{" +
-                "routeID=" + routeID +
-                ", routeName='" + routeName + '\'' +
-                ", routeDescription='" + routeDescription + '\'' +
-                ", routeImage='" + routeImage + '\'' +
-                ", routePoints=" + routePoints +
-                ", routeMapImage='" + routeMapImage + '\'' +
-                ", routeDownloads=" + routeDownloads +
-                ", routeDate='" + routeDate + '\'' +
-                ", lastUpdate=" + lastUpdate +
-                '}';
     }
 }

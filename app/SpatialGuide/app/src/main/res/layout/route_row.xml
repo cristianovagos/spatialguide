@@ -14,12 +14,14 @@
         android:layout_height="wrap_content"
         android:background="@color/white">
 
-        <ImageView
+        <com.lid.lib.LabelImageView
             android:id="@+id/routeImage"
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:scaleType="centerCrop"
-            android:contentDescription="@string/app_name" />
+            android:contentDescription="@string/app_name"
+            app:label_backgroundColor="@color/primary"
+            app:label_orientation="LEFT_TOP"/>
 
         <TextView
             android:id="@+id/routeName"
@@ -40,11 +42,33 @@
             android:fontFamily="@font/catamaran"
             android:background="#4000"/>
 
+        <ProgressBar
+            android:id="@+id/routeProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="100dp"
+            android:layout_height="10dp"
+            android:layout_below="@id/routeName"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="5dp"
+            android:layout_toLeftOf="@+id/routeProgressText"
+            android:max="100"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/routeProgressText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/routeName"
+            android:layout_marginTop="10dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginEnd="10dp"
+            android:visibility="gone"/>
+
         <TextView
             android:id="@+id/routeDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/routeName"
+            android:layout_below="@+id/routeProgressText"
             android:paddingStart="15dp"
             android:paddingLeft="15dp"
             android:paddingEnd="15dp"
