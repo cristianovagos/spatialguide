@@ -88,4 +88,11 @@ public final class Utils {
 
         return permutations;
     }
+
+    public static float distance(double x1, double y1, double x2, double y2)
+    {
+        float dist;
+        dist = (float) Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
+        return dist;
+    }
 }
