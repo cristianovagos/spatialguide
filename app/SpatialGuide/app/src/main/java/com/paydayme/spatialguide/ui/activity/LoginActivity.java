@@ -18,6 +18,7 @@ import android.support.v7.widget.AppCompatEditText;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -84,6 +85,8 @@ public class LoginActivity extends AppCompatActivity {
         // Initializing click listeners and fonts
         initClickListeners();
 
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
 
@@ -96,8 +99,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void checkSharedPreferences() {
-        String checkbox = sharedPreferences.getString(Constant.SHARED_PREFERENCES_REMEMBER_ME, "False");
-        String username = sharedPreferences.getString(Constant.SHARED_PREFERENCES_LOGIN_USERNAME, "");
+        String checkbox = sharedPreferences.getString(SHARED_PREFERENCES_REMEMBER_ME, "False");
+        String username = sharedPreferences.getString(SHARED_PREFERENCES_LOGIN_USERNAME, "");
         String password = sharedPreferences.getString(SHARED_PREFERENCES_PASSWORD, "");
 
         emailText.setText(username);
@@ -169,15 +172,15 @@ public class LoginActivity extends AppCompatActivity {
             usedUsername = true;
         }
 
+        // store username on sharedpreferences
+        String username = emailText.getText().toString();
+        spEditor.putString(SHARED_PREFERENCES_LOGIN_USERNAME, username);
+        spEditor.commit();
+
         // check if Remember me checked box was checked and then store values
         if(checkBoxRemember.isChecked()) {
             // store checkbox state
             spEditor.putString(SHARED_PREFERENCES_REMEMBER_ME, "True");
-            spEditor.commit();
-
-            // store username
-            String username = emailText.getText().toString();
-            spEditor.putString(SHARED_PREFERENCES_LOGIN_USERNAME, username);
             spEditor.commit();
 
             // store password
@@ -187,10 +190,6 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             // store checkbox state
             spEditor.putString(SHARED_PREFERENCES_REMEMBER_ME, "False");
-            spEditor.commit();
-
-            // store username
-            spEditor.putString(SHARED_PREFERENCES_LOGIN_USERNAME, "");
             spEditor.commit();
 
             // store password

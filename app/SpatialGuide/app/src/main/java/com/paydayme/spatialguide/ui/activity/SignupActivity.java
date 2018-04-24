@@ -14,6 +14,7 @@ import android.support.v7.widget.AppCompatEditText;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,6 +73,8 @@ public class SignupActivity extends AppCompatActivity {
 
         // Initialize Retrofit
         initRetrofit();
+
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
         // Initializing click listeners
         initClickListeners();

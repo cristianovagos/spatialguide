@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/relLayout1">
 
-            <include layout="@layout/layout_top_bar"/>
+            <include layout="@layout/layout_top_bar_map"/>
 
         </RelativeLayout>
 

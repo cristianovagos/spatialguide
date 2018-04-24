@@ -1094,11 +1094,24 @@ public class MapActivity extends AppCompatActivity implements
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_website) {
-            String url = "http://xcoa.av.it.pt/~pei2017-2018_g09/";
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(Uri.parse(url));
-            startActivity(i);
+        switch (id) {
+            case R.id.nav_website: {
+                String url = "http://xcoa.av.it.pt/~pei2017-2018_g09/";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+                break;
+            }
+            case R.id.nav_userpanel: {
+                // User Panel
+                startActivity(new Intent(MapActivity.this, UserPanelActivity.class));
+                break;
+            }
+            case R.id.nav_route: {
+                // Routes
+                startActivity(new Intent(MapActivity.this, RouteActivity.class));
+                break;
+            }
         }
 
         drawer.closeDrawer(GravityCompat.START);

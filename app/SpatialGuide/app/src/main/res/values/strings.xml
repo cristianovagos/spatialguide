@@ -13,6 +13,8 @@
     <string name="email_again">Re-enter Email</string>
     <string name="new_password">New Password</string>
     <string name="new_password_again">Re-enter New Password</string>
+    <string name="new_email">New Email</string>
+    <string name="new_email_again">Re-enter New Email</string>
     <string name="password">Password</string>
     <string name="password_again">Re-enter Password</string>
     <string name="login">Sign in</string>
@@ -81,8 +83,10 @@
     <string name="recover_password">Recover password</string>
     <string name="recovering_password">Setting a new password...</string>
     <string name="goto_login"><u>Sign in now!</u></string>
-    <string name="history_failed">Looks like you didn't gone travelling... Let's go!</string>
+    <string name="history_failed">Looks like you didn\'t gone travelling... Let\'s go!</string>
     <string name="on_device">ON DEVICE</string>
     <string name="not_auth_dialog_title">Not authenticated</string>
     <string name="not_auth_dialog_message">You must be authenticated to use this app.</string>
+    <string name="change_password">Change Password</string>
+    <string name="change_email">Change Email</string>
 </resources>

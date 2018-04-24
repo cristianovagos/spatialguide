@@ -18,7 +18,8 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.activity.SplashActivity"
-            android:theme="@style/SplashTheme">
+            android:theme="@style/SplashTheme"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -27,18 +28,26 @@
         </activity>
         <activity
             android:name=".ui.activity.LoginActivity"
-            android:theme="@style/AppTheme.Dark" />
+            android:theme="@style/AppTheme.Dark"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.activity.SignupActivity"
-            android:theme="@style/AppTheme.Dark" />
+            android:theme="@style/AppTheme.Dark"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.activity.RouteActivity"
-            android:theme="@style/AppTheme.Dark"/>
+            android:theme="@style/AppTheme.Dark"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.activity.RouteDetailsActivity"
-            android:theme="@style/AppTheme.Dark"/>
+            android:theme="@style/AppTheme.Dark"
+            android:screenOrientation="portrait"/>
         <activity android:name=".ui.activity.MapActivity"
-            android:theme="@style/AppTheme.Dark"/>
+            android:theme="@style/AppTheme.Dark"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.activity.UserPanelActivity"
+            android:theme="@style/AppTheme.Dark"
+            android:screenOrientation="portrait"/>
         <service android:name=".core.service.DownloadService"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
