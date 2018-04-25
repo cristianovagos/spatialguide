@@ -6,12 +6,14 @@ import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -31,6 +33,7 @@ import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.ui.adapter.RouteAdapter;
+import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +72,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     @BindView(R.id.drawer_layout) DrawerLayout drawer;
     @BindView(R.id.nav_view) NavigationView navigationView;
     @BindView(R.id.noRoutesText) TextView noRoutesText;
+    @BindView(R.id.swipeRefresh) SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,6 +88,23 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(null);
+
+        swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.primary));
+        swipeRefreshLayout.setProgressViewOffset(false, 120, 155);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                //TODO - get Routes updated
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "run: stopping refresh");
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }, 1000);
+            }
+        });
 
         // Add listener to the hamburger icon on left
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -252,6 +273,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(RouteActivity.this, SGPreferencesActivity.class));
             return true;
         }
 

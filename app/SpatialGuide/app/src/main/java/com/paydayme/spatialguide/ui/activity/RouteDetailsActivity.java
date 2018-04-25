@@ -402,7 +402,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
 
         // Setting the point adapter and the recyclerview to receive route points
         pointList = route.getRoutePoints();
-        pointAdapter = new PointAdapter(this, pointList);
+        pointAdapter = new PointAdapter(this, pointList, false);
         recyclerView.setAdapter(pointAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 

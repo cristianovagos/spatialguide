@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="map_types">
+        <item>Satellite</item>
+        <item>Normal</item>
+        <item>Hybrid</item>
+        <item>Terrain</item>
+    </string-array>
+    <string-array name="map_types_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+
+    <string-array name="location_priority">
+        <item>High Accuracy (GPS and Internet)</item>
+        <item>Balanced</item>
+        <item>GPS Only</item>
+    </string-array>
+    <string-array name="location_priority_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+
+    <string-array name="unvisited_marker_colors">
+        <item>Red</item>
+        <item>Green</item>
+        <item>Blue</item>
+        <item>Cyan</item>
+        <item>Magenta</item>
+        <item>Orange</item>
+        <item>Rose</item>
+        <item>Violet</item>
+        <item>Yellow</item>
+    </string-array>
+    <string-array name="unvisited_marker_colors_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
+
+    <string-array name="visited_marker_colors">
+        <item>Green</item>
+        <item>Blue</item>
+        <item>Cyan</item>
+        <item>Magenta</item>
+        <item>Orange</item>
+        <item>Red</item>
+        <item>Rose</item>
+        <item>Violet</item>
+        <item>Yellow</item>
+    </string-array>
+    <string-array name="visited_marker_colors_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
+
+
+    <string-array name="polyline_color">
+        <item>Blue</item>
+        <item>Red</item>
+        <item>Green</item>
+        <item>Yellow</item>
+        <item>Black</item>
+        <item>Cyan</item>
+        <item>Magenta</item>
+    </string-array>
+    <string-array name="polyline_color_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+    </string-array>
+
+
+    <string-array name="travel_mode">
+        <item>Walking</item>
+        <item>Car/Bus</item>
+        <item>Bicycle</item>
+    </string-array>
+    <string-array name="travel_mode_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+</resources>

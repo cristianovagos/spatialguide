@@ -41,6 +41,14 @@
         <item name="android:fontFamily">@font/catamaran</item>
     </style>
 
+    <style name="PreferenceScreen" parent="AppTheme.Dark">
+        <item name="colorControlActivated">@color/monsoon</item>
+        <item name="colorControlHighlight">@color/monsoon</item>
+        <item name="android:textColor">@color/monsoon</item>
+        <item name="android:background">@color/white</item>
+        <item name="android:alertDialogTheme">@style/CustomDialogTheme</item>
+    </style>
+
     <style name="AppTheme.Dark.Dialog" parent="Theme.AppCompat.Dialog">
         <item name="colorAccent">@color/white</item>
         <item name="android:textColorPrimary">@color/iron</item>

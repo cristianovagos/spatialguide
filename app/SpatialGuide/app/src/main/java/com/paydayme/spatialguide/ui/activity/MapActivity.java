@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -12,6 +13,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -25,6 +27,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -55,11 +58,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -71,7 +74,6 @@ import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.model.DirectionsResult;
-import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.TravelMode;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 import com.paydayme.spatialguide.BuildConfig;
@@ -85,61 +87,41 @@ import com.paydayme.spatialguide.model.routexl.RouteXLRequest;
 import com.paydayme.spatialguide.model.routexl.RouteXLResponse;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
-import com.paydayme.spatialguide.utils.Utils;
+import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 import com.squareup.picasso.Picasso;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.DirectionsApi;
-import com.google.maps.GeoApiContext;
-import com.google.maps.android.PolyUtil;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.DirectionsResult;
-import com.google.maps.model.DirectionsRoute;
-import com.google.maps.model.TravelMode;
 
 import org.joda.time.DateTime;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.DEFAULT_ZOOM_VALUE;
 import static com.paydayme.spatialguide.core.Constant.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS;
 import static com.paydayme.spatialguide.core.Constant.GOOGLE_DIRECTIONS_API_KEY;
-import static com.paydayme.spatialguide.core.Constant.MINIMUM_DISPLACEMENT;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_CHECK_SETTINGS;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_PERMISSIONS_REQUEST_CODE;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_AURALIZATION;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_DIRECTION_LINE_COLOR;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_HEATMAP;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_LOCATION_ACCURACY;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MARKER_UNVISITED_COLOR;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MARKER_VISITED_COLOR;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_TRAVEL_MODE;
 import static com.paydayme.spatialguide.core.Constant.UPDATE_INTERVAL_IN_MILLISECONDS;
 
 /**
@@ -235,6 +217,29 @@ public class MapActivity extends AppCompatActivity implements
      */
     private AlertDialog dialog;
 
+    /**
+     * Marker that will appear on Google Map when user click
+     */
+    private Marker markerUserClick;
+
+    /**
+     * SharedPreferences object
+     */
+    private SharedPreferences sharedPreferences;
+
+    /**
+     * Variables that will take impact due to
+     * sharedPreferences values from SGPreferenceActivity
+     */
+    private boolean prefs_auralization;
+    private boolean prefs_heatmap;
+    private int prefs_travelmode;
+    private int prefs_location_accuracy;
+    private int prefs_map_type;
+    private int prefs_unvisited_marker_color;
+    private int prefs_visited_marker_color;
+    private int prefs_direction_line_color;
+
     // UI Widgets.
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.drawer_layout) DrawerLayout drawer;
@@ -257,8 +262,73 @@ public class MapActivity extends AppCompatActivity implements
             MarkerOptions options = new MarkerOptions()
                     .position(new LatLng(p.getPointLatitude(), p.getPointLongitude()))
                     .title(p.getPointName());
-            if(p.isPointVisited())
-                options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            if(p.isPointVisited()) {
+                switch (prefs_visited_marker_color) {
+                    case 1:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                        break;
+                    case 2:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                        break;
+                    case 3:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+                        break;
+                    case 4:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+                        break;
+                    case 5:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+                        break;
+                    case 6:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                        break;
+                    case 7:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
+                        break;
+                    case 8:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+                        break;
+                    case 9:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                        break;
+                    default:
+                        Log.e(TAG, "addMarkers: error on setting the visited marker color");
+                        break;
+                }
+            }
+
+            switch (prefs_unvisited_marker_color) {
+                case 1:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    break;
+                case 2:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    break;
+                case 3:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                    break;
+                case 4:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+                    break;
+                case 5:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+                    break;
+                case 6:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+                    break;
+                case 7:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
+                    break;
+                case 8:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+                    break;
+                case 9:
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                    break;
+                default:
+                    Log.e(TAG, "addMarkers: error on setting the unvisited marker color");
+                    break;
+            }
             Marker marker = mMap.addMarker(options);
             marker.setTag(p);
         }
@@ -285,6 +355,9 @@ public class MapActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         mRouteSelected = intent.getIntExtra("route", -1);
+
+        // Getting SharedPreferences and their values
+        initSharedPreferences();
 
         // Update values using data stored in the Bundle.
         updateValuesFromBundle(savedInstanceState);
@@ -318,6 +391,19 @@ public class MapActivity extends AppCompatActivity implements
         buildLocationSettingsRequest();
     }
 
+    private void initSharedPreferences() {
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // TODO heatmap functioning
+        prefs_heatmap = sharedPreferences.getBoolean(SHARED_PREFS_HEATMAP, false);
+        prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
+        prefs_location_accuracy = sharedPreferences.getInt(SHARED_PREFS_LOCATION_ACCURACY, 1);
+        prefs_travelmode = sharedPreferences.getInt(SHARED_PREFS_TRAVEL_MODE, 1);
+        prefs_unvisited_marker_color = sharedPreferences.getInt(SHARED_PREFS_MARKER_UNVISITED_COLOR, 1);
+        prefs_visited_marker_color = sharedPreferences.getInt(SHARED_PREFS_MARKER_VISITED_COLOR, 1);
+        prefs_direction_line_color = sharedPreferences.getInt(SHARED_PREFS_DIRECTION_LINE_COLOR, 1);
+    }
+
     private void initApis() {
         // Initialization of Retrofit object for handling the RouteXL API requests
         Retrofit retrofit = new Retrofit.Builder()
@@ -347,9 +433,34 @@ public class MapActivity extends AppCompatActivity implements
         });
     }
 
+    private boolean checkMapReady() {
+        if(mMap == null) {
+            Toast.makeText(this, getString(R.string.map_not_ready), Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        UiSettings mUiSettings = mMap.getUiSettings();
+        mUiSettings.setZoomControlsEnabled(true);
+        mUiSettings.setMapToolbarEnabled(false);
+
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if(markerUserClick != null)
+                    markerUserClick.remove();
+                markerUserClick = mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.logo_launcher)));
+                markerUserClick.setTag(latLng);
+            }
+        });
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
@@ -368,7 +479,25 @@ public class MapActivity extends AppCompatActivity implements
             @Override
             public boolean onMarkerClick(Marker marker) {
                 Log.d(TAG, "onMarkerClick: marker " + marker.getTag());
-                showInfoDialog(false, (Point) marker.getTag());
+
+                try {
+                    Point markerPoint = (Point) marker.getTag();
+                    if(markerPoint != null) {
+                        showInfoDialog(false, markerPoint);
+                    }
+                } catch (ClassCastException e) {
+                    Log.d(TAG, "onMarkerClick: " + e.getMessage());
+                }
+
+                try {
+                    LatLng markerLatLng = (LatLng) marker.getTag();
+                    if(markerLatLng != null) {
+                        showSuggestionDialog(markerLatLng);
+                    }
+                } catch (ClassCastException e) {
+                    Log.d(TAG, "onMarkerClick: " + e.getMessage());
+                }
+
                 return false;
             }
         });
@@ -458,7 +587,19 @@ public class MapActivity extends AppCompatActivity implements
         //TODO - setting smallest displacement (DEBUG)
 //        mLocationRequest.setSmallestDisplacement(MINIMUM_DISPLACEMENT);
 
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        switch (prefs_location_accuracy) {
+            case 1:
+                mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                break;
+            case 2:
+                mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+                break;
+            case 3:
+                mLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+                break;
+            default:
+                Log.e(TAG, "createLocationRequest: error on setting location priority");
+        }
     }
 
     /**
@@ -577,6 +718,9 @@ public class MapActivity extends AppCompatActivity implements
         if (mCurrentLocation == null)
             return;
 
+        if(!checkMapReady())
+            return;
+
         Log.d(TAG, "updateLocationUI: lat: " + mCurrentLocation.getLatitude() +
                 ", lon: " + mCurrentLocation.getLongitude());
         Log.d(TAG, "updateLocationUI: " + mLastUpdateTime);
@@ -616,7 +760,9 @@ public class MapActivity extends AppCompatActivity implements
             // show the dialog with info of location
             showInfoDialog(true, locationPointPair.second);
 
-            // TODO insert auralization trigger here
+            if(prefs_auralization) {
+                // TODO insert auralization trigger here
+            }
         }
     }
 
@@ -669,13 +815,25 @@ public class MapActivity extends AppCompatActivity implements
 
         try {
             DirectionsApiRequest request = DirectionsApi.newRequest(getGeoContext())
-                    .mode(TravelMode.WALKING)
                     .origin(new com.google.maps.model.LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()))
                     .destination(new com.google.maps.model.LatLng(destination.getPointLatitude(), destination.getPointLongitude()))
                     .departureTime(now)
                     .waypoints(waypoints.toArray(new com.google.maps.model.LatLng[waypoints.size()]));
             if(optimized)
                 request.optimizeWaypoints(true);
+
+            switch (prefs_travelmode) {
+                case 1:
+                    request.mode(TravelMode.WALKING);
+                    break;
+                case 2:
+                    request.mode(TravelMode.DRIVING);
+                    break;
+                case 3:
+                    request.mode(TravelMode.BICYCLING);
+                    break;
+            }
+
             return request.await();
         } catch (com.google.maps.errors.ApiException e) {
             e.printStackTrace();
@@ -691,17 +849,84 @@ public class MapActivity extends AppCompatActivity implements
 
     private void addPolyline(DirectionsResult results, GoogleMap mMap) {
         List<LatLng> decodedPath = PolyUtil.decode(results.routes[0].overviewPolyline.getEncodedPath());
-        mMap.addPolyline(new PolylineOptions().addAll(decodedPath).color(Color.BLUE));
+        PolylineOptions options = new PolylineOptions().addAll(decodedPath);
+
+        switch (prefs_direction_line_color) {
+            case 1:
+                options.color(Color.BLUE);
+                break;
+            case 2:
+                options.color(Color.RED);
+                break;
+            case 3:
+                options.color(Color.GREEN);
+                break;
+            case 4:
+                options.color(Color.YELLOW);
+                break;
+            case 5:
+                options.color(Color.BLACK);
+                break;
+            case 6:
+                options.color(Color.CYAN);
+                break;
+            case 7:
+                options.color(Color.MAGENTA);
+                break;
+            default:
+                Log.e(TAG, "addPolyline: error setting color to the polyline");
+                break;
+        }
+
+        mMap.addPolyline(options);
     }
 
     private GeoApiContext getGeoContext() {
-        GeoApiContext geoApiContext = new GeoApiContext();
-        return geoApiContext
-                .setQueryRateLimit(3)
-                .setApiKey(GOOGLE_DIRECTIONS_API_KEY)
-                .setConnectTimeout(1, TimeUnit.SECONDS)
-                .setReadTimeout(1, TimeUnit.SECONDS)
-                .setWriteTimeout(1, TimeUnit.SECONDS);
+        return new GeoApiContext.Builder()
+                .queryRateLimit(3)
+                .apiKey(GOOGLE_DIRECTIONS_API_KEY)
+                .connectTimeout(1, TimeUnit.SECONDS)
+                .readTimeout(1, TimeUnit.SECONDS)
+                .writeTimeout(1, TimeUnit.SECONDS).build();
+    }
+
+    private void showSuggestionDialog(final LatLng latLng) {
+        // Check if the dialog exists and if its showing
+        if(dialog != null && dialog.isShowing()) return;
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_suggestion, null);
+        final AppCompatEditText suggestionText = (AppCompatEditText) view.findViewById(R.id.input_suggestion);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle("Suggest this location")
+                .setView(view)
+                .setPositiveButton("Send", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // TODO backend
+                        String suggestion = suggestionText.getText().toString();
+                        Log.d(TAG, "show suggestion dialog onClick: " + suggestion);
+                        Log.d(TAG, "suggestion position: lat: " + latLng.latitude + " lon: " + latLng.longitude);
+                    }
+                });
+
+        // Creating dialog and adjusting size
+        dialog = builder.create();
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER;
+
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+
+        // Setting custom font to dialog
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
     }
 
     private void showInfoDialog(boolean inLocation, final Point point) {
@@ -709,7 +934,7 @@ public class MapActivity extends AppCompatActivity implements
         if(dialog != null && dialog.isShowing()) return;
 
         LayoutInflater inflater = LayoutInflater.from(this);
-        View view = inflater.inflate(R.layout.dialog_layout, null);
+        View view = inflater.inflate(R.layout.dialog_point_info, null);
 
         TextView dialogTitle = (TextView) view.findViewById(R.id.dialog_title);
         dialogTitle.setText(point.getPointName());
@@ -724,16 +949,14 @@ public class MapActivity extends AppCompatActivity implements
         final ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
         Picasso.get()
                 .load(point.getPointImage())
-                .placeholder(R.drawable.progress_animation)
                 .into(dialogImage, new com.squareup.picasso.Callback() {
                     @Override
                     public void onSuccess() {
-
+                        dialogImage.setVisibility(View.VISIBLE);
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        dialogImage.setVisibility(View.GONE);
                     }
                 });
 //        ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
@@ -752,7 +975,7 @@ public class MapActivity extends AppCompatActivity implements
                 })
                 .setCancelable(true);
 
-        if(!point.getPointURL().isEmpty() || point.getPointURL() != null) {
+        if(point.getPointURL() != null) {
             builder.setNeutralButton("Learn more", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -777,7 +1000,6 @@ public class MapActivity extends AppCompatActivity implements
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = 900;
         lp.height = 1300;
-//        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER;
 
         dialog.show();
@@ -798,7 +1020,7 @@ public class MapActivity extends AppCompatActivity implements
 
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.routeDragRecyclerview);
 
-        final PointAdapter pointAdapter = new PointAdapter(this, mRoute.getRoutePoints());
+        final PointAdapter pointAdapter = new PointAdapter(this, mRoute.getRoutePoints(), true);
         recyclerView.setAdapter(pointAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -847,7 +1069,6 @@ public class MapActivity extends AppCompatActivity implements
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = 900;
         lp.height = 1300;
-//        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER;
 
         dialog.show();
@@ -1054,7 +1275,7 @@ public class MapActivity extends AppCompatActivity implements
                     .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            finishAffinity();
+                            finish();
                         }
                     })
                     .setNegativeButton(getString(android.R.string.no), null)
@@ -1082,6 +1303,7 @@ public class MapActivity extends AppCompatActivity implements
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(MapActivity.this, SGPreferencesActivity.class));
             return true;
         }
 

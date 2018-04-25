@@ -54,24 +54,26 @@ public final class Constant {
     public static final String POINT_STORAGE_SEPARATOR = "point-";
 
     /**
-     * Key to be stored on SharedPreferences for authentication token
+     * SharedPreferences keys
+     * (auth key, remember me checkbox state, login username and password)
      */
     public static final String SHARED_PREFERENCES_AUTH_KEY = "com.paydayme.spatialguide.shared.auth-token";
-
-    /**
-     * Key to be stored on SharedPreferences for remember me checkbox
-     */
     public static final String SHARED_PREFERENCES_REMEMBER_ME = "com.paydayme.spatialguide.shared.remember-me";
-
-    /**
-     * Key to be stored on SharedPreferences for login username/email
-     */
     public static final String SHARED_PREFERENCES_LOGIN_USERNAME = "com.paydayme.spatialguide.shared.login-username";
+    public static final String SHARED_PREFERENCES_PASSWORD = "com.paydayme.spatialguide.shared.login-password";
 
     /**
-     * Key to be stored on SharedPreferences for user password
+     * SharedPreferences Preference keys
+     * keys from the {@link com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity} class
      */
-    public static final String SHARED_PREFERENCES_PASSWORD = "com.paydayme.spatialguide.shared.login-password";
+    public static final String SHARED_PREFS_AURALIZATION = "com.paydayme.spatialguide.prefs.auralization_engine";
+    public static final String SHARED_PREFS_HEATMAP = "com.paydayme.spatialguide.prefs.send_location_heatmap";
+    public static final String SHARED_PREFS_TRAVEL_MODE = "com.paydayme.spatialguide.prefs.travel_mode";
+    public static final String SHARED_PREFS_LOCATION_ACCURACY = "com.paydayme.spatialguide.prefs.location_accuracy";
+    public static final String SHARED_PREFS_MAP_TYPE = "com.paydayme.spatialguide.prefs.map_type";
+    public static final String SHARED_PREFS_MARKER_UNVISITED_COLOR = "com.paydayme.spatialguide.prefs.unvisited_marker_color";
+    public static final String SHARED_PREFS_MARKER_VISITED_COLOR = "com.paydayme.spatialguide.prefs.visited_marker_color";
+    public static final String SHARED_PREFS_DIRECTION_LINE_COLOR = "com.paydayme.spatialguide.prefs.direction_line_color";
 
     /**
      * Keys to be used on Intent filter of BroadcastReceiver

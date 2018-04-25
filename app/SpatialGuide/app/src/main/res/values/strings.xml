@@ -89,4 +89,7 @@
     <string name="not_auth_dialog_message">You must be authenticated to use this app.</string>
     <string name="change_password">Change Password</string>
     <string name="change_email">Change Email</string>
+    <string name="map_not_ready">Map not ready</string>
+    <string name="suggestion_prompt_dialog">Want to suggest this location?</string>
+    <string name="suggestion_hint_dialog">Tell us why we should add it!</string>
 </resources>

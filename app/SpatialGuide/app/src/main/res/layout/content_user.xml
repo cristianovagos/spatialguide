@@ -10,13 +10,9 @@
 
     <LinearLayout
         android:orientation="vertical"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/splash_layer"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
-
+        android:background="@drawable/splash_layer">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/userimage"
@@ -141,7 +137,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:drawableTop="@drawable/ic_password"
-                android:text="Change password"
+                android:text="@string/change_password"
                 android:textSize="12sp"
                 android:layout_gravity="center"/>
 
@@ -150,7 +146,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Change email"
+                android:text="@string/change_password"
                 android:drawableTop="@drawable/ic_email"
                 android:textSize="12sp"
                 android:layout_gravity="center"/>

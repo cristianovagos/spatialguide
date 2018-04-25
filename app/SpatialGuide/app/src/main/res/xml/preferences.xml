@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Preferences Screen XML
+
+- insert how the screen will look here
+- the values are on "res/values/preferences.xml"
+
+- the key is important to access them later on the Java code
+- REMEMBER TO ADD THE KEYS ON Constant class on "/core" folder
+
+-->
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="GENERAL">
+
+        <CheckBoxPreference
+            android:title="Toggle Auralization Engine"
+            android:summary="Turn on/off the spatial audio feature"
+            android:key="com.paydayme.spatialguide.prefs.auralization_engine"
+            android:defaultValue="true"/>
+
+        <CheckBoxPreference
+            android:title="Send my location anonymously"
+            android:summary="To track usage statistics (heatmaps)"
+            android:key="com.paydayme.spatialguide.prefs.send_location_heatmap"
+            android:defaultValue="false"/>
+
+        <ListPreference
+            android:title="Travel Mode"
+            android:summary="Car/Bus, Walking, Bicycle"
+            android:key="com.paydayme.spatialguide.prefs.travel_mode"
+            android:defaultValue="1"
+            android:entries="@array/travel_mode"
+            android:entryValues="@array/travel_mode_values"/>
+
+        <ListPreference
+            android:title="Location Mode"
+            android:summary="How accurate your location is"
+            android:key="com.paydayme.spatialguide.prefs.location_accuracy"
+            android:defaultValue="1"
+            android:entries="@array/location_priority"
+            android:entryValues="@array/location_priority_values" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="APPEARANCE">
+
+        <ListPreference
+            android:title="Map Type"
+            android:summary="Type of map that will be shown"
+            android:key="com.paydayme.spatialguide.prefs.map_type"
+            android:defaultValue="1"
+            android:entries="@array/map_types"
+            android:entryValues="@array/map_types_values"/>
+
+        <ListPreference
+            android:title="Marker Color (Unvisited)"
+            android:summary="The color of the markers of points unvisited on the map"
+            android:key="com.paydayme.spatialguide.prefs.unvisited_marker_color"
+            android:defaultValue="1"
+            android:entries="@array/unvisited_marker_colors"
+            android:entryValues="@array/unvisited_marker_colors_values"/>
+
+        <ListPreference
+            android:title="Marker Color (Visited)"
+            android:summary="The color of the markers of points visited on the map"
+            android:key="com.paydayme.spatialguide.prefs.visited_marker_color"
+            android:defaultValue="1"
+            android:entries="@array/visited_marker_colors"
+            android:entryValues="@array/visited_marker_colors_values"/>
+
+        <ListPreference
+            android:title="Route Direction Color"
+            android:summary="The color of the direction on the map"
+            android:key="com.paydayme.spatialguide.prefs.direction_line_color"
+            android:defaultValue="1"
+            android:entries="@array/polyline_color"
+            android:entryValues="@array/polyline_color_values"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

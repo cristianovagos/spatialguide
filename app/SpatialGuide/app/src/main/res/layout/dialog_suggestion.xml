@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        android:layout_marginRight="25dp"
+        android:layout_marginLeft="25dp"
+        android:orientation="vertical"
+        android:scrollbars="vertical"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <TextView
+            android:id="@+id/dialog_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/suggestion_prompt_dialog"
+            android:textColor="@color/monsoon"
+            android:textSize="17sp" />
+
+        <!-- Suggestion Label -->
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/tilSuggestion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColorHint="@color/monsoon"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
+            android:theme="@style/TextAppearance.App.TextInputLayout">
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/input_suggestion"
+                android:drawableTint="@color/monsoon"
+                android:textColor="@color/monsoon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:lines="8"
+                android:minLines="6"
+                android:maxLines="10"
+                android:gravity="top|start"
+                android:scrollbars="vertical"
+                android:hint="@string/suggestion_hint_dialog"/>
+        </android.support.design.widget.TextInputLayout>
+
+    </LinearLayout>
+</ScrollView>

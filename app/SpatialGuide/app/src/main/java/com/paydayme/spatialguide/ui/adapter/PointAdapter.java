@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -24,10 +25,12 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.MyViewHolder
 
     private LayoutInflater inflater;
     private List<Point> pointList = Collections.emptyList();
+    private boolean draggable;
 
-    public PointAdapter(Context context, List<Point> list) {
+    public PointAdapter(Context context, List<Point> list, boolean draggable) {
         inflater = LayoutInflater.from(context);
         this.pointList = list;
+        this.draggable = draggable;
     }
 
     @Override
@@ -41,6 +44,8 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.MyViewHolder
     public void onBindViewHolder(final MyViewHolder holder, int position) {
         Point point = pointList.get(position);
         holder.pointName.setText(point.getPointName());
+        if(draggable)
+            holder.pointDrag.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -67,10 +72,12 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.MyViewHolder
     class MyViewHolder extends RecyclerView.ViewHolder {
 
         TextView pointName;
+        ImageView pointDrag;
 
         public MyViewHolder(View itemView) {
             super(itemView);
             pointName = (TextView) itemView.findViewById(R.id.pointName);
+            pointDrag = (ImageView) itemView.findViewById(R.id.pointDrag);
         }
 
     }

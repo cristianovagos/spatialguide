@@ -1,22 +1,31 @@
 package com.paydayme.spatialguide.ui.activity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -27,6 +36,7 @@ import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
+import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 
 import java.util.Collections;
 
@@ -38,7 +48,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
 
-public class UserPanelActivity extends AppCompatActivity {
+public class UserPanelActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "UserPanelActivity";
 
@@ -52,6 +62,9 @@ public class UserPanelActivity extends AppCompatActivity {
     private AlertDialog dialog;
 
     // Reference the views
+    @BindView(R.id.toolbar) Toolbar toolbar;
+    @BindView(R.id.drawer_layout) DrawerLayout drawer;
+    @BindView(R.id.nav_view) NavigationView navigationView;
     @BindView(R.id.userimage) CircleImageView userimage;
     @BindView(R.id.username) TextView username;
     @BindView(R.id.username_first_last) TextView username_first_last;
@@ -83,6 +96,19 @@ public class UserPanelActivity extends AppCompatActivity {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
+
+        // Setting action bar to the toolbar, removing text
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(null);
+
+        // Add listener to the hamburger icon on left
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // Set listener of navigation view to this class
+        navigationView.setNavigationItemSelectedListener(this);
 
         getUserInfo();
     }
@@ -203,5 +229,45 @@ public class UserPanelActivity extends AppCompatActivity {
             return;
 
         // TODO backend
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(UserPanelActivity.this, SGPreferencesActivity.class));
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.nav_website: {
+                String url = "http://xcoa.av.it.pt/~pei2017-2018_g09/";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+                break;
+            }
+            case R.id.nav_route: {
+                // Routes
+                startActivity(new Intent(UserPanelActivity.this, RouteActivity.class));
+                break;
+            }
+        }
+
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }

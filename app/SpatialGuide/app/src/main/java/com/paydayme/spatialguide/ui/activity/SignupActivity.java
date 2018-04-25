@@ -74,8 +74,6 @@ public class SignupActivity extends AppCompatActivity {
         // Initialize Retrofit
         initRetrofit();
 
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-
         // Initializing click listeners
         initClickListeners();
 

@@ -85,8 +85,6 @@ public class LoginActivity extends AppCompatActivity {
         // Initializing click listeners and fonts
         initClickListeners();
 
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
 
