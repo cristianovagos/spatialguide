@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
@@ -28,7 +27,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
-import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
@@ -40,6 +38,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -47,6 +46,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
+import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 
 /**
  * Created by cvagos on 17-03-2018.
@@ -63,7 +65,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     // SharedPreferences to save authentication token
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor spEditor;
-
+    private int routeSelected;
     private String authenticationHeader;
 
     // Views
@@ -89,20 +91,18 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(null);
 
+        avaliableRoutesRV.setLayoutManager(new LinearLayoutManager(this));
+        avaliableRoutesRV.setAdapter(new RouteAdapter(this, routeList, new RouteAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Route item) {}
+        }));
+
         swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.primary));
         swipeRefreshLayout.setProgressViewOffset(false, 120, 155);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                //TODO - get Routes updated
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d(TAG, "run: stopping refresh");
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                }, 1000);
+                getRoutesAPI();
             }
         });
 
@@ -111,9 +111,6 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
-        // Set listener of navigation view to this class
-        navigationView.setNavigationItemSelectedListener(this);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -124,32 +121,34 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
+        routeSelected = sharedPreferences.getInt(SHARED_PREFERENCES_LAST_ROUTE, -1);
+
+        prepareNavigationMenu();
 
         // Get Authentication Header from SharedPreferences
-//        authenticationHeader = sharedPreferences.getString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
-//        if(authenticationHeader.isEmpty()) {
-//            AlertDialog dialog = new AlertDialog.Builder(RouteActivity.this, R.style.CustomDialogTheme)
-//                    .setTitle(getString(R.string.not_auth_dialog_title))
-//                    .setMessage(getString(R.string.not_auth_dialog_message))
-//                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            Intent intent = new Intent(RouteActivity.this, LoginActivity.class);
-//                            startActivity(intent);
-//                            finish();
-//                        }
-//                    })
-//                    .setCancelable(false)
-//                    .show();
-//            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-//            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-//            textView.setTypeface(tf);
-//        }
+        authenticationHeader = sharedPreferences.getString(SHARED_PREFERENCES_AUTH_KEY, "");
+        if(authenticationHeader.isEmpty()) {
+            AlertDialog dialog = new AlertDialog.Builder(RouteActivity.this, R.style.CustomDialogTheme)
+                    .setTitle(getString(R.string.not_auth_dialog_title))
+                    .setMessage(getString(R.string.not_auth_dialog_message))
+                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(RouteActivity.this, LoginActivity.class));
+                            finish();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+            textView.setTypeface(tf);
+        }
 
         getUserInfo();
 
-//        getRoutesAPI();
-        getFakeRoutes();
+        getRoutesAPI();
+//        getFakeRoutes();
     }
 
     private void getUserInfo() {
@@ -168,24 +167,27 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
                 "Test Route 1",
                 "Welcome to the test route 1! Here it is how a route will look like in the SpatialGuide app.",
                 "https://i0.wp.com/gazetarural.com/wp-content/uploads/2017/12/Aveiro-Ria.jpg",
-                tmpList, 0, 20001024, System.currentTimeMillis()) );
+                tmpList, 0, "2010-02-03", 1234567890) );
 
         routeList.add( new Route(2,
                 "Test Route 2",
                 "Welcome to the test route 2! Here it is how a route will look like in the SpatialGuide app.",
                 "https://www.visitportugal.com/sites/www.visitportugal.com/files/mediateca/TAP_PracaComercio_01e_CL-co.jpg",
-                tmpList, 0, 20001024, System.currentTimeMillis()) );
+                tmpList, 0, "2010-02-03", 1234567890) );
 
         routeList.add( new Route(3,
                 "Test Route 3",
                 "Welcome to the test route 3! Here it is how a route will look like in the SpatialGuide app.",
                 "https://www.visitportugal.com/sites/www.visitportugal.com/files/styles/destinos_galeria/public/mediateca/N22312.jpg",
-                tmpList, 0, 20001024, System.currentTimeMillis()) );
+                tmpList, 0, "2010-02-03", 1234567890) );
 
         updateUI();
     }
 
     private void updateUI() {
+        if(swipeRefreshLayout.isRefreshing())
+            swipeRefreshLayout.setRefreshing(false);
+
         // Setting the point adapter and the recyclerview to receive route points
         RouteAdapter routeAdapter = new RouteAdapter(this, routeList, new RouteAdapter.OnItemClickListener() {
             @Override
@@ -286,14 +288,58 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_website) {
-            String url = "http://xcoa.av.it.pt/~pei2017-2018_g09/";
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(Uri.parse(url));
-            startActivity(i);
+        switch (id) {
+            case R.id.nav_website:
+                startActivity(new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse(SPATIALGUIDE_WEBSITE)));
+                break;
+            case R.id.nav_logout:
+                onLogout();
+                break;
+            case R.id.nav_userpanel:
+                startActivity(new Intent(RouteActivity.this, UserPanelActivity.class));
+                break;
+            case R.id.nav_history:
+                startActivity(new Intent(RouteActivity.this, HistoryActivity.class));
+                break;
+            case R.id.nav_map:
+                startActivity(new Intent(RouteActivity.this, MapActivity.class)
+                        .putExtra("route", routeSelected));
+                break;
         }
 
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void onLogout() {
+        Call<ResponseBody> call = sgApiClient.logout(authenticationHeader);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()) {
+                    spEditor.putString(SHARED_PREFERENCES_AUTH_KEY, "");
+                    spEditor.apply();
+                    startActivity(new Intent(RouteActivity.this, LoginActivity.class));
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "onFailure: failed to logout" + t.getMessage());
+            }
+        });
+    }
+
+    private void prepareNavigationMenu() {
+        // Set listener of navigation view to this class
+        navigationView.setNavigationItemSelectedListener(this);
+
+        Menu menu = navigationView.getMenu();
+        if(routeSelected != -1) {
+            menu.findItem(R.id.nav_map).setVisible(true);
+        }
+        menu.findItem(R.id.nav_route).setVisible(false);
     }
 }

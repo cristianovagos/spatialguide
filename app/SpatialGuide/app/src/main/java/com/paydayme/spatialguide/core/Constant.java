@@ -10,13 +10,19 @@ public final class Constant {
      */
 //    public static final String BASE_URL = "http://192.168.43.111:8000/";
 //    public static final String BASE_URL = "http://192.168.1.19:8000/";
-    public static final String BASE_URL = "http://192.168.1.99:8000";
+    public static final String BASE_URL = "http://192.168.1.16:8000";
 
     /**
-     * Base URL of audio files
-     * // TODO add the base url for downloading audio files
+     * Base URL of media files (Google Drive)
      */
-    public static final String FILES_BASE_URL = "https://www.soundhelix.com/";
+    public static final String FILES_BASE_URL = "http://drive.google.com/";
+    public static final String FILES_BASE_URL_SEPARATOR = "uc?export=view&id=";
+//    public static final String FILES_BASE_URL = "https://www.soundhelix.com/";
+
+    /**
+     * SpatialGuide Website to go on menu drawer click
+     */
+    public static final String SPATIALGUIDE_WEBSITE = "http://xcoa.av.it.pt/~pei2017-2018_g09/";
 
     /**
      * Google Maps and Directions API Keys.
@@ -61,6 +67,7 @@ public final class Constant {
     public static final String SHARED_PREFERENCES_REMEMBER_ME = "com.paydayme.spatialguide.shared.remember-me";
     public static final String SHARED_PREFERENCES_LOGIN_USERNAME = "com.paydayme.spatialguide.shared.login-username";
     public static final String SHARED_PREFERENCES_PASSWORD = "com.paydayme.spatialguide.shared.login-password";
+    public static final String SHARED_PREFERENCES_LAST_ROUTE = "com.paydayme.spatialguide.shared.last_route";
 
     /**
      * SharedPreferences Preference keys
@@ -81,6 +88,7 @@ public final class Constant {
     public static final String BROADCAST_MESSAGE_PROGRESS = "com.paydayme.spatialguide.intent.message_progress";
     public static final String BROADCAST_ERROR_DOWNLOAD = "com.paydayme.spatialguide.intent.error_download";
     public static final String BROADCAST_DOWNLOAD_COMPLETED = "com.paydayme.spatialguide.intent.download_completed";
+    public static final String BROADCAST_NO_POINTS = "com.paydayme.spatialguide.intent.no_points";
 
     /**
      * Code used in requesting runtime permissions.

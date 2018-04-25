@@ -54,6 +54,10 @@
             android:name=".ui.preferences.SGPreferencesActivity"
             android:theme="@style/PreferenceScreen"
             android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activity.HistoryActivity"
+            android:theme="@style/AppTheme.Dark"
+            android:screenOrientation="portrait"/>
 
         <service
             android:name=".core.service.DownloadService"/>

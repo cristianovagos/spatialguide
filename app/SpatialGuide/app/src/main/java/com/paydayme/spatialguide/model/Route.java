@@ -1,14 +1,8 @@
 package com.paydayme.spatialguide.model;
 
-import android.text.TextUtils;
-
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -22,26 +16,30 @@ import static com.paydayme.spatialguide.core.Constant.GOOGLE_MAPS_API_KEY;
 @Data
 public class Route implements Serializable {
     @SerializedName("id")
-    @Expose
     private int routeID;
 
     @SerializedName("Name")
-    @Expose
     private String routeName;
 
     @SerializedName("Description")
-    @Expose
     private String routeDescription;
 
-    /**
-     * FIELDS LEFT in API
-     */
-    private String routeImage;
-    private List<Point> routePoints;
-    private String routeMapImage;
-    private int routeDownloads;
+    @SerializedName("Route_Date")
     private String routeDate;
+
+    @SerializedName("LastUpdate")
     private long lastUpdate;
+
+    @SerializedName("Number_Downloads")
+    private int routeDownloads;
+
+    @SerializedName("Image")
+    private String routeImage;
+
+    @SerializedName("Points")
+    private List<Point> routePoints;
+
+    private String routeMapImage;
 
     /**
      * Route constructor
@@ -49,29 +47,16 @@ public class Route implements Serializable {
      * ONLY FOR TESTING WITHOUT API CALLS
      */
     public Route(int routeID, String routeName, String routeDescription,
-                 String routeImage, List<Point> routePoints, int routeDownloads, int routeDate, long lastUpdate) {
+                 String routeImage, List<Point> routePoints, int routeDownloads, String routeDate, long lastUpdate) {
         this.routeID = routeID;
         this.routeName = routeName;
         this.routeDescription = routeDescription;
         this.routeImage = routeImage;
         this.routePoints = routePoints;
-        this.routeMapImage = generateMapImage();
+        this.routeMapImage = !this.routePoints.isEmpty() ? generateMapImage() : null;
         this.routeDownloads = routeDownloads;
-        this.routeDate = generateDate(routeDate);
+        this.routeDate = routeDate;
         this.lastUpdate = lastUpdate;
-    }
-
-    private String generateDate(int date) {
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-        SimpleDateFormat finalDate = new SimpleDateFormat("dd-MM-yyyy");
-        Date d = null;
-        try {
-            d = df.parse(String.valueOf(date));
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return finalDate.format(d);
     }
 
     private String generateMapImage() {

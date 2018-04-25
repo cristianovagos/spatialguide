@@ -154,8 +154,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void login() {
-        Log.d(TAG, "login");
-
         boolean usedUsername = false;
 
         // Check if data inserted is valid
@@ -173,26 +171,26 @@ public class LoginActivity extends AppCompatActivity {
         // store username on sharedpreferences
         String username = emailText.getText().toString();
         spEditor.putString(SHARED_PREFERENCES_LOGIN_USERNAME, username);
-        spEditor.commit();
+        spEditor.apply();
 
         // check if Remember me checked box was checked and then store values
         if(checkBoxRemember.isChecked()) {
             // store checkbox state
             spEditor.putString(SHARED_PREFERENCES_REMEMBER_ME, "True");
-            spEditor.commit();
+            spEditor.apply();
 
             // store password
             String password = passwordText.getText().toString();
             spEditor.putString(SHARED_PREFERENCES_PASSWORD, password);
-            spEditor.commit();
+            spEditor.apply();
         } else {
             // store checkbox state
             spEditor.putString(SHARED_PREFERENCES_REMEMBER_ME, "False");
-            spEditor.commit();
+            spEditor.apply();
 
             // store password
             spEditor.putString(SHARED_PREFERENCES_PASSWORD, "");
-            spEditor.commit();
+            spEditor.apply();
         }
 
         // disable login button
@@ -220,7 +218,7 @@ public class LoginActivity extends AppCompatActivity {
                 if(response.isSuccessful()) {
                     // Store Authorization header
                     spEditor.putString(Constant.SHARED_PREFERENCES_AUTH_KEY, Credentials.basic(emailUsername, password));
-                    spEditor.commit();
+                    spEditor.apply();
 
                     // delay login to 1 second just to present dialog
                     new android.os.Handler().postDelayed(
@@ -244,7 +242,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e(TAG, "onFailure (register failed): " + t.getMessage());
+                Log.e(TAG, "onFailure (login failed): " + t.getMessage());
                 progressDialog.dismiss();
                 onLoginFailure();
             }
@@ -277,7 +275,7 @@ public class LoginActivity extends AppCompatActivity {
                 .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        finishAffinity();
+                        finish();
                     }
                 })
                 .setNegativeButton(getString(android.R.string.no), null)

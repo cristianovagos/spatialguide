@@ -27,6 +27,7 @@ import retrofit2.Retrofit;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_DOWNLOAD_COMPLETED;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_ERROR_DOWNLOAD;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_MESSAGE_PROGRESS;
+import static com.paydayme.spatialguide.core.Constant.BROADCAST_NO_POINTS;
 import static com.paydayme.spatialguide.core.Constant.FILES_BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.POINT_STORAGE_SEPARATOR;
 
@@ -71,6 +72,11 @@ public class DownloadService extends IntentService {
     }
 
     private void initDownload() {
+        if(route.getRoutePoints().size() < 1) {
+            sendNoPointsIntent();
+            return;
+        }
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(FILES_BASE_URL)
                 .build();
@@ -157,6 +163,11 @@ public class DownloadService extends IntentService {
 
     private void sendCompletionIntent() {
         Intent intent = new Intent(BROADCAST_DOWNLOAD_COMPLETED);
+        LocalBroadcastManager.getInstance(DownloadService.this).sendBroadcast(intent);
+    }
+
+    private void sendNoPointsIntent() {
+        Intent intent = new Intent(BROADCAST_NO_POINTS);
         LocalBroadcastManager.getInstance(DownloadService.this).sendBroadcast(intent);
     }
 }

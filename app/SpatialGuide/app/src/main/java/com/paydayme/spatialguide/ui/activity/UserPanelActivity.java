@@ -25,6 +25,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -33,6 +34,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
+import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
@@ -43,10 +45,17 @@ import java.util.Collections;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
+import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 
 public class UserPanelActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -60,6 +69,9 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
     private SharedPreferences.Editor spEditor;
 
     private AlertDialog dialog;
+
+    private String authenticationHeader;
+    private int routeSelected;
 
     // Reference the views
     @BindView(R.id.toolbar) Toolbar toolbar;
@@ -96,6 +108,26 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
+        routeSelected = sharedPreferences.getInt(SHARED_PREFERENCES_LAST_ROUTE, -1);
+
+        authenticationHeader = sharedPreferences.getString(SHARED_PREFERENCES_AUTH_KEY, "");
+        if(authenticationHeader.isEmpty()) {
+            AlertDialog dialog = new AlertDialog.Builder(UserPanelActivity.this, R.style.CustomDialogTheme)
+                    .setTitle(getString(R.string.not_auth_dialog_title))
+                    .setMessage(getString(R.string.not_auth_dialog_message))
+                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(UserPanelActivity.this, LoginActivity.class));
+                            finish();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+            textView.setTypeface(tf);
+        }
 
         // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
@@ -107,8 +139,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        // Set listener of navigation view to this class
-        navigationView.setNavigationItemSelectedListener(this);
+        prepareNavigationMenu();
 
         getUserInfo();
     }
@@ -253,21 +284,57 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         int id = item.getItemId();
 
         switch (id) {
-            case R.id.nav_website: {
-                String url = "http://xcoa.av.it.pt/~pei2017-2018_g09/";
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(url));
-                startActivity(i);
+            case R.id.nav_website:
+                startActivity(new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse(SPATIALGUIDE_WEBSITE)));
                 break;
-            }
-            case R.id.nav_route: {
-                // Routes
+            case R.id.nav_logout:
+                onLogout();
+                break;
+            case R.id.nav_map:
+                startActivity(new Intent(UserPanelActivity.this, MapActivity.class)
+                        .putExtra("route", routeSelected));
+                break;
+            case R.id.nav_route:
                 startActivity(new Intent(UserPanelActivity.this, RouteActivity.class));
                 break;
-            }
+            case R.id.nav_history:
+                startActivity(new Intent(UserPanelActivity.this, HistoryActivity.class));
+                break;
         }
 
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void onLogout() {
+        Call<ResponseBody> call = sgApiClient.logout(authenticationHeader);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()) {
+                    spEditor.putString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
+                    spEditor.apply();
+                    startActivity(new Intent(UserPanelActivity.this, LoginActivity.class));
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "onFailure: failed to logout" + t.getMessage());
+            }
+        });
+    }
+
+    private void prepareNavigationMenu() {
+        // Set listener of navigation view to this class
+        navigationView.setNavigationItemSelectedListener(this);
+
+        Menu menu = navigationView.getMenu();
+        if(routeSelected != -1) {
+            menu.findItem(R.id.nav_map).setVisible(true);
+        }
+        menu.findItem(R.id.nav_userpanel).setVisible(false);
     }
 }

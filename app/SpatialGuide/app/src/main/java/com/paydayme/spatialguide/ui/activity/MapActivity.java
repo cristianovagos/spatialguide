@@ -58,7 +58,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -80,6 +79,7 @@ import com.paydayme.spatialguide.BuildConfig;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.RouteXLApiClient;
+import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
@@ -98,6 +98,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -105,6 +106,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -115,13 +120,16 @@ import static com.paydayme.spatialguide.core.Constant.REQUEST_CHECK_SETTINGS;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_PERMISSIONS_REQUEST_CODE;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_AURALIZATION;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_DIRECTION_LINE_COLOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_HEATMAP;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_LOCATION_ACCURACY;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MAP_TYPE;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MARKER_UNVISITED_COLOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MARKER_VISITED_COLOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_TRAVEL_MODE;
+import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 import static com.paydayme.spatialguide.core.Constant.UPDATE_INTERVAL_IN_MILLISECONDS;
 
 /**
@@ -141,104 +149,76 @@ public class MapActivity extends AppCompatActivity implements
     private static final String TAG = MapActivity.class.getSimpleName();
 
     // Keys for storing activity state in the Bundle.
-//    private final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
     private final static String KEY_LOCATION = "location";
     private final static String KEY_LAST_UPDATED_TIME_STRING = "last-updated-time-string";
     private final static String KEY_ROUTE = "route";
 
-    /**
-     * Provides access to the Fused Location Provider API.
-     */
+    // Provides access to the Fused Location Provider API.
     private FusedLocationProviderClient mFusedLocationClient;
 
-    /**
-     * Provides access to the Location Settings API.
-     */
+    // Provides access to the Location Settings API.
     private SettingsClient mSettingsClient;
 
-    /**
-     * Stores parameters for requests to the FusedLocationProviderApi.
-     */
+    // Stores parameters for requests to the FusedLocationProviderApi.
     private LocationRequest mLocationRequest;
 
-    /**
-     * Stores the types of location services the client is interested in using. Used for checking
-     * settings to determine if the device has optimal location settings.
-     */
+    // Stores the types of location services the client is interested in using. Used for checking
+    // settings to determine if the device has optimal location settings.
     private LocationSettingsRequest mLocationSettingsRequest;
 
-    /**
-     * Callback for Location events.
-     */
+    // Callback for Location events.
     private LocationCallback mLocationCallback;
 
-    /**
-     * Represents a geographical location.
-     */
+    //Represents a geographical location.
     private Location mCurrentLocation;
 
-    /**
-     * The Google Map
-     */
+    // The Google Map
     private GoogleMap mMap;
 
-    /**
-     * Represents if the Maps camera has moved
-     */
+    // Represents if the Maps camera has moved
     private Boolean mCameraMoved;
 
-    /**
-     * The RouteID selected on {@link RouteDetailsActivity}
-     */
+    // The RouteID selected on {@link RouteDetailsActivity}
     private Integer mRouteSelected;
 
-    /**
-     * The Route instance
-     */
+    // The Route instance
     private Route mRoute;
 
-    /**
-     * Flag to represent if the shortestPath is activated
-     */
+    // Flag to represent if the shortestPath is activated
     private boolean shortestPath = false;
 
-    /**
-     * Instance of the interface responsible for connecting with RouteXL API
-     */
+    // Instance of the interface responsible for connecting with RouteXL API
     private RouteXLApiClient routeXLApiClient;
 
-    /**
-     * Time when the location was updated represented as a String.
-     */
+    // Instance of the interface responsible for connecting with SpatialGuide API
+    private SGApiClient sgApiClient;
+
+    // Time when the location was updated represented as a String.
     private String mLastUpdateTime;
 
-    /**
-     * Alert dialog for user prompts (exit, on trigger area showing point info)
-     */
+    // Alert dialog for user prompts (exit, on trigger area showing point info)
     private AlertDialog dialog;
 
-    /**
-     * Marker that will appear on Google Map when user click
-     */
+    // Marker that will appear on Google Map when user click
     private Marker markerUserClick;
 
-    /**
-     * SharedPreferences object
-     */
+    // SharedPreferences object
     private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor spEditor;
 
-    /**
-     * Variables that will take impact due to
-     * sharedPreferences values from SGPreferenceActivity
-     */
+    // Variables that will take impact due to
+    // sharedPreferences values from SGPreferenceActivity
     private boolean prefs_auralization;
     private boolean prefs_heatmap;
-    private int prefs_travelmode;
-    private int prefs_location_accuracy;
-    private int prefs_map_type;
-    private int prefs_unvisited_marker_color;
-    private int prefs_visited_marker_color;
-    private int prefs_direction_line_color;
+    private String prefs_travelmode;
+    private String prefs_location_accuracy;
+    private String prefs_map_type;
+    private String prefs_unvisited_marker_color;
+    private String prefs_visited_marker_color;
+    private String prefs_direction_line_color;
+
+    // Variables from SharedPreferences
+    private String authenticationHeader;
 
     // UI Widgets.
     @BindView(R.id.toolbar) Toolbar toolbar;
@@ -263,7 +243,7 @@ public class MapActivity extends AppCompatActivity implements
                     .position(new LatLng(p.getPointLatitude(), p.getPointLongitude()))
                     .title(p.getPointName());
             if(p.isPointVisited()) {
-                switch (prefs_visited_marker_color) {
+                switch (Integer.valueOf(prefs_visited_marker_color)) {
                     case 1:
                         options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                         break;
@@ -297,7 +277,7 @@ public class MapActivity extends AppCompatActivity implements
                 }
             }
 
-            switch (prefs_unvisited_marker_color) {
+            switch (Integer.valueOf(prefs_unvisited_marker_color)) {
                 case 1:
                     options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     break;
@@ -377,7 +357,7 @@ public class MapActivity extends AppCompatActivity implements
                 "Test Route 1",
                 "Welcome to the test route 1! Here it is how a route will look like in the SpatialGuide app.",
                 "https://i0.wp.com/gazetarural.com/wp-content/uploads/2017/12/Aveiro-Ria.jpg",
-                tmpList, 0, 20001024, System.currentTimeMillis());
+                tmpList, 0, "2010-02-03", 1234567890);
 
         toolbarRoutename.setText(mRoute.getRouteName());
 
@@ -393,25 +373,35 @@ public class MapActivity extends AppCompatActivity implements
 
     private void initSharedPreferences() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        spEditor = sharedPreferences.edit();
 
-        // TODO heatmap functioning
         prefs_heatmap = sharedPreferences.getBoolean(SHARED_PREFS_HEATMAP, false);
         prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
-        prefs_location_accuracy = sharedPreferences.getInt(SHARED_PREFS_LOCATION_ACCURACY, 1);
-        prefs_travelmode = sharedPreferences.getInt(SHARED_PREFS_TRAVEL_MODE, 1);
-        prefs_unvisited_marker_color = sharedPreferences.getInt(SHARED_PREFS_MARKER_UNVISITED_COLOR, 1);
-        prefs_visited_marker_color = sharedPreferences.getInt(SHARED_PREFS_MARKER_VISITED_COLOR, 1);
-        prefs_direction_line_color = sharedPreferences.getInt(SHARED_PREFS_DIRECTION_LINE_COLOR, 1);
+        prefs_map_type = sharedPreferences.getString(SHARED_PREFS_MAP_TYPE, "1");
+        prefs_location_accuracy = sharedPreferences.getString(SHARED_PREFS_LOCATION_ACCURACY, "1");
+        prefs_travelmode = sharedPreferences.getString(SHARED_PREFS_TRAVEL_MODE, "1");
+        prefs_unvisited_marker_color = sharedPreferences.getString(SHARED_PREFS_MARKER_UNVISITED_COLOR, "1");
+        prefs_visited_marker_color = sharedPreferences.getString(SHARED_PREFS_MARKER_VISITED_COLOR, "1");
+        prefs_direction_line_color = sharedPreferences.getString(SHARED_PREFS_DIRECTION_LINE_COLOR, "1");
+
+        authenticationHeader = sharedPreferences.getString(SHARED_PREFERENCES_AUTH_KEY, "");
     }
 
     private void initApis() {
         // Initialization of Retrofit object for handling the RouteXL API requests
-        Retrofit retrofit = new Retrofit.Builder()
+        Retrofit retrofitRouteXL = new Retrofit.Builder()
                 .baseUrl(ROUTE_XL_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        routeXLApiClient = retrofit.create(RouteXLApiClient.class);
+        routeXLApiClient = retrofitRouteXL.create(RouteXLApiClient.class);
+
+        Retrofit retrofitSGApi = new Retrofit.Builder()
+                .baseUrl(Constant.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        sgApiClient = retrofitSGApi.create(SGApiClient.class);
     }
 
     private void setupBottomNavigationView() {
@@ -449,7 +439,24 @@ public class MapActivity extends AppCompatActivity implements
         mUiSettings.setZoomControlsEnabled(true);
         mUiSettings.setMapToolbarEnabled(false);
 
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        switch (Integer.valueOf(prefs_map_type)) {
+            case 1:
+                mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                break;
+            case 2:
+                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                break;
+            case 3:
+                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                break;
+            case 4:
+                mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                break;
+            default:
+                Log.e(TAG, "onMapReady: failed to set map type");
+                break;
+        }
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -587,7 +594,7 @@ public class MapActivity extends AppCompatActivity implements
         //TODO - setting smallest displacement (DEBUG)
 //        mLocationRequest.setSmallestDisplacement(MINIMUM_DISPLACEMENT);
 
-        switch (prefs_location_accuracy) {
+        switch (Integer.valueOf(prefs_location_accuracy)) {
             case 1:
                 mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
                 break;
@@ -730,6 +737,11 @@ public class MapActivity extends AppCompatActivity implements
             moveCamera(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), DEFAULT_ZOOM_VALUE);
         }
 
+        // If user toggled heatmap feature, send location to API
+        if(prefs_heatmap) {
+            sendLocationHeatmap(mCurrentLocation);
+        }
+
         DirectionsResult directionsResult = shortestPath ? getDirectionsDetails(mCurrentLocation, false) :
                 getDirectionsDetails(mCurrentLocation, true);
 
@@ -740,14 +752,13 @@ public class MapActivity extends AppCompatActivity implements
                     pointList.add(mRoute.getRoutePoints().get(i));
                 }
                 pointList.add(mRoute.getRoutePoints().get(mRoute.getRoutePoints().size()-1));
+                mRoute.setRoutePoints(pointList);
             }
 
             mMap.clear();
             addPolyline(directionsResult, mMap);
             addMarkers();
         }
-
-//        getOptimizedRoute(mCurrentLocation);
 
         // Check nearest location and if we are in trigger area
         Pair<Location, Point> locationPointPair = getNearestPointLocation(mCurrentLocation);
@@ -766,6 +777,7 @@ public class MapActivity extends AppCompatActivity implements
         }
     }
 
+    // TODO - try again :(
     private void getOptimizedRoute(Location mCurrentLocation) {
         Gson gson = new Gson();
         List<RouteXLRequest> requestList = new ArrayList<>();
@@ -822,7 +834,7 @@ public class MapActivity extends AppCompatActivity implements
             if(optimized)
                 request.optimizeWaypoints(true);
 
-            switch (prefs_travelmode) {
+            switch (Integer.valueOf(prefs_travelmode)) {
                 case 1:
                     request.mode(TravelMode.WALKING);
                     break;
@@ -835,14 +847,8 @@ public class MapActivity extends AppCompatActivity implements
             }
 
             return request.await();
-        } catch (com.google.maps.errors.ApiException e) {
-            e.printStackTrace();
-            return null;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (com.google.maps.errors.ApiException | InterruptedException | IOException e) {
+            Log.e(TAG, "getDirectionsDetails: error getting the direction" + e.getMessage());
             return null;
         }
     }
@@ -851,7 +857,7 @@ public class MapActivity extends AppCompatActivity implements
         List<LatLng> decodedPath = PolyUtil.decode(results.routes[0].overviewPolyline.getEncodedPath());
         PolylineOptions options = new PolylineOptions().addAll(decodedPath);
 
-        switch (prefs_direction_line_color) {
+        switch (Integer.valueOf(prefs_direction_line_color)) {
             case 1:
                 options.color(Color.BLUE);
                 break;
@@ -1103,6 +1109,31 @@ public class MapActivity extends AppCompatActivity implements
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, defaultZoomValue));
     }
 
+    private void sendLocationHeatmap(Location mCurrentLocation) {
+        HashMap tmpMap = new HashMap(2);
+        tmpMap.put("Latitude", mCurrentLocation.getLatitude());
+        tmpMap.put("Longitude", mCurrentLocation.getLongitude());
+
+        Call<ResponseBody> call = sgApiClient.sendLocationHeatmap(authenticationHeader, tmpMap);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+                if(response.isSuccessful()) {
+                    Log.d(TAG, "onResponse: location sent successfully to API");
+                    Log.d(TAG, "onResponse: " + response.body().toString());
+                } else {
+                    Log.d(TAG, "onResponse: failed to send location to API");
+                    Log.d(TAG, "onResponse: " + response.errorBody().toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "onFailure: failed to send location" + t.getMessage());
+            }
+        });
+    }
+
     /**
      * Removes location updates from the FusedLocationApi.
      */
@@ -1123,26 +1154,22 @@ public class MapActivity extends AppCompatActivity implements
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume: resumed activity, checking permissions...");
 
-        // Within {@code onPause()}, we remove location updates. Here, we resume receiving
-        // location updates if the user has requested them.
+        // Register sharedPreferences onChange listener
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferencesListener);
+
         if (checkPermissions()) {
-            Log.d(TAG, "onResume: permissions granted, starting location updates");
             startLocationUpdates();
         } else if (!checkPermissions()) {
-            Log.d(TAG, "onResume: permissions not granted, asking...");
             requestPermissions();
         }
 
-        Log.d(TAG, "onResume: updating UI");
         updateUI();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "onPause: paused activity, stopping location updates");
 
         // Remove location updates to save battery.
         stopLocationUpdates();
@@ -1312,23 +1339,21 @@ public class MapActivity extends AppCompatActivity implements
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         switch (id) {
-            case R.id.nav_website: {
-                String url = "http://xcoa.av.it.pt/~pei2017-2018_g09/";
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(url));
-                startActivity(i);
+            case R.id.nav_website:
+                startActivity(new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse(SPATIALGUIDE_WEBSITE)));
                 break;
-            }
-            case R.id.nav_userpanel: {
-                // User Panel
+            case R.id.nav_logout:
+                onLogout();
+                break;
+            case R.id.nav_userpanel:
                 startActivity(new Intent(MapActivity.this, UserPanelActivity.class));
                 break;
-            }
             case R.id.nav_route: {
                 // Routes
                 startActivity(new Intent(MapActivity.this, RouteActivity.class));
@@ -1339,4 +1364,62 @@ public class MapActivity extends AppCompatActivity implements
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    private void onLogout() {
+        Call<ResponseBody> call = sgApiClient.logout(authenticationHeader);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()) {
+                    spEditor.putString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
+                    spEditor.apply();
+                    startActivity(new Intent(MapActivity.this, LoginActivity.class));
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "onFailure: failed to logout" + t.getMessage());
+            }
+        });
+    }
+
+    SharedPreferences.OnSharedPreferenceChangeListener sharedPreferencesListener =
+            new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            Log.d(TAG, "onSharedPreferenceChanged: some preference has been changed");
+
+            switch (key) {
+                case SHARED_PREFS_AURALIZATION:
+                    prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
+                    break;
+                case SHARED_PREFS_HEATMAP:
+                    prefs_heatmap = sharedPreferences.getBoolean(SHARED_PREFS_HEATMAP, false);
+                    break;
+                case SHARED_PREFS_LOCATION_ACCURACY:
+                    prefs_location_accuracy = sharedPreferences.getString(SHARED_PREFS_LOCATION_ACCURACY, "1");
+                    break;
+                case SHARED_PREFS_TRAVEL_MODE:
+                    prefs_travelmode = sharedPreferences.getString(SHARED_PREFS_TRAVEL_MODE, "1");
+                    break;
+                case SHARED_PREFS_MARKER_UNVISITED_COLOR:
+                    prefs_unvisited_marker_color = sharedPreferences.getString(SHARED_PREFS_MARKER_UNVISITED_COLOR, "1");
+                    break;
+                case SHARED_PREFS_MARKER_VISITED_COLOR:
+                    prefs_visited_marker_color = sharedPreferences.getString(SHARED_PREFS_MARKER_VISITED_COLOR, "1");
+                    break;
+                case SHARED_PREFS_DIRECTION_LINE_COLOR:
+                    prefs_direction_line_color = sharedPreferences.getString(SHARED_PREFS_DIRECTION_LINE_COLOR, "1");
+                    break;
+                case SHARED_PREFS_MAP_TYPE:
+                    prefs_map_type = sharedPreferences.getString(SHARED_PREFS_MAP_TYPE, "1");
+                    break;
+                default:
+                    Log.e(TAG, "onSharedPreferenceChanged: some error occurred");
+                    break;
+            }
+        }
+    };
 }

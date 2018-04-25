@@ -5,6 +5,7 @@ import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.ui.activity.LoginActivity;
 
+import java.util.HashMap;
 import java.util.List;
 
 import okhttp3.RequestBody;
@@ -23,33 +24,40 @@ import retrofit2.http.Path;
 
 public interface SGApiClient {
 
-    @Headers("Content-Type: application/json")
-    @GET("route/{id}/?format=json")
-    Call<List<Route>> getRoute(@Header("Authorization") String authKey, @Path("id") int id);
-
     /**
-     * BACKEND TODO - needs to be done in the API!
-     * Just return the value of last update of a route, given it's ID
+     * Get a route with a specific ID
+     *
+     * @param authKey the authorization key
+     * @param id the Route ID
+     * @return the Route returned
      */
     @Headers("Content-Type: application/json")
-    @GET("route/{id}/?format=json&fields=lastupdate")
-    Call<RequestBody> getRouteLastUpdate(@Header("Authorization") String authKey, @Path("id") int id);
+    @GET("route/{id}/?format=json")
+    Call<Route> getRoute(@Header("Authorization") String authKey, @Path("id") int id);
 
+    /**
+     * Get all Routes
+     *
+     * @param authKey the authorization key
+     * @return a list with all Routes
+     */
     @Headers("Content-Type: application/json")
     @GET("route/?format=json")
     Call<List<Route>> getRoutes(@Header("Authorization") String authKey);
 
+    /**
+     * Send location to generate heatmaps on backend
+     *
+     * @param authKey the authorization key
+     * @param location the user location
+     * @return the JSON response body
+     */
     @Headers("Content-Type: application/json")
-    @GET("route_points/{id}/?format=json")
-    Call<List<Point>> getRoutePoints(@Header("Authorization") String authKey, @Path("id") int id);
-
-    @Headers("Content-Type: application/json")
-    @GET("point/?format=json")
-    Call<List<Point>> getPoints(@Header("Authorization") String authKey);
-
+    @POST("heatmap/")
+    Call<ResponseBody> sendLocationHeatmap(@Header("Authorization") String authKey, @Body HashMap<String, Object> location);
 
     /**
-     * (POST) Register API endpoint
+     * Register
      *
      * @param user the user to be registered
      * @return the JSON response body
@@ -59,7 +67,7 @@ public interface SGApiClient {
     Call<User> registerUser(@Body User user);
 
     /**
-     * Login API endpoint
+     * Login
      *
      * @param user the user to be authenticated
      * @return the JSON response body
@@ -67,4 +75,13 @@ public interface SGApiClient {
     @Headers("Content-Type: application/json")
     @POST("login/")
     Call<ResponseBody> login(@Body User user);
+
+    /**
+     * Logout
+     *
+     * @param authKey the authorization key
+     * @return the JSON response body
+     */
+    @GET("logout/")
+    Call<ResponseBody> logout(@Header("Authorization") String authKey);
 }

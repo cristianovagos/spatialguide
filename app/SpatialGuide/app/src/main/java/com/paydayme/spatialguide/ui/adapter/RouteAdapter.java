@@ -91,6 +91,8 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
     private static boolean isOnStorage(int routeID, Context context) {
         try {
             Route route = (Route) InternalStorage.readObject(context, Constant.ROUTE_STORAGE_SEPARATOR + routeID);
+            if(route.getRoutePoints().size() < 1)
+                return false;
             for(Point p : route.getRoutePoints()) {
                 try {
                     if(InternalStorage.getFile(context, Constant.POINT_STORAGE_SEPARATOR + p.getPointID() + ".wav") == null)

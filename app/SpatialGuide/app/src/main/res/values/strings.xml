@@ -20,8 +20,8 @@
     <string name="login">Sign in</string>
     <string name="username_or_email">Username / Email</string>
     <string name="create_account">Create Account</string>
-    <string name="authenticating">Authenticating…</string>
-    <string name="creating_account">Creating Account…</string>
+    <string name="authenticating">Authenticating...</string>
+    <string name="creating_account">Creating Account...</string>
     <string name="already_member"><u>Already member? Sign in now!</u></string>
     <string name="login_toast">Account created successfully! Sign in!</string>
     <string name="no_account"><u>No account yet? Create one now!</u></string>
@@ -49,7 +49,7 @@
     <string name="route_points">Points in this route:</string>
     <string name="no_points_route_details">Sorry, this route has no points yet.</string>
     <string name="map">Map</string>
-    <string name="downloading_route">Downloading route…</string>
+    <string name="downloading_route">Downloading route...</string>
     <string name="download_route">Download Route</string>
     <string name="download_route_prompt">Are you sure you want to download this Route?</string>
     <string name="navigate_route">Navigate in this Route</string>
@@ -92,4 +92,7 @@
     <string name="map_not_ready">Map not ready</string>
     <string name="suggestion_prompt_dialog">Want to suggest this location?</string>
     <string name="suggestion_hint_dialog">Tell us why we should add it!</string>
+    <string name="download_toast_no_points">This route has no points. Come again later.</string>
+    <string name="download_toast_completed">All downloads completed!</string>
+    <string name="download_toast_error">Error on download!</string>
 </resources>

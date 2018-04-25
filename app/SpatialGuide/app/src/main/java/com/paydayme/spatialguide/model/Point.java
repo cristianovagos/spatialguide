@@ -1,13 +1,9 @@
 package com.paydayme.spatialguide.model;
 
-import android.content.Context;
-
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import com.paydayme.spatialguide.core.storage.InternalStorage;
 
-import java.io.IOException;
 import java.io.Serializable;
+import java.util.Date;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,37 +16,31 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Point implements Serializable{
     @SerializedName("id")
-    @Expose
     private int pointID;
 
     @SerializedName("Name")
-    @Expose
     private String pointName;
 
     @SerializedName("Url")
-    @Expose
     private String pointURL;
 
     @SerializedName("Description")
-    @Expose
     private String pointDescription;
 
     @SerializedName("Latitude")
-    @Expose
     private double pointLatitude;
 
     @SerializedName("Longitude")
-    @Expose
     private double pointLongitude;
 
-    /**
-     * NEEDS connection to API
-     * TODO BACKEND
-     */
+    @SerializedName("Image")
     private String pointImage;
 
-    // TODO BACKEND
+    @SerializedName("Sound")
     private String pointAudioURL;
+
+    @SerializedName("Point_Date")
+    private Date pointDate;
 
     // TODO BACKEND - Needs to be stored if the point has been visited by the user
     private boolean pointVisited;

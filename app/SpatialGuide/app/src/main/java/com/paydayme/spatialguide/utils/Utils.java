@@ -12,8 +12,11 @@ import com.google.android.gms.common.GoogleApiAvailability;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -94,5 +97,18 @@ public final class Utils {
         float dist;
         dist = (float) Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
         return dist;
+    }
+
+    public static String generateDate(int date) {
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+        SimpleDateFormat finalDate = new SimpleDateFormat("dd-MM-yyyy");
+        Date d = null;
+        try {
+            d = df.parse(String.valueOf(date));
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return finalDate.format(d);
     }
 }

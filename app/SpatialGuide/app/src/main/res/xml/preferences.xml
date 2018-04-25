@@ -40,7 +40,6 @@ Preferences Screen XML
             android:title="Location Mode"
             android:summary="How accurate your location is"
             android:key="com.paydayme.spatialguide.prefs.location_accuracy"
-            android:defaultValue="1"
             android:entries="@array/location_priority"
             android:entryValues="@array/location_priority_values" />
 
