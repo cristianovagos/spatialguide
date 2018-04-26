@@ -13,6 +13,8 @@ from .server_utils import *
 
 import json
 
+DRIVE_BASE_URL='http://drive.google.com/uc?export=view&id='
+
 # route/ or route/<id>
 class RouteList(APIView):
     permission_classes = [IsAuthenticated]
@@ -57,7 +59,7 @@ class addRoute(APIView):
 
         if form.is_valid():
             route = form.save()
-            route.Image = request_filesaver(request.FILES['Image'])
+            route.Image = DRIVE_BASE_URL+request_filesaver(request.FILES['Image'])
             route.save()
 
         tparams = {
@@ -93,8 +95,9 @@ class addPoint(APIView):
     def post(self, request):
         form = PointForm(request.POST, request.FILES)
         if form.is_valid():
+            print(form)
             point = form.save()
-            point.Image = request_filesaver(request.FILES['Image'])
+            point.Image = DRIVE_BASE_URL+request_filesaver(request.FILES['Image'])
             point.Sound = request_filesaver(request.FILES['Sound'])
             point.save()
 
@@ -148,7 +151,7 @@ class HeatMap(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-
+# register/
 class UserCreateView(CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = UserCreateSerializer
@@ -169,7 +172,7 @@ class UserCreateView(CreateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+# login/
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserLoginSerializer
@@ -198,6 +201,76 @@ class UserLoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserInfo(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        user = User.objects.filter(username=str(request.user)).first()
+        user_att = User_Attributes.objects.filter(pk=user.id).first()
+
+        user_serializer = UserSerializer(user)
+        user_att_serializer = UserAttrSerializer(user_att)
+
+        print(user_serializer.data)
+        print(user_att_serializer.data)
+
+        return Response(status=status.HTTP_200_OK)
+
+# changepass/
+class ChangePassword(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self,request):
+        old_pass = request.data['old_pass']
+        new_pass = request.data['new_pass']
+        pass_confirmation = request.data['pass_confirmation']
+
+        if new_pass != pass_confirmation:
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+
+        user = User.objects.filter(username=str(request.user)).first()
+
+        if user:
+            user = authenticate(username=user.username, password=old_pass)
+        else:
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+
+        if user:
+            user.set_password(new_pass)
+            user.save()
+        else:
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+
+        return Response(status=status.HTTP_200_OK)
+
+# changepass/
+class ChangeEmail(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self,request):
+        password = request.data['password']
+        old_email = request.data['old_email']
+        new_email = request.data['new_email']
+        email_confirmation = request.data['email_confirmation']
+
+        if new_email != email_confirmation:
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+
+        user = User.objects.filter(email=old_email).first()
+
+        if user:
+            user = authenticate(username=user.username, password=password)
+        else:
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+
+        if user:
+            user.email=new_email
+            user.save()
+        else:
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+
+        return Response(status=status.HTTP_200_OK)
+
 class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -205,3 +278,11 @@ class UserLogoutView(APIView):
         logout(request)
         return redirect('login')
 
+
+#
+# {
+#  "old_email":"xpto@ua.pt",
+#     "new_email":"ad@ua.pt",
+#     "email_confirmation":"ad@ua.pt",
+#     "password":"admin123"
+# }

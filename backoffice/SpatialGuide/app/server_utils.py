@@ -76,7 +76,7 @@ def get_heatPoints():
 def save_media(name,path):
     connection=googledrive.GoogleDriveConnector(CREDENTIAL_PATH)
 
-    file_id=connection.upload_file(name,path)
+    file_id=connection.upload_file(name,path,'1V6lrBO3J99SkKxPr20Cqiz51ddPHN7bu')
 
     return file_id
 

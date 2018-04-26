@@ -27,8 +27,21 @@ class HeatPointSerializer(ModelSerializer):
         model = Heat_Point
         fields = '__all__'
 
+class UserAttrSerializer(ModelSerializer):
+
+    class Meta:
+        model = User_Attributes
+        fields = '__all__'
+
+
 
 User = get_user_model()
+
+class UserSerializer(ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = '__all__'
 
 class UserCreateSerializer(ModelSerializer):
     password2 = CharField()
