@@ -12,6 +12,7 @@ import json
 def show_routes(request):
     assert isinstance(request, HttpRequest)
     if request.user.is_authenticated:
+
         tab_names,route_list = get_allRoutes()
 
         tparams = {
@@ -25,6 +26,7 @@ def show_routes(request):
         return render(request, 'tables.html', tparams)
     else:
         return redirect('login')
+
 
 def show_route(request,route_id):
     assert isinstance(request, HttpRequest)
@@ -44,6 +46,8 @@ def show_route(request,route_id):
 
     else:
         return redirect('login')
+
+
 
 def show_points(request):
     assert isinstance(request, HttpRequest)
