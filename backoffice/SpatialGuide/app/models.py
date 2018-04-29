@@ -1,15 +1,16 @@
 from django.db import models
 from django.forms import ModelForm
 from django import forms
+import time
 
 from datetime import date
 
 class Route(models.Model):
     Name = models.CharField(max_length=50)
     Description = models.CharField(max_length=500)
-    Image = models.CharField(max_length=33)
+    Image = models.CharField(max_length=150)
     Route_Date = models.DateField(default=date.today())
-    LastUpdate = models.DateField(default=date.today())
+    LastUpdate = models.BigIntegerField(default=int(round(time.time() * 1000)))
     Number_Downloads = models.IntegerField(default=0)
 
     def __str__(self):
@@ -23,8 +24,9 @@ class Point(models.Model):
     Point_Date = models.DateField(default=date.today())
     Latitude = models.FloatField()
     Longitude = models.FloatField()
-    Image = models.CharField(max_length=33)
+    Image = models.CharField(max_length=150)
     Sound = models.CharField(max_length=33)
+    LastUpdate = models.BigIntegerField(default=int(round(time.time() * 1000)))
 
     def __str__(self):
         return "Name: %s ( %s, %s )" %(self.Name,self.Latitude,self.Longitude)
@@ -40,6 +42,13 @@ class Route_contains_Point(models.Model):
 class Heat_Point(models.Model):
     Latitude = models.FloatField()
     Longitude = models.FloatField()
+
+
+class User_Attributes(models.Model):
+    Favorite_points = models.ManyToManyField(Point)
+    Favorite_route = models.ManyToManyField(Route)
+    Image = models.CharField(max_length=150)
+
 
 
 #################  FORMS  #############################
