@@ -25,7 +25,7 @@ class Point(models.Model):
     Latitude = models.FloatField()
     Longitude = models.FloatField()
     Image = models.CharField(max_length=150)
-    Sound = models.CharField(max_length=33)
+    Sound = models.CharField(max_length=33, default="")
     LastUpdate = models.BigIntegerField(default=int(round(time.time() * 1000)))
 
     def __str__(self):
