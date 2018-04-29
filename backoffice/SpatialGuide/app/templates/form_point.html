@@ -19,39 +19,29 @@
 {% endblock %}
 
 {% block content %}
-        <div class="container-fluid" ></div>
-            <div class="row">
-                <div class="col-sm-4" style="padding:10px 10px 10px 40px;">
-                    <div class="row">
-                        <div class="card card-login" style="float:left;">
-                          <div class="card-header">Add {{ title }}</div>
+  <div class="container-fluid" >
+    <div class="card card-login mx-auto mt-5 " style="float:left">
+      <div class="card-header">Add {{ title }}</div>
 
-                          <div class="card-body" >
-                            <form method="post" enctype="multipart/form-data" target="_self">
-                                {% csrf_token %}
+      <div class="card-body" >
+        <form method="post" enctype="multipart/form-data" target="_self">
+            {% csrf_token %}
 
-                                    {% for f in form_t %}
-                                        <div class="form-group">
-                                            <label>{{ f.name }}</label>
-                                            {{ f }}
-                                        </div>
-                                    {% endfor %}
-
-                                    <input type="submit" class="btn btn-primary btn-block" value="OK">
-                            </form>
-                          </div>
+                {% for f in form_t %}
+                    <div class="form-group">
+                        <label>{{ f.name }}</label>
+                        {{ f }}
                     </div>
-                </div>
-                </div>
+                {% endfor %}
 
-            <div class="col-sm-8">
-                <div class="container-fluid" id="map" style="height:717px; float:right; margin-top:10px;"></div>
-            </div>
-
-
+                <input type="submit" class="btn btn-primary btn-block" value="OK">
+        </form>
+      </div>
     </div>
 
+    <div class="container-fluid" id="map" style="width: 850px; height: 750px; float:right"></div>
 
+  </div>
 
 {% endblock %}
 
