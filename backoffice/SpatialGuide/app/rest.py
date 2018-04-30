@@ -247,6 +247,9 @@ class UserInfo(APIView):
 
     def get(self,request):
         user = User.objects.filter(username=str(request.user)).first()
+        if not user:
+            return Response({'error':'User doesn\'t Exist!'},status=status.HTTP_400_BAD_REQUEST)
+
         user_att = User_Attributes.objects.filter(pk=user.id).first()
 
         user_serializer = UserSerializer(user).data

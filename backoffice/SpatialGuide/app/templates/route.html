@@ -29,65 +29,60 @@
             <li class="breadcrumb-item active">{{ route.Name }}</li>
         </ol>
 
-<<<<<<< HEAD
-        <div class="container-fluid"></div>
-        <div class="row">
-            <div class="col-sm-3" style="padding:10px 10px 10px 40px;">
-                <div class="row">
-                    <h5  style= "width:100%">Route Name</h5>
-                    {{ route.Name }}
-                    <br>
-                    <h5  style= "width:100%">Route Description</h5>
-                    {{ route.Description }}
-                    <br>
-                    <img src={{ route.Image }}>
-                </div>
-                <div class="row">
-                    <div class="card text-white bg-primary o-hidden h-100"  style= "margin-top: 20px; width:80%">
-                        <div class="card-body">
-                            <div class="card-body-icon">
-                                <i class="fa fa-fw fa-map-marker"></i>
-                            </div>
-                            <div>Route Points</div>
-                        </div>
-                        <select class="text-black" >
-                            <option value=>Points</option>
-                            <option value=>Points1</option>
-                            <option value=>Points2</option>
-                        </select>
-
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-3" style="padding:10px 10px 10px 40px;">
+                    <div class="row">
+                        <h5  style= "width:100%">Route Name</h5>
+                        {{ route.Name }}
+                        <br>
+                        <h5  style= "width:100%">Route Description</h5>
+                        {{ route.Description }}
+                        <br>
+                        <img src={{ route.Image }}>
                     </div>
-
-                    <div class="card text-white bg-primary o-hidden h-100" style="margin-top: 20px; width:80%">
-                        <div class="card-body">
-                            <div class="card-body-icon">
-                                <i class="fa fa-fw fa-map-marker"></i>
+                    <div class="row">
+                        <div class="card text-white bg-primary o-hidden h-100"  style= "margin-top: 20px; width:80%">
+                            <div class="card-body">
+                                <div class="card-body-icon">
+                                    <i class="fa fa-fw fa-map-marker"></i>
+                                </div>
+                                <div>Route Points</div>
                             </div>
-                            <div class="mr-5">Add Point</div>
+                            <select class="text-black" >
+                                {% for point in points %}
+                                     <option>{{ point.Name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <select class="text-black" >
-                            <option value=>Points</option>
-                            <option value=></option>
-                            <option value=>Points2</option>
-                        </select>
 
+                        <div class="card text-white bg-primary o-hidden h-100" style="margin-top: 20px; width:80%">
+                            <div class="card-body">
+                                <div class="card-body-icon">
+                                    <i class="fa fa-fw fa-map-marker"></i>
+                                </div>
+                                <div class="mr-5">Add Point</div>
+                            </div>
+                            <select class="text-black" >
+                                {% for point in all_points %}
+                                     <option>{{ point.Name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 </div>
+                <div class="col-sm-9">
+                    <div class="container-fluid" id="map" style="height:600px; float:right"></div>
+                </div>
             </div>
-            <div class="col-sm-9">
-                <div class="container-fluid" id="map" style="height:600px; float:right"></div>
-            </div>
+
+
+          <div class="container-fluid"></div>
+
+          <div class="container-fluid" id="map" style="width: 850px; height: 750px; float:right"></div>
+
+
         </div>
-
-
-=======
-      <div class="container-fluid"></div>
->>>>>>> 7285c3d4836288d2d9a8c7473ac080591ddd9ce9
-
-      <div class="container-fluid" id="map" style="width: 850px; height: 750px; float:right"></div>
-
-
-    </div>
 
 {% endblock %}
 
