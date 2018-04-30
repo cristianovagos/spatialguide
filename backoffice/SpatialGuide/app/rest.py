@@ -55,7 +55,7 @@ class addRoute(APIView):
         return render(request, 'form_route.html', tparams)
 
     def post(self, request):
-        form = RouteForm(request.POST, request.FILES)
+        form = RouteForm(request.data, request.FILES)
 
         if form.is_valid():
             route = form.save()
@@ -93,7 +93,7 @@ class addPoint(APIView):
         return render(request, 'form_point.html', tparams)
 
     def post(self, request):
-        form = PointForm(request.POST, request.FILES)
+        form = PointForm(request.data, request.FILES)
         if form.is_valid():
             print(form)
             point = form.save()
@@ -227,7 +227,7 @@ class UserLoginView(APIView):
         if serializer.is_valid(raise_exception=True):
             new_data = serializer.data
             username = new_data['username']
-            password = request.POST['password']
+            password = request.data['password']
 
             user = User.objects.filter(Q(username=username) | Q(email=username)).first()
 
