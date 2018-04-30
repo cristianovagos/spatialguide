@@ -16,6 +16,27 @@
         android:scrollbars="vertical"
         android:scrollbarAlwaysDrawVerticalTrack="true">
 
+        <!-- Password Label -->
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/tilPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColorHint="@color/monsoon"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:theme="@style/TextAppearance.App.TextInputLayout">
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/input_password"
+                android:drawableLeft="@drawable/ic_password"
+                android:drawableStart="@drawable/ic_password"
+                android:drawableTint="@color/monsoon"
+                android:textColor="@color/monsoon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:hint="@string/password"/>
+        </android.support.design.widget.TextInputLayout>
+
         <!-- email Label -->
         <android.support.design.widget.TextInputLayout
             android:id="@+id/tilEmail"

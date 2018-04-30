@@ -2,6 +2,7 @@ package com.paydayme.spatialguide.ui.activity;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -35,7 +36,7 @@ public class SplashActivity extends AppCompatActivity {
             startActivity(new Intent(SplashActivity.this, LoginActivity.class));
 //            startActivity(new Intent(SplashActivity.this, RouteActivity.class));
         } else {
-            Log.d(TAG, "onCreate: Google Play Services not upgraded / installed");
+            Log.d(TAG, "onCreate: Google Play Services not upgraded / installed, exiting...");
             // TODO - show Google Play Services error with dialog to notify user
         }
 

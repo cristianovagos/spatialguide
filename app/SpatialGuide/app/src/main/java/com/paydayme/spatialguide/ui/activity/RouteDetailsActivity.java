@@ -384,18 +384,18 @@ public class RouteDetailsActivity extends AppCompatActivity {
         Log.d(TAG, "route: "+ route);
 
         // Route Image - displayed on the top: CollapsingToolbar
-        try {
+        if(!route.getRouteImage().isEmpty()) {
             Picasso.get()
-                    .load(FILES_BASE_URL + route.getRouteImage())
+                    .load(route.getRouteImage())
                     .placeholder(R.drawable.progress_animation)
                     .error(R.drawable.not_available)
                     .into(routeImage);
             routeImage.setVisibility(View.VISIBLE);
-        } catch (NullPointerException ignored) {}
+        }
         imageLayout.setVisibility(View.GONE);
 
         // Route Map Image - Static map from Google Maps API
-        try {
+        if(route.getRouteMapImage() != null) {
             Picasso.get()
                     .load(route.getRouteMapImage())
                     .placeholder(R.drawable.progress_animation)
@@ -409,7 +409,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                         @Override
                         public void onError(Exception e) {}
                     });
-        } catch (NullPointerException ignored) {}
+        }
 
         // Setting the remaining texts (Route name, description, etc)
         routeDescription.setText(route.getRouteDescription());
@@ -428,6 +428,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
         if(pointList.isEmpty()) {
             noPointsText.setVisibility(View.VISIBLE);
         } else {
+            noPointsText.setVisibility(View.GONE);
             fabButton.setVisibility(View.VISIBLE);
         }
         pointsLayout.setVisibility(View.VISIBLE);

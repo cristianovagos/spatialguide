@@ -84,4 +84,17 @@ public interface SGApiClient {
      */
     @GET("logout/")
     Call<ResponseBody> logout(@Header("Authorization") String authKey);
+
+
+    @Headers("Content-Type: application/json")
+    @POST("changepass/")
+    Call<ResponseBody> changePassword(@Body HashMap<String, Object> passwordBody);
+
+    @Headers("Content-Type: application/json")
+    @POST("changeemail/")
+    Call<ResponseBody> changeEmail(@Body HashMap<String, Object> emailBody);
+
+    @Headers("Content-Type: application/json")
+    @GET("userinfo/")
+    Call<User> getUserInfo(@Header("Authorization") String authKey);
 }

@@ -75,11 +75,14 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
 
             name.setText(item.getRouteName());
             description.setText(item.getRouteDescription());
-            Picasso.get()
-                    .load(item.getRouteImage())
-                    .placeholder(R.drawable.progress_animation)
-                    .error(R.drawable.not_available)
-                    .into(image);
+
+            if(!item.getRouteImage().isEmpty()) {
+                Picasso.get()
+                        .load(item.getRouteImage())
+                        .placeholder(R.drawable.progress_animation)
+                        .error(R.drawable.not_available)
+                        .into(image);
+            }
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) {
                     listener.onItemClick(item);

@@ -23,6 +23,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,6 +33,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
@@ -41,6 +43,7 @@ import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 
 import java.util.Collections;
+import java.util.HashMap;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -55,6 +58,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LOGIN_USERNAME;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_PASSWORD;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_REMEMBER_ME;
 import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 
 public class UserPanelActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -72,6 +78,13 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
 
     private String authenticationHeader;
     private int routeSelected;
+
+    private AppCompatEditText passwordEditText;
+    private AppCompatEditText newPasswordEditText;
+    private AppCompatEditText reEnterNewPasswordEditText;
+    private AppCompatEditText emailEditText;
+    private AppCompatEditText newEmailEditText;
+    private AppCompatEditText reEnterNewEmailEditText;
 
     // Reference the views
     @BindView(R.id.toolbar) Toolbar toolbar;
@@ -148,90 +161,61 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         btn_changepassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showChangeDialog(false);
+                showChangePasswordDialog();
             }
         });
 
         btn_changeemail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showChangeDialog(true);
+                showChangeEmailDialog();
             }
         });
     }
 
     private void getUserInfo() {
-        // TODO (BACKEND needed) get user info and show on view
+        // TODO - implement it
+
     }
 
-    private void showChangeDialog(boolean isEmail) {
+    private void showChangeEmailDialog() {
         // Check if the dialog exists and if its showing
         if(dialog != null && dialog.isShowing()) return;
 
         LayoutInflater inflater = LayoutInflater.from(this);
-        View view = isEmail ? inflater.inflate(R.layout.dialog_change_email, null) :
-                inflater.inflate(R.layout.dialog_change_password, null);
+        View view = inflater.inflate(R.layout.dialog_change_email, null);
 
-        //Ask the user if they want to quit
+        // The dialog that will appear
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
                 .setView(view)
                 .setCancelable(true);
 
         Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
 
-        if(!isEmail) {
-            TextInputLayout tilPassword = view.findViewById(R.id.tilPassword);
-            TextInputLayout tilNewPassword = view.findViewById(R.id.tilNewPassword);
-            TextInputLayout tilReEnterNewPassword = view.findViewById(R.id.tilReEnterNewPassword);
-            final AppCompatEditText password = view.findViewById(R.id.input_password);
-            final AppCompatEditText newPassword = view.findViewById(R.id.input_newPassword);
-            final AppCompatEditText reEnterNewPassword = view.findViewById(R.id.input_reEnterNewPassword);
+        TextInputLayout tilPassword = view.findViewById(R.id.tilPassword);
+        TextInputLayout tilEmail = view.findViewById(R.id.tilEmail);
+        TextInputLayout tilNewEmail = view.findViewById(R.id.tilNewEmail);
+        TextInputLayout tilReEnterNewEmail = view.findViewById(R.id.tilReEnterNewEmail);
+        passwordEditText = view.findViewById(R.id.input_password);
+        emailEditText = view.findViewById(R.id.input_email);
+        newEmailEditText = view.findViewById(R.id.input_newEmail);
+        reEnterNewEmailEditText = view.findViewById(R.id.input_reEnterNewEmail);
 
-            builder.setTitle(getString(R.string.change_password))
-                .setPositiveButton(getString(R.string.change_password), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    String passwordText = password.getText().toString();
-                    String newPasswordText = newPassword.getText().toString();
-                    String reEnterNewPasswordText = reEnterNewPassword.getText().toString();
-                    onChangePassword(passwordText, newPasswordText, reEnterNewPasswordText);
-                }
-            });
+        builder.setTitle(getString(R.string.change_email))
+                .setPositiveButton(getString(R.string.change_email), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {}
+                });
 
-            // Setting custom font to dialog
-            tilPassword.setTypeface(tf);
-            tilNewPassword.setTypeface(tf);
-            tilReEnterNewPassword.setTypeface(tf);
-            password.setTypeface(tf);
-            newPassword.setTypeface(tf);
-            reEnterNewPassword.setTypeface(tf);
-        } else {
-            TextInputLayout tilEmail = view.findViewById(R.id.tilEmail);
-            TextInputLayout tilNewEmail = view.findViewById(R.id.tilNewEmail);
-            TextInputLayout tilReEnterNewEmail = view.findViewById(R.id.tilReEnterNewEmail);
-            final AppCompatEditText email = view.findViewById(R.id.input_email);
-            final AppCompatEditText newEmail = view.findViewById(R.id.input_newEmail);
-            final AppCompatEditText reEnterNewEmail = view.findViewById(R.id.input_reEnterNewEmail);
-
-            builder.setTitle(getString(R.string.change_email))
-                    .setPositiveButton(getString(R.string.change_email), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String emailText = email.getText().toString();
-                            String newEmailText = newEmail.getText().toString();
-                            String reEnterNewEmailText = reEnterNewEmail.getText().toString();
-                            onChangeEmail(emailText, newEmailText, reEnterNewEmailText);
-                        }
-                    });
-
-            // Setting custom font to dialog
-            tilEmail.setTypeface(tf);
-            tilNewEmail.setTypeface(tf);
-            tilReEnterNewEmail.setTypeface(tf);
-            email.setTypeface(tf);
-            newEmail.setTypeface(tf);
-            reEnterNewEmail.setTypeface(tf);
-        }
+        // Setting custom font to dialog
+        tilPassword.setTypeface(tf);
+        tilEmail.setTypeface(tf);
+        tilNewEmail.setTypeface(tf);
+        tilReEnterNewEmail.setTypeface(tf);
+        passwordEditText.setTypeface(tf);
+        emailEditText.setTypeface(tf);
+        newEmailEditText.setTypeface(tf);
+        reEnterNewEmailEditText.setTypeface(tf);
 
         // Creating dialog and adjusting size
         dialog = builder.create();
@@ -243,23 +227,248 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         lp.gravity = Gravity.CENTER;
 
         dialog.show();
+
+        // Override the button handler to check if data is valid
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean valid = true;
+
+                String password = passwordEditText.getText().toString();
+                String email = emailEditText.getText().toString();
+                String newEmail = newEmailEditText.getText().toString();
+                String reEnterNewEmail = reEnterNewEmailEditText.getText().toString();
+
+                // check email
+                if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    emailEditText.setError(getString(R.string.error_email));
+                    valid = false;
+                } else {
+                    emailEditText.setError(null);
+                }
+
+                // check email
+                if (newEmail.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
+                    newEmailEditText.setError(getString(R.string.error_email));
+                    valid = false;
+                } else if (newEmail.equals(email)) {
+                    newEmailEditText.setError(getString(R.string.error_email_change_equal));
+                    valid = false;
+                } else{
+                    newEmailEditText.setError(null);
+                }
+
+                // check email
+                if (reEnterNewEmail.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(reEnterNewEmail).matches()) {
+                    reEnterNewEmailEditText.setError(getString(R.string.error_email));
+                    valid = false;
+                } else if (reEnterNewEmail.equals(email)) {
+                    reEnterNewEmailEditText.setError(getString(R.string.error_email_change_equal));
+                    valid = false;
+                } else if (!reEnterNewEmail.equals(newEmail)) {
+                    reEnterNewEmailEditText.setError(getString(R.string.error_email_match));
+                    valid = false;
+                } else {
+                    reEnterNewEmailEditText.setError(null);
+                }
+
+                // check password
+                if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
+                    passwordEditText.setError(getString(R.string.error_password));
+                    valid = false;
+                } else {
+                    passwordEditText.setError(null);
+                }
+
+                if(valid) {
+                    onChangeEmail(password, email, newEmail, reEnterNewEmail);
+                    dialog.dismiss();
+                }
+            }
+        });
+
         dialog.getWindow().setAttributes(lp);
         TextView textView = (TextView) dialog.findViewById(android.R.id.message);
         textView.setTypeface(tf);
     }
 
-    private void onChangeEmail(String emailText, String newEmailText, String reEnterNewEmailText) {
-        if(!newEmailText.equals(reEnterNewEmailText))
-            return;
+    private void showChangePasswordDialog() {
+        // Check if the dialog exists and if its showing
+        if(dialog != null && dialog.isShowing()) return;
 
-        // TODO backend
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_change_password, null);
+
+        // The dialog that will appear
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setView(view)
+                .setCancelable(true);
+
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+
+        TextInputLayout tilPassword = view.findViewById(R.id.tilPassword);
+        TextInputLayout tilNewPassword = view.findViewById(R.id.tilNewPassword);
+        TextInputLayout tilReEnterNewPassword = view.findViewById(R.id.tilReEnterNewPassword);
+        passwordEditText = view.findViewById(R.id.input_password);
+        newPasswordEditText = view.findViewById(R.id.input_newPassword);
+        reEnterNewPasswordEditText = view.findViewById(R.id.input_reEnterNewPassword);
+
+        builder.setTitle(getString(R.string.change_password))
+                .setPositiveButton(getString(R.string.change_password), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {}
+                });
+
+        // Setting custom font to dialog
+        tilPassword.setTypeface(tf);
+        tilNewPassword.setTypeface(tf);
+        tilReEnterNewPassword.setTypeface(tf);
+        passwordEditText.setTypeface(tf);
+        newPasswordEditText.setTypeface(tf);
+        reEnterNewPasswordEditText.setTypeface(tf);
+
+        // Creating dialog and adjusting size
+        dialog = builder.create();
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        lp.height = 1300;
+        lp.gravity = Gravity.CENTER;
+
+        dialog.show();
+
+        // Override the button handler to check if data is valid
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean valid = true;
+
+                String password = passwordEditText.getText().toString();
+                String newPassword = newPasswordEditText.getText().toString();
+                String reEnterNewPassword = reEnterNewPasswordEditText.getText().toString();
+
+                // check password
+                if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
+                    passwordEditText.setError(getString(R.string.error_password));
+                    valid = false;
+                } else {
+                    passwordEditText.setError(null);
+                }
+
+                // check password
+                if (newPassword.isEmpty() || newPassword.length() < 4 || newPassword.length() > 10) {
+                    passwordEditText.setError(getString(R.string.error_password));
+                    valid = false;
+                } else if(newPassword.equals(password)) {
+                    passwordEditText.setError(getString(R.string.error_password_change_equal));
+                    valid = false;
+                } else {
+                    passwordEditText.setError(null);
+                }
+
+                // check password
+                if (reEnterNewPassword.isEmpty() || reEnterNewPassword.length() < 4 || reEnterNewPassword.length() > 10) {
+                    reEnterNewPasswordEditText.setError(getString(R.string.error_password));
+                    valid = false;
+                } else if(reEnterNewPassword.equals(password)) {
+                    reEnterNewPasswordEditText.setError(getString(R.string.error_password_change_equal));
+                    valid = false;
+                } else if(!reEnterNewPassword.equals(newPassword)) {
+                    reEnterNewPasswordEditText.setError(getString(R.string.error_password_match));
+                    valid = false;
+                } else {
+                    passwordEditText.setError(null);
+                }
+
+                if(valid) {
+                    onChangePassword(password, newPassword, reEnterNewPassword);
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        dialog.getWindow().setAttributes(lp);
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        textView.setTypeface(tf);
     }
 
-    private void onChangePassword(String password, String newPassword, String newPassword2) {
-        if(!newPassword.equals(newPassword2))
-            return;
+    private void onChangeEmail(String passwordText, String emailText, final String newEmailText, String reEnterNewEmailText) {
+        HashMap tmpMap = new HashMap(4);
+        tmpMap.put("password", passwordText);
+        tmpMap.put("old_email", emailText);
+        tmpMap.put("new_email", newEmailText);
+        tmpMap.put("email_confirmation", reEnterNewEmailText);
 
-        // TODO backend
+        Call<ResponseBody> call = sgApiClient.changeEmail(tmpMap);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()) {
+                    Log.d(TAG, "onChangeEmail - onResponse (changed email successfully): " + response.body().toString());
+
+                    // If on sharedpreferences checkbox remember me is enabled
+                    // if the stored username/email is the email, it should be updated
+                    String checkbox = sharedPreferences.getString(SHARED_PREFERENCES_REMEMBER_ME, "False");
+                    if(checkbox.equals("True")) {
+                        String usernameEmail = sharedPreferences.getString(SHARED_PREFERENCES_LOGIN_USERNAME, "");
+                        if(Patterns.EMAIL_ADDRESS.matcher(usernameEmail).matches()) {
+                            spEditor.putString(SHARED_PREFERENCES_LOGIN_USERNAME, newEmailText);
+                            spEditor.apply();
+                        }
+                    }
+
+                    Toast.makeText(UserPanelActivity.this, "Email changed successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d(TAG, "onChangeEmail - onResponse: failed to send location to API");
+                    Log.d(TAG, "onChangeEmail - onResponse: " + response.errorBody().toString());
+                    Toast.makeText(UserPanelActivity.this, "Some error occurred while changing email", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "onChangeEmail - onFailure: failed to change email" + t.getMessage());
+                Toast.makeText(UserPanelActivity.this, "Some error occurred while changing email", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void onChangePassword(String password, final String newPassword, String newPassword2) {
+        HashMap tmpMap = new HashMap(3);
+        tmpMap.put("old_pass", password);
+        tmpMap.put("new_pass", newPassword);
+        tmpMap.put("pass_confirmation", newPassword2);
+
+        Call<ResponseBody> call = sgApiClient.changePassword(tmpMap);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()) {
+                    Log.d(TAG, "onChangePassword - onResponse (changed password successfully): " + response.body().toString());
+
+                    // If on sharedpreferences checkbox remember me is enabled
+                    // the stored password should be updated
+                    String checkbox = sharedPreferences.getString(SHARED_PREFERENCES_REMEMBER_ME, "False");
+                    if(checkbox.equals("True")) {
+                        spEditor.putString(SHARED_PREFERENCES_PASSWORD, newPassword);
+                        spEditor.apply();
+                    }
+
+                    Toast.makeText(UserPanelActivity.this, "Password changed successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d(TAG, "onChangePassword - onResponse: failed to send location to API");
+                    Log.d(TAG, "onChangePassword - onResponse: " + response.errorBody().toString());
+                    Toast.makeText(UserPanelActivity.this, "Some error occurred while changing password", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "onChangePassword - onFailure: failed to change password" + t.getMessage());
+                Toast.makeText(UserPanelActivity.this, "Some error occurred while changing password", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

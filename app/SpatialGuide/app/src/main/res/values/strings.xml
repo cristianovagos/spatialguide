@@ -95,4 +95,6 @@
     <string name="download_toast_no_points">This route has no points. Come again later.</string>
     <string name="download_toast_completed">All downloads completed!</string>
     <string name="download_toast_error">Error on download!</string>
+    <string name="error_password_change_equal">New password could not be equal to current password</string>
+    <string name="error_email_change_equal">New password could not be equal to current password</string>
 </resources>

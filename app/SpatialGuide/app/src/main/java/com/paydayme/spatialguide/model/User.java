@@ -2,6 +2,8 @@ package com.paydayme.spatialguide.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -27,6 +29,15 @@ public class User {
 
     @SerializedName("email2")
     String email2;
+
+    @SerializedName("Image")
+    String userImage;
+
+    @SerializedName("Favorite_points")
+    List<Point> favoritePoints;
+
+    @SerializedName("Favorite_routes")
+    List<Route> favoriteRoutes;
 
     public User(String username, String first_name, String last_name, String password, String email) {
         this.username = username;

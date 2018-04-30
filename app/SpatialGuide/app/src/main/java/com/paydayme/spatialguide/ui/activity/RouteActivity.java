@@ -98,7 +98,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         }));
 
         swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.primary));
-        swipeRefreshLayout.setProgressViewOffset(false, 120, 155);
+//        swipeRefreshLayout.setProgressViewOffset(false, 120, 155);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -154,6 +154,8 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     private void getUserInfo() {
         // TODO - get user info to be displayed on the menu
         // first name, last name, email and image
+
+
     }
 
     private void getFakeRoutes() {
@@ -187,6 +189,12 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     private void updateUI() {
         if(swipeRefreshLayout.isRefreshing())
             swipeRefreshLayout.setRefreshing(false);
+
+        if(routeList.isEmpty()) {
+            noRoutesText.setVisibility(View.VISIBLE);
+        } else {
+            noRoutesText.setVisibility(View.GONE);
+        }
 
         // Setting the point adapter and the recyclerview to receive route points
         RouteAdapter routeAdapter = new RouteAdapter(this, routeList, new RouteAdapter.OnItemClickListener() {

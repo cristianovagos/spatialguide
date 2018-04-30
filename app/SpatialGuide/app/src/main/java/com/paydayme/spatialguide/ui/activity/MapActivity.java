@@ -346,18 +346,17 @@ public class MapActivity extends AppCompatActivity implements
 
         Log.d(TAG, "route selected: " + mRouteSelected);
 
-        //TODO - change THIS!! DUMMY DATA
-//        mRoute = getRoute();
-        List<Point> tmpList = new ArrayList<>();
-        tmpList.add(new Point("Fórum Aveiro", 40.641475, -8.653675));
-        tmpList.add(new Point("Praça do Peixe", 40.642313, -8.655352));
-        tmpList.add(new Point("Estação de Comboios", 40.643304, -8.641302));
-        tmpList.add(new Point("Sé de Aveiro", 40.639469, -8.650397));
-        mRoute = new Route(1,
-                "Test Route 1",
-                "Welcome to the test route 1! Here it is how a route will look like in the SpatialGuide app.",
-                "https://i0.wp.com/gazetarural.com/wp-content/uploads/2017/12/Aveiro-Ria.jpg",
-                tmpList, 0, "2010-02-03", 1234567890);
+        mRoute = getRoute();
+//        List<Point> tmpList = new ArrayList<>();
+//        tmpList.add(new Point("Fórum Aveiro", 40.641475, -8.653675));
+//        tmpList.add(new Point("Praça do Peixe", 40.642313, -8.655352));
+//        tmpList.add(new Point("Estação de Comboios", 40.643304, -8.641302));
+//        tmpList.add(new Point("Sé de Aveiro", 40.639469, -8.650397));
+//        mRoute = new Route(1,
+//                "Test Route 1",
+//                "Welcome to the test route 1! Here it is how a route will look like in the SpatialGuide app.",
+//                "https://i0.wp.com/gazetarural.com/wp-content/uploads/2017/12/Aveiro-Ria.jpg",
+//                tmpList, 0, "2010-02-03", 1234567890);
 
         toolbarRoutename.setText(mRoute.getRouteName());
 
@@ -953,18 +952,20 @@ public class MapActivity extends AppCompatActivity implements
         dialogText.setText(point.getPointDescription());
 
         final ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
-        Picasso.get()
-                .load(point.getPointImage())
-                .into(dialogImage, new com.squareup.picasso.Callback() {
-                    @Override
-                    public void onSuccess() {
-                        dialogImage.setVisibility(View.VISIBLE);
-                    }
+        if(!point.getPointImage().isEmpty()) {
+            Picasso.get()
+                    .load(point.getPointImage())
+                    .into(dialogImage, new com.squareup.picasso.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            dialogImage.setVisibility(View.VISIBLE);
+                        }
 
-                    @Override
-                    public void onError(Exception e) {
-                    }
-                });
+                        @Override
+                        public void onError(Exception e) {
+                        }
+                    });
+        }
 //        ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
 //        dialogImage.setImageResource(R.drawable.deti);
 
