@@ -46,9 +46,13 @@ urlpatterns = [
     url(r'^register/$', rest.UserCreateView.as_view(), name='register'),
     url(r'^login/$', rest.UserLoginView.as_view(), name='login'),
     url(r'^logout/$', rest.UserLogoutView.as_view(), name='logout'),
+
     url(r'^userinfo/$', rest.UserInfo.as_view(), name='userinfo'),
+    url(r'^userfavourite/$', rest.AddFavorite.as_view(), name='userfavourite'),
+
     url(r'^changepass/$', rest.ChangePassword.as_view(), name='changepass'),
     url(r'^changeemail/$', rest.ChangeEmail.as_view(), name='changeemail'),
+    url(r'^recoverpass/$', rest.RecoverPassword.as_view(), name='recoverpass'),
 
 ]
 if settings.DEBUG:

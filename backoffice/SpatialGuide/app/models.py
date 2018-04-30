@@ -1,6 +1,7 @@
 from django.db import models
 from django.forms import ModelForm
 from django import forms
+from django.contrib.auth.models import User
 import time
 
 from datetime import date
@@ -45,8 +46,9 @@ class Heat_Point(models.Model):
 
 
 class User_Attributes(models.Model):
+    User_id = models.ForeignKey(User, on_delete=models.CASCADE)
     Favorite_points = models.ManyToManyField(Point)
-    Favorite_route = models.ManyToManyField(Route)
+    Favorite_routes = models.ManyToManyField(Route)
     Image = models.CharField(max_length=150)
 
 

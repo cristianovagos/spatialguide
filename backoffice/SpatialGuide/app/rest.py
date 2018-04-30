@@ -151,6 +151,47 @@ class HeatMap(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+# userfavourite/
+class AddFavorite(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        data = request.data
+
+        point = data.get('point',None)
+        route = data.get('route',None)
+
+        error ={}
+        try:
+            point = int(point)
+            point = Point.objects.filter(pk=point).first()
+        except:
+            point=None
+            error['point'] = 'Point does not Exist!'
+
+        try:
+            route = int(route)
+            route = Route.objects.filter(pk=route).first()
+        except:
+            route = None
+            error['route'] = 'Route does not Exist!'
+
+        user = User.objects.filter(username=request.user).first()
+        if user:
+            user_att = User_Attributes.objects.filter(pk=user.id).first()
+            if point:
+                user_att.Favorite_points.add(point)
+            else:
+                error['point']='Point does not Exist!'
+
+            if route:
+                user_att.Favorite_routes.add(route)
+            else:
+                error['route']='Route does not Exist!'
+
+        return Response(error,status=status.HTTP_200_OK)
+
+
 # register/
 class UserCreateView(CreateAPIView):
     permission_classes = [AllowAny]
@@ -200,7 +241,7 @@ class UserLoginView(APIView):
             return Response(new_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+# userinfo/
 class UserInfo(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -208,17 +249,18 @@ class UserInfo(APIView):
         user = User.objects.filter(username=str(request.user)).first()
         user_att = User_Attributes.objects.filter(pk=user.id).first()
 
-        user_serializer = UserSerializer(user)
-        user_att_serializer = UserAttrSerializer(user_att)
+        user_serializer = UserSerializer(user).data
+        user_att_serializer = UserAttrSerializer(user_att).data
 
-        print(user_serializer.data)
-        print(user_att_serializer.data)
+        full_user = user_serializer
+        for key in list(user_att_serializer.keys()):
+            full_user[key]=user_att_serializer[key]
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(full_user,status=status.HTTP_200_OK)
 
 # changepass/
 class ChangePassword(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self,request):
         old_pass = request.data['old_pass']
@@ -238,14 +280,14 @@ class ChangePassword(APIView):
         if user:
             user.set_password(new_pass)
             user.save()
+            return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_304_NOT_MODIFIED)
 
-        return Response(status=status.HTTP_200_OK)
 
 # changepass/
 class ChangeEmail(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self,request):
         password = request.data['password']
@@ -266,10 +308,36 @@ class ChangeEmail(APIView):
         if user:
             user.email=new_email
             user.save()
+            return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_304_NOT_MODIFIED)
 
-        return Response(status=status.HTTP_200_OK)
+
+# recoverpass/
+class RecoverPassword(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        data = request.data
+        username = data.get('username',None)
+        new_pass = data.get('new_pass',None)
+        confirm_pass = data.get('confirm_pass',None)
+
+
+        if (not username) or (not new_pass) or (not confirm_pass):
+            return Response({'Parameters':'One or more parameters are missing!'},status=status.HTTP_400_BAD_REQUEST)
+
+        if new_pass != confirm_pass:
+            return Response({'new_pass':'Passwords must match!'},status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(username=username).first()
+
+        if user:
+            user.set_password(new_pass)
+            user.save()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -278,11 +346,3 @@ class UserLogoutView(APIView):
         logout(request)
         return redirect('login')
 
-
-#
-# {
-#  "old_email":"xpto@ua.pt",
-#     "new_email":"ad@ua.pt",
-#     "email_confirmation":"ad@ua.pt",
-#     "password":"admin123"
-# }

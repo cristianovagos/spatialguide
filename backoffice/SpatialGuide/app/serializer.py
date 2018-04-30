@@ -31,7 +31,7 @@ class UserAttrSerializer(ModelSerializer):
 
     class Meta:
         model = User_Attributes
-        fields = '__all__'
+        fields = ['Image','Favorite_route','Favorite_points']
 
 
 
@@ -41,7 +41,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['username','first_name','last_name','email','last_login']
 
 class UserCreateSerializer(ModelSerializer):
     password2 = CharField()
@@ -116,6 +116,10 @@ class UserCreateSerializer(ModelSerializer):
 
         user_obj.set_password(password)
         user_obj.save()
+
+        user_att = User_Attributes(User_id=user_obj)
+        user_att.save()
+
         return validated_data
 
 
