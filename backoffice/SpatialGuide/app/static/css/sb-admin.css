@@ -8,7 +8,7 @@ body {
 }
 
 body.sticky-footer {
-    margin-bottom: 56px;
+  margin-bottom: 56px;
 }
 
 body.sticky-footer .content-wrapper {
@@ -456,9 +456,10 @@ body.sidenav-toggled .navbar-sidenav-tooltip.show {
 }
 
 footer.sticky-footer {
-  position: relative;
+  position: absolute;
   right: 0;
   bottom: 0;
+  width: 100%;
   height: 56px;
   background-color: #e9ecef;
   line-height: 55px;
@@ -466,7 +467,7 @@ footer.sticky-footer {
 
 @media (min-width: 992px) {
   footer.sticky-footer {
-
+    width: calc(100% - 250px);
   }
 }
 
@@ -475,5 +476,3 @@ footer.sticky-footer {
     width: calc(100% - 55px);
   }
 }
-
-
