@@ -20,7 +20,7 @@
       <file leaf-file-name="route.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/templates/route.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
+            <state relative-caret-position="-165">
               <caret line="68" selection-start-line="68" selection-end-line="69" />
               <folding>
                 <element signature="n#style#0;n#div#0;n#div#1;n#div#0;n#!!top" expanded="true" />
@@ -294,12 +294,12 @@
     <frame x="67" y="25" width="1293" height="678" extended-state="6" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32958034" />
-      <window_info anchor="bottom" id="Event Log" order="12" sideWeight="0.5019335" side_tool="true" visible="true" weight="0.32982457" />
+      <window_info anchor="bottom" id="Event Log" order="12" sideWeight="0.5019335" side_tool="true" visible="true" weight="0.6192982" />
       <window_info anchor="bottom" id="Database Changes" order="11" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="8" weight="0.3286991" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.28103277" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="9" sideWeight="0.4980665" visible="true" weight="0.32982457" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="9" sideWeight="0.4980665" visible="true" weight="0.6192982" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18174787" />
       <window_info anchor="bottom" id="Docker" order="10" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="5" />
@@ -564,7 +564,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/templates/route.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
+        <state relative-caret-position="-165">
           <caret line="68" selection-start-line="68" selection-end-line="69" />
           <folding>
             <element signature="n#style#0;n#div#0;n#div#1;n#div#0;n#!!top" expanded="true" />
