@@ -40,6 +40,7 @@ urlpatterns = [
     url(r'^route_points/((?P<route_id>\d+))/$', rest.Route_PointList.as_view()),
 
     url(r'^point/$', rest.PointList.as_view()),
+    url(r'^point/((?P<point_id>\d+))/$', rest.PointList.as_view()),
 
     url(r'^heatmap/$', rest.HeatMap.as_view(),name='heatmap'),
 

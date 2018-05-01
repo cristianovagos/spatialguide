@@ -139,11 +139,10 @@ class UserLoginSerializer(ModelSerializer):
                     }
 
     def validate(self,data):
-
         username = data.get('username', None)
         email = data.get('email', None )
 
-        if not username and  not email:
+        if not username and not email:
             raise ValidationError('A username or email is required to login.')
 
         user = User.objects.filter(Q(username=username) | Q(email=email) | Q(username=email) | Q(email=username)).distinct()
@@ -152,8 +151,8 @@ class UserLoginSerializer(ModelSerializer):
         if user.exists() and user.count() == 1:
             user_object = user.first()
             if not user_object.is_active:
-                raise ValidationError('This username or email is not valid.')
+                return {}
         else:
-            raise ValidationError('This username or email is not valid.')
+            return {}
 
         return data

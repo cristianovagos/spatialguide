@@ -10,6 +10,7 @@ class Route(models.Model):
     Name = models.CharField(max_length=50)
     Description = models.CharField(max_length=500)
     Image = models.CharField(max_length=150)
+    Map_image = models.CharField(max_length=150)
     Route_Date = models.DateField(default=date.today())
     LastUpdate = models.BigIntegerField(default=int(round(time.time() * 1000)))
     Number_Downloads = models.IntegerField(default=0)

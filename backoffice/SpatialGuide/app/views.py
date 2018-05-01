@@ -11,7 +11,7 @@ import json
 
 def show_routes(request):
     assert isinstance(request, HttpRequest)
-    if request.user.is_authenticated:
+    if request.user.is_superuser:
         tab_names,route_list = get_allRoutes()
 
         tparams = {
@@ -21,7 +21,6 @@ def show_routes(request):
             'add_btn': 'add_route',
 
         }
-
         return render(request, 'tables.html', tparams)
     else:
         return redirect('login')
@@ -29,8 +28,7 @@ def show_routes(request):
 def show_route(request,route_id):
     assert isinstance(request, HttpRequest)
 
-    if request.user.is_authenticated:
-
+    if request.user.is_superuser:
         points = get_route_points(route_id)
         route = get_route(route_id)
 
@@ -45,7 +43,6 @@ def show_route(request,route_id):
             'all_points':all_points,
             'point_array': json.dumps(points)
         }
-
         return render(request, 'route.html', tparams)
 
     else:
@@ -54,8 +51,7 @@ def show_route(request,route_id):
 def show_points(request):
     assert isinstance(request, HttpRequest)
 
-    if request.user.is_authenticated:
-
+    if request.user.is_superuser:
         tab_names,point_list = get_allPoints()
 
         tparams = {
@@ -65,7 +61,6 @@ def show_points(request):
             'add_btn': 'add_point'
 
         }
-
         return render(request, 'tables.html', tparams)
 
     else:

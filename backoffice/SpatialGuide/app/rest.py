@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView
 from django.contrib.auth import logout
-from rest_framework.permissions import AllowAny,IsAuthenticated
+from rest_framework.permissions import AllowAny,IsAuthenticated,IsAdminUser
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -21,12 +21,10 @@ class RouteList(APIView):
 
     def get(self,request,route_id=None):
         if route_id:
-            route = Route.objects.filter(pk=route_id)
+            route = Route.objects.filter(pk=route_id).first()
 
-            if not route.exists():
+            if not route:
                 raise ValidationError('Route does not exist')
-            else:
-                route = route.first()
 
             points = Point.objects.filter(route_contains_point__Route_id=route_id)
 
@@ -36,7 +34,7 @@ class RouteList(APIView):
             rest_response = dict(serializer_route.data)
             rest_response['Points']= serializer_point.data
 
-            return Response(rest_response)
+            return Response(rest_response,status=status.HTTP_200_OK)
 
         else:
             routes = Route.objects.all()
@@ -44,8 +42,28 @@ class RouteList(APIView):
 
             return Response(serializer.data)
 
-class addRoute(APIView):
+# point/
+class PointList(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self,request,point_id=None):
+        if point_id:
+            point = Point.objects.filter(pk=point_id).first()
+
+            if not point:
+                raise ValidationError('Point does not exist')
+
+            response = PointSerializer(point).data
+
+            return Response(response,status=status.HTTP_200_OK)
+
+        else:
+            points = Point.objects.all()
+            serializer = PointSerializer(points,many=True)
+            return Response(serializer.data)
+
+class addRoute(APIView):
+    permission_classes = [IsAdminUser]
 
     def get(self,request):
         tparams = {
@@ -61,6 +79,7 @@ class addRoute(APIView):
             route = form.save()
             route.Image = DRIVE_BASE_URL+request_filesaver(request.FILES['Image'])
             route.save()
+            return redirect('show_routes')
 
         tparams = {
             'title': 'Route',
@@ -68,18 +87,11 @@ class addRoute(APIView):
         }
         return render(request, 'form_route.html', tparams)
 
-# point/
-class PointList(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self,request):
-        points = Point.objects.all()
-        serializer = PointSerializer(points,many=True)
-        return Response(serializer.data)
 
 
 class addPoint(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self,request):
         tab_names, point_list = get_allPoints()
@@ -138,7 +150,6 @@ class HeatMap(APIView):
             'title': 'Heat Map',
             'heatpoint_array': json.dumps(get_heatPoints())
         }
-
         return render(request, 'heatmap.html', tparams)
 
     def post(self,request):
@@ -172,10 +183,11 @@ class UserVisit(APIView):
 
         if user:
             user_att = User_Attributes.objects.filter(User_id__id=user.id).first()
-
             new_point = Point_Visited(Point_id=point)
             new_point.save()
+
             user_att.Visited_points.add(new_point)
+
 
         return Response(error, status=status.HTTP_200_OK)
 
@@ -278,6 +290,13 @@ class UserCreateView(CreateAPIView):
             new_data=serializer.data
             del new_data['password2']
             del new_data['email2']
+
+            if not request.user_agent.is_mobile:
+                user = User.objects.filter(username=new_data['username']).first()
+                user.is_superuser=1
+                user.save()
+                return redirect('show_routes')
+
             return Response(new_data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -285,7 +304,7 @@ class UserCreateView(CreateAPIView):
 # login/
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
-    serializer_class = UserLoginSerializer
+    # serializer_class = UserLoginSerializer
 
     def get(self,request):
         return render(request, 'login.html')
@@ -293,9 +312,17 @@ class UserLoginView(APIView):
     def post(self,request, *args, **kwargs):
         serializer = UserLoginSerializer(data=request.data)
 
+        username = request.data.get('username',None)
+        password = request.data.get('password',None)
+
+        if not username or not password:
+            return render(request, 'login.html', {'error': 'Credentials are Invalid!'})
 
         if serializer.is_valid(raise_exception=True):
             new_data = serializer.data
+            if 'username' not in list(new_data.keys()):
+                return render(request, 'login.html', {'error': 'Credencials are Invalid!'})
+
             username = new_data['username']
             password = request.data['password']
 
@@ -305,11 +332,15 @@ class UserLoginView(APIView):
                 user = authenticate(username=user.username, password=password)
             if user:
                 login(request,user)
-            else:
-                raise ValidationError('Password is incorrect.')
+                if request.user_agent.is_mobile:
+                    return Response(new_data, status=status.HTTP_200_OK)
+                else:
+                    return redirect('show_routes')
+            elif request.user_agent.is_mobile:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return render(request,'login.html',{'error':'Credencials are Invalid!'})
 
-            return Response(new_data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # userinfo/
 class UserInfo(APIView):
@@ -325,13 +356,18 @@ class UserInfo(APIView):
         user_serializer = UserSerializer(user).data
         user_att_serializer = UserAttrSerializer(user_att).data
 
-
-        tmp = User_Attributes.objects.filter(Visited_points__user_attributes__pk=user.pk)
-        print(tmp)
-
         full_user = user_serializer
         for key in list(user_att_serializer.keys()):
             full_user[key]=user_att_serializer[key]
+
+        points_visited = Point.objects.filter(point_visited__user_attributes__User_id_id=user.pk)
+        points_visited = PointSerializer(points_visited, many=True).data
+
+        points_id = []
+        for p in points_visited:
+            points_id.append(p['id'])
+
+        full_user['Visited_points']=points_id
 
         return Response(full_user,status=status.HTTP_200_OK)
 
@@ -392,14 +428,13 @@ class ChangeEmail(APIView):
 
 # recoverpass/
 class RecoverPassword(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self,request):
         data = request.data
         username = data.get('username',None)
         new_pass = data.get('new_pass',None)
         confirm_pass = data.get('confirm_pass',None)
-
 
         if (not username) or (not new_pass) or (not confirm_pass):
             return Response({'Parameters':'One or more parameters are missing!'},status=status.HTTP_400_BAD_REQUEST)
