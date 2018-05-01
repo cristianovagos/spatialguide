@@ -18,9 +18,11 @@
           <i class="fa fa-table"></i> All {{ title }}s</div>
         <div class="card-body">
 
-        <div>
-            <a class="btn btn-primary" href="{% url add_btn %}" id="toggleNavPosition">Add {{ title }}</a>
-        </div>
+        {% if add_btn %}
+            <div>
+                <a class="btn btn-primary" href="{% url add_btn %}" id="toggleNavPosition">Add {{ title }}</a>
+            </div>
+        {% endif %}
 
 
         <div class="table-responsive">
@@ -64,7 +66,7 @@
                                 <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="remove" value="{{ route.id }}">Remove {{ title }}</button>
                             </form>
                         </td>
-                    {% else %}
+                    {% elif title == 'Point' %}
                         <td>
                             <form method="post" target="_self" style="width: 80%">
                                 {% csrf_token %}

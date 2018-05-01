@@ -13,9 +13,8 @@ def get_allRoutes():
     routes = Route.objects.all()
     serializer = RouteTableSerializer(routes, many=True)
     tmp_list = serializer.data
-    tab_names = []
-    if len(tmp_list) > 0:
-        tab_names = list(tmp_list[0].keys())
+
+    tab_names = list(tmp_list[0].keys())
 
     route_list = []
     for route in tmp_list:
@@ -40,13 +39,11 @@ def generate_mapImage(route_id):
     route.Map_image=url
     route.save()
 
-
 def get_route(route_id):
     route = Route.objects.get(pk=route_id)
 
     route = model_to_dict(route)
     return route
-
 
 def get_route_points(route_id):
     points = Point.objects.filter(route_contains_point__Route_id=route_id)
@@ -93,6 +90,17 @@ def get_heatPoints():
 
     return point_list
 
+def get_Suggestions():
+   suggestion = User_Suggestions.objects.all()
+   suggestion = UserSuggestionsSerializer(suggestion,many=True).data
+
+   tab_names= list(suggestion[0].keys())
+
+   suggestion_list=[]
+   for s in suggestion:
+       suggestion_list.append(dict(s))
+
+   return (tab_names,suggestion_list)
 
 ################  Google Drive  ################
 

@@ -23,7 +23,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from app import views,rest
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+    # url(r'^admin/', admin.site.urls),
 
     url(r'^$', rest.ShowRoutes.as_view(), name='home'),
     url(r'^show_routes/$', rest.ShowRoutes.as_view(), name='show_routes'),
@@ -55,6 +55,10 @@ urlpatterns = [
     url(r'^changepass/$', rest.ChangePassword.as_view(), name='changepass'),
     url(r'^changeemail/$', rest.ChangeEmail.as_view(), name='changeemail'),
     url(r'^recoverpass/$', rest.RecoverPassword.as_view(), name='recoverpass'),
+
+
+    url(r'^suggest/$', rest.UserSuggestionView.as_view()),
+    url(r'^suggestions/$', rest.UserSuggestionsAdminView.as_view(), name='suggestions'),
 
 ]
 if settings.DEBUG:

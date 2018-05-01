@@ -11,10 +11,10 @@ from django.core.files.base import ContentFile
 from rest_framework import status
 from .server_utils import *
 
+
 import json
 
 DRIVE_BASE_URL='http://drive.google.com/uc?export=view&id='
-
 
 class ShowPoints(APIView):
     permission_classes = [IsAdminUser]
@@ -606,3 +606,36 @@ class UserLogoutView(APIView):
         logout(request)
         return redirect('login')
 
+class UserSuggestionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        data = request.data
+        latitude = data.get('latitude',None)
+        longitude = data.get('longitude',None)
+        comment = data.get('comment',None)
+
+        if not latitude or not longitude or not comment:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        suggestion = User_Suggestions(Latitude=latitude,Longitude=longitude,Comment=comment)
+        suggestion.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+class UserSuggestionsAdminView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self,request):
+        tab_names, user_suggestion = get_Suggestions()
+
+        tparams = {
+            'title': 'User Sugestions',
+            'tab_names': tab_names,
+            'route_list': user_suggestion,
+
+        }
+
+        print('hello')
+
+        return render(request, 'tables.html', tparams)

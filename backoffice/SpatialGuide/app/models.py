@@ -56,8 +56,10 @@ class User_Attributes(models.Model):
     Visited_points = models.ManyToManyField(Point_Visited)
     Image = models.CharField(max_length=150)
 
-
-
+class User_Suggestions(models.Model):
+    Latitude = models.FloatField()
+    Longitude = models.FloatField()
+    Comment = models.CharField(max_length=1000)
 #################  FORMS  #############################
 
 class RouteForm(ModelForm):

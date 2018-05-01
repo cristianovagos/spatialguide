@@ -132,7 +132,6 @@ class UserCreateSerializer(ModelSerializer):
 
         return validated_data
 
-
 class UserLoginSerializer(ModelSerializer):
     username = CharField(required=False,allow_blank=True)
     email = EmailField(required=False,allow_blank=True)
@@ -166,3 +165,8 @@ class UserLoginSerializer(ModelSerializer):
             return {}
 
         return data
+
+class UserSuggestionsSerializer(ModelSerializer):
+    class Meta:
+        model = User_Suggestions
+        fields = '__all__'
