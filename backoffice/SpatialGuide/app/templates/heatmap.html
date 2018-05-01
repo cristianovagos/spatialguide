@@ -1,0 +1,53 @@
+{% extends "navbar.html" %}
+
+{% block link %}
+
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+
+  <div class="container-fluid">
+      <!-- Breadcrumbs-->
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'show_routes' %}">Heat Map</a>
+        </li>
+        <li class="breadcrumb-item active">{{ title }}</li>
+      </ol>
+
+      <div class="container-fluid" id="map" style="width: 850px; height: 750px; float:right"></div>
+
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {% load static %}
+
+    <script>
+            var heatpoint_array="{{ heatpoint_array }}";
+    </script>
+
+    <script src="{% static "js/heatMap.js" %}"></script>
+
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization&key=AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o&callback=initMap">
+    </script>
+
+
+
+{% endblock %}
