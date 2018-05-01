@@ -36,8 +36,10 @@
                         <h5  style= "width:100%">Route Name</h5>
                         {{ route.Name }}
                         <br>
+                        <br>
                         <h5  style= "width:100%">Route Description</h5>
                         {{ route.Description }}
+                        <br>
                         <br>
                     </div>
                      <img src="{{ route.Image }}" style="max-height: 250px; max-width: 250px;"/>
@@ -49,10 +51,14 @@
                                 </div>
                                 <div>Route Points</div>
                             </div>
-                        <form action="" method="post">
-                            <select class="text-black" style="width: 100%">
+                        <form method="post" target="_self">
+                            {% csrf_token %}
+
+                            <select class="text-black" name="remove" style="width: 100%">
+                                <option></option>
+
                                 {% for point in points %}
-                                     <option>{{ point.Name }}</option>
+                                     <option value="{{point.id}}">{{ point.Name }}</option>
                                 {% endfor %}
                             </select>
                         <br>
@@ -67,15 +73,19 @@
                                 </div>
                                 <div class="mr-5">Add Point</div>
                             </div>
-                        <form action="" method="post">
-                            <select class="text-black" style="width: 100%">
-                                <option></option>
-                                {% for point in all_points %}
-                                     <option>{{ point.Name }}</option>
-                                {% endfor %}
-                            </select>
-                            <button type="submit" style="border-radius: 7px; width: 100%">Add Point</button>
-                        </form>
+
+                            <form method="post" target="_self">
+                                {% csrf_token %}
+
+                                <select class="text-black" name="add" style="width: 100%">
+                                    <option></option>
+                                    {% for point in all_points %}
+                                         <option value="{{ point.id }}">{{ point.Name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" style="border-radius: 7px; width: 100%">Add Point</button>
+                            </form>
+
                         </div>
                     </div>
                 </div>

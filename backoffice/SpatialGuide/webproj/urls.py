@@ -27,7 +27,7 @@ urlpatterns = [
 
     url(r'^$', views.show_routes, name='home'),
     url(r'^show_routes/$', views.show_routes, name='show_routes'),
-    url(r'^display_route/((?P<route_id>\d+))/$', views.show_route , name='display_route'),
+    url(r'^display_route/((?P<route_id>\d+))/$', rest.ShowRoute.as_view() , name='display_route'),
     url(r'^show_points/$', views.show_points, name='show_points'),
 
     url(r'^add_route/$', rest.addRoute.as_view(), name='add_route'),

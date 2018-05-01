@@ -15,6 +15,50 @@ import json
 
 DRIVE_BASE_URL='http://drive.google.com/uc?export=view&id='
 
+class ShowRoute(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self,request,route_id):
+        if not request.user.is_superuser and not request.user.is_staff:
+            return redirect('login')
+
+        points = get_route_points(route_id)
+        route = get_route(route_id)
+
+        excluded_points = get_ExcludedPoints(route_id)
+
+        tparams = {
+            'title': 'Route',
+            'route': route,
+            'points': points,
+            'all_points': excluded_points,
+            'point_array': json.dumps(points)
+        }
+        return render(request, 'route.html', tparams)
+
+    def post(self,request,route_id):
+        data = request.data
+
+        route = Route.objects.filter(pk=route_id).first()
+
+        if 'add' in list(data.keys()):
+            point_id = data.get('add')
+            point = Point.objects.filter(pk=point_id).first()
+
+            exists = Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first()
+            if not exists:
+                Route_contains_Point(Route=route,Point=point).save()
+
+        if 'remove' in list(data.keys()):
+            point_id = data.get('remove')
+
+            point = Point.objects.filter(pk=point_id).first()
+
+            Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first().delete()
+
+
+        return self.get(request,route_id)
+
 # route/ or route/<id>
 class RouteList(APIView):
     permission_classes = [IsAuthenticated]
@@ -107,7 +151,6 @@ class addPoint(APIView):
     def post(self, request):
         form = PointForm(request.data, request.FILES)
         if form.is_valid():
-            print(form)
             point = form.save()
             point.Image = DRIVE_BASE_URL+request_filesaver(request.FILES['Image'])
             point.Sound = request_filesaver(request.FILES['Sound'])
@@ -294,6 +337,7 @@ class UserCreateView(CreateAPIView):
             if not request.user_agent.is_mobile:
                 user = User.objects.filter(username=new_data['username']).first()
                 user.is_superuser=1
+                user.is_staff=1
                 user.save()
                 return redirect('show_routes')
 

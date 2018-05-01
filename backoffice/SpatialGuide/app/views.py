@@ -25,29 +25,6 @@ def show_routes(request):
     else:
         return redirect('login')
 
-def show_route(request,route_id):
-    assert isinstance(request, HttpRequest)
-
-    if request.user.is_superuser:
-        points = get_route_points(route_id)
-        route = get_route(route_id)
-
-        tab_names,all_points = get_allPoints()
-
-        print(json.dumps(points))
-
-        tparams = {
-            'title': 'Route',
-            'route': route,
-            'points':points,
-            'all_points':all_points,
-            'point_array': json.dumps(points)
-        }
-        return render(request, 'route.html', tparams)
-
-    else:
-        return redirect('login')
-
 def show_points(request):
     assert isinstance(request, HttpRequest)
 

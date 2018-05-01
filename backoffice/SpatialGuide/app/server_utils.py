@@ -38,6 +38,12 @@ def get_route_points(route_id):
 
     return points
 
+def get_ExcludedPoints(route_id):
+    points = Point.objects.all().exclude(route_contains_point__Route_id=route_id)
+    serializer = PointSerializer(points, many=True)
+    points = serializer.data
+
+    return points
 
 def get_allPoints():
     points = Point.objects.all()
