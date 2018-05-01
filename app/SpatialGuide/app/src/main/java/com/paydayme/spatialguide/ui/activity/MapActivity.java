@@ -2,6 +2,9 @@ package com.paydayme.spatialguide.ui.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -12,7 +15,9 @@ import android.graphics.Typeface;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -41,13 +46,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.URLUtil;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -79,6 +82,8 @@ import com.google.maps.android.PolyUtil;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.TravelMode;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
+import com.like.LikeButton;
+import com.like.OnLikeListener;
 import com.paydayme.spatialguide.BuildConfig;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
@@ -100,12 +105,15 @@ import com.uncopt.android.widget.text.justify.JustifiedTextView;
 import org.joda.time.DateTime;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -214,6 +222,12 @@ public class MapActivity extends AppCompatActivity implements
 
     // For getting User info
     private User currentUser;
+
+    // Variable to store last time a point was visited
+    private long lastTimestamp;
+    private long heatmapTimestamp;
+
+    private List<Integer> favoritePoints;
 
     // SharedPreferences object
     private SharedPreferences sharedPreferences;
@@ -365,21 +379,9 @@ public class MapActivity extends AppCompatActivity implements
 
         initApis();
 
-        Log.d(TAG, "route selected: " + mRouteSelected);
-
         getUserInfo();
 
         mRoute = getRoute();
-//        List<Point> tmpList = new ArrayList<>();
-//        tmpList.add(new Point("Fórum Aveiro", 40.641475, -8.653675));
-//        tmpList.add(new Point("Praça do Peixe", 40.642313, -8.655352));
-//        tmpList.add(new Point("Estação de Comboios", 40.643304, -8.641302));
-//        tmpList.add(new Point("Sé de Aveiro", 40.639469, -8.650397));
-//        mRoute = new Route(1,
-//                "Test Route 1",
-//                "Welcome to the test route 1! Here it is how a route will look like in the SpatialGuide app.",
-//                "https://i0.wp.com/gazetarural.com/wp-content/uploads/2017/12/Aveiro-Ria.jpg",
-//                tmpList, 0, "2010-02-03", 1234567890);
 
         toolbarRoutename.setText(mRoute.getRouteName());
 
@@ -443,6 +445,8 @@ public class MapActivity extends AppCompatActivity implements
                 if(response.isSuccessful()) {
                     currentUser = response.body();
 
+                    favoritePoints = currentUser.getFavoritePoints();
+
                     String userNames = currentUser.getFirst_name() + " " + currentUser.getLast_name();
                     spEditor.putString(SHARED_PREFERENCES_USER_NAMES, userNames);
                     spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, currentUser.getEmail());
@@ -484,7 +488,6 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private void setupBottomNavigationView() {
-        Log.d(TAG, "setupBottomNavigationView: setting up bottom nav view");
         bottomNavigationViewEx.enableAnimation(false);
         bottomNavigationViewEx.enableItemShiftingMode(false);
         bottomNavigationViewEx.enableShiftingMode(false);
@@ -564,8 +567,6 @@ public class MapActivity extends AppCompatActivity implements
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                Log.d(TAG, "onMarkerClick: marker " + marker.getTag());
-
                 try {
                     Point markerPoint = (Point) marker.getTag();
                     if(markerPoint != null) {
@@ -696,7 +697,6 @@ public class MapActivity extends AppCompatActivity implements
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
-                Log.d(TAG, "onLocationResult: " + locationResult.getLastLocation().toString());
 
                 mCurrentLocation = locationResult.getLastLocation();
                 mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
@@ -800,11 +800,10 @@ public class MapActivity extends AppCompatActivity implements
      * Sets the value of the UI fields for the location latitude, longitude and last update time.
      */
     private void updateLocationUI() {
-        Log.d(TAG, "updateLocationUI: updating location UI");
         if (mCurrentLocation == null)
             return;
 
-        if(!checkMapReady())
+        if (!checkMapReady())
             return;
 
         Log.d(TAG, "updateLocationUI: lat: " + mCurrentLocation.getLatitude() +
@@ -812,25 +811,30 @@ public class MapActivity extends AppCompatActivity implements
         Log.d(TAG, "updateLocationUI: " + mLastUpdateTime);
 
         // Check if the user moved the map (drag to see other stuff)
-        if(!mCameraMoved) {
+        if (!mCameraMoved) {
             moveCamera(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), DEFAULT_ZOOM_VALUE);
         }
 
         // If user toggled heatmap feature, send location to API
-        if(prefs_heatmap) {
-            sendLocationHeatmap(mCurrentLocation);
+        if (prefs_heatmap) {
+
+            // Send heatmaps each minute
+            if(System.currentTimeMillis() - heatmapTimestamp > 60000) {
+                heatmapTimestamp = System.currentTimeMillis();
+                sendLocationHeatmap(mCurrentLocation);
+            }
         }
 
         DirectionsResult directionsResult = shortestPath ? getDirectionsDetails(mCurrentLocation, false) :
                 getDirectionsDetails(mCurrentLocation, true);
 
-        if(directionsResult != null) {
-            if(shortestPath) {
+        if (directionsResult != null) {
+            if (shortestPath) {
                 List<Point> pointList = new ArrayList<>();
-                for(int i : directionsResult.routes[0].waypointOrder) {
+                for (int i : directionsResult.routes[0].waypointOrder) {
                     pointList.add(mRoute.getRoutePoints().get(i));
                 }
-                pointList.add(mRoute.getRoutePoints().get(mRoute.getRoutePoints().size()-1));
+                pointList.add(mRoute.getRoutePoints().get(mRoute.getRoutePoints().size() - 1));
                 mRoute.setRoutePoints(pointList);
             }
 
@@ -841,19 +845,49 @@ public class MapActivity extends AppCompatActivity implements
 
         // Check nearest location and if we are in trigger area
         Pair<Location, Point> locationPointPair = getNearestPointLocation(mCurrentLocation);
-        if(mCurrentLocation.distanceTo(locationPointPair.first) <= Constant.TRIGGER_AREA_DISTANCE) {
-            Log.d(TAG, "updateLocationUI: on trigger area of point " + locationPointPair.second.getPointName());
+        if (mCurrentLocation.distanceTo(locationPointPair.first) <= Constant.TRIGGER_AREA_DISTANCE) {
 
-            // point visited
-            locationPointPair.second.setPointVisited(true);
+            // if current time stamp is greater than 5 minutes (300000 ms)
+            // then show the info dialog and do auralization
+            if (locationPointPair.second != null && (System.currentTimeMillis() - lastTimestamp > 300000 || !locationPointPair.second.isPointVisited())) {
+                // mark point as visited
+                onPointVisited(locationPointPair.second);
 
-            // show the dialog with info of location
-            showInfoDialog(true, locationPointPair.second);
+                // update last timestamp
+                lastTimestamp = System.currentTimeMillis();
 
-            if(prefs_auralization) {
-                // TODO insert auralization trigger here
+                // show the dialog with info of location
+                showInfoDialog(true, locationPointPair.second);
+
+                if (prefs_auralization) {
+                    // TODO insert auralization trigger here
+                }
             }
         }
+    }
+
+    private void onPointVisited(Point point) {
+        point.setPointVisited(true);
+
+        HashMap tmpMap = new HashMap(1);
+        tmpMap.put("point", point.getPointID());
+
+        Call<ResponseBody> call = sgApiClient.markPointVisited(authenticationHeader, tmpMap);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()) {
+                    Log.d(TAG, "onPointVisited - onResponse: point marked as visited in API");
+                } else {
+                    Log.e(TAG, "onPointVisited - onResponse: error while marking point as visited: " + response.errorBody().toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "onPointVisited - onFailure: " + t.getMessage());
+            }
+        });
     }
 
     // TODO - try again :(
@@ -1043,32 +1077,58 @@ public class MapActivity extends AppCompatActivity implements
                     });
         }
 
-        // TODO - make unfavorite API call
-        MaterialFavoriteButton favoriteButton = (MaterialFavoriteButton) view.findViewById(R.id.favoriteButton);
-        favoriteButton.setOnFavoriteChangeListener(new MaterialFavoriteButton.OnFavoriteChangeListener() {
+        LikeButton favoriteButton = (LikeButton) view.findViewById(R.id.favoriteButton);
+        if(favoritePoints.contains(point.getPointID()))
+            favoriteButton.setLiked(true);
+        favoriteButton.setOnLikeListener(new OnLikeListener() {
             @Override
-            public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
-                if(favorite) {
-                    HashMap tmpMap = new HashMap(1);
-                    tmpMap.put("point", point);
+            public void liked(LikeButton likeButton) {
+                HashMap tmpMap = new HashMap(1);
+                tmpMap.put("point", point.getPointID());
 
-                    Call<ResponseBody> call = sgApiClient.markAsFavourite(authenticationHeader, tmpMap);
-                    call.enqueue(new Callback<ResponseBody>() {
-                        @Override
-                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                            if(response.isSuccessful()) {
-                                Toast.makeText(MapActivity.this, "Point marked as favorite!", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
-                            }
+                Call<ResponseBody> call = sgApiClient.markAsFavourite(authenticationHeader, tmpMap);
+                call.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if(response.isSuccessful()) {
+                            Toast.makeText(MapActivity.this, R.string.point_favorited_success, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Log.e(TAG, "liked - onResponse: " + response.errorBody().toString());
+                            Toast.makeText(MapActivity.this, R.string.point_favourite_error, Toast.LENGTH_SHORT).show();
                         }
+                    }
 
-                        @Override
-                        public void onFailure(Call<ResponseBody> call, Throwable t) {
-                            Log.e(TAG, "onFavoriteChanged - onFailure: " + t.getMessage());
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e(TAG, "liked - onFailure: " + t.getMessage());
+                        Toast.makeText(MapActivity.this, R.string.point_favourite_error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                HashMap tmpMap = new HashMap(1);
+                tmpMap.put("point", point.getPointID());
+
+                Call<ResponseBody> call = sgApiClient.markAsUnfavourite(authenticationHeader, tmpMap);
+                call.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if(response.isSuccessful()) {
+                            Toast.makeText(MapActivity.this, R.string.point_unfavourite_success, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Log.e(TAG, "unliked - onResponse: " + response.errorBody().toString());
+                            Toast.makeText(MapActivity.this, R.string.point_unfavourite_error, Toast.LENGTH_SHORT).show();
                         }
-                    });
-                }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e(TAG, "unliked - onFailure: " + t.getMessage());
+                        Toast.makeText(MapActivity.this, R.string.point_unfavourite_error, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
@@ -1210,7 +1270,6 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private void moveCamera(LatLng latLng, float defaultZoomValue) {
-        Log.d(TAG, "moveCamera: moving camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, defaultZoomValue));
     }
 
@@ -1223,18 +1282,15 @@ public class MapActivity extends AppCompatActivity implements
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-                if(response.isSuccessful()) {
-                    Log.d(TAG, "onResponse: location sent successfully to API");
-                    Log.d(TAG, "onResponse: " + response.body().toString());
-                } else {
-                    Log.d(TAG, "onResponse: failed to send location to API");
-                    Log.d(TAG, "onResponse: " + response.errorBody().toString());
+                if(response.isSuccessful()) {} else {
+                    Log.e(TAG, "sendLocationHeatmap - onResponse: failed to send location to API");
+                    Log.e(TAG, "sendLocationHeatmap - onResponse: " + response.errorBody().toString());
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e(TAG, "onFailure: failed to send location" + t.getMessage());
+                Log.e(TAG, "sendLocationHeatmap - onFailure: failed to send location" + t.getMessage());
             }
         });
     }
@@ -1243,7 +1299,6 @@ public class MapActivity extends AppCompatActivity implements
      * Removes location updates from the FusedLocationApi.
      */
     private void stopLocationUpdates() {
-        Log.d(TAG, "stopLocationUpdates: stopping location updates");
         // It is a good practice to remove location requests when the activity is in a paused or
         // stopped state. Doing so helps battery performance and is especially
         // recommended in applications that request frequent location updates.
@@ -1459,11 +1514,15 @@ public class MapActivity extends AppCompatActivity implements
             case R.id.nav_userpanel:
                 startActivity(new Intent(MapActivity.this, UserPanelActivity.class));
                 break;
-            case R.id.nav_route: {
-                // Routes
+            case R.id.nav_route:
                 startActivity(new Intent(MapActivity.this, RouteActivity.class));
                 break;
-            }
+            case R.id.nav_history:
+                startActivity(new Intent(MapActivity.this, HistoryActivity.class));
+                break;
+            case R.id.nav_favorites:
+                startActivity(new Intent(MapActivity.this, FavoritesActivity.class));
+                break;
         }
 
         drawer.closeDrawer(GravityCompat.START);
@@ -1494,8 +1553,6 @@ public class MapActivity extends AppCompatActivity implements
             new SharedPreferences.OnSharedPreferenceChangeListener() {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            Log.d(TAG, "onSharedPreferenceChanged: some preference has been changed");
-
             switch (key) {
                 case SHARED_PREFS_AURALIZATION:
                     prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);

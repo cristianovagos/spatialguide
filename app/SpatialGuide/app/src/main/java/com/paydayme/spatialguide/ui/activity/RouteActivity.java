@@ -383,6 +383,9 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
                 startActivity(new Intent(RouteActivity.this, MapActivity.class)
                         .putExtra("route", routeSelected));
                 break;
+            case R.id.nav_favorites:
+                startActivity(new Intent(RouteActivity.this, FavoritesActivity.class));
+                break;
         }
 
         drawer.closeDrawer(GravityCompat.START);

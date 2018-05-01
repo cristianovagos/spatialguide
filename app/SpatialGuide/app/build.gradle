@@ -66,8 +66,8 @@ dependencies {
     // CircleImageView
     implementation 'de.hdodenhof:circleimageview:2.2.0'
 
-    // MaterialFavoriteButton
-    implementation 'com.github.ivbaranov:materialfavoritebutton:0.1.4'
+    // LikeButton
+    implementation 'com.github.jd-alexander:LikeButton:0.2.3'
 
     // Justified
     implementation 'com.uncopt:android.justified:1.0'

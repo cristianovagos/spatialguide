@@ -34,10 +34,13 @@ public class User {
     String userImage;
 
     @SerializedName("Favorite_points")
-    List<Point> favoritePoints;
+    List<Integer> favoritePoints;
 
     @SerializedName("Favorite_routes")
-    List<Route> favoriteRoutes;
+    List<Integer> favoriteRoutes;
+
+    @SerializedName("Visited_points")
+    List<Integer> visitedPoints;
 
     public User(String username, String first_name, String last_name, String password, String email) {
         this.username = username;

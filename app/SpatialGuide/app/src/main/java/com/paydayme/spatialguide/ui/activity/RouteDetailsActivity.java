@@ -30,7 +30,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.ivbaranov.mfb.MaterialFavoriteButton;
+import com.like.LikeButton;
+import com.like.OnLikeListener;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
@@ -38,6 +39,7 @@ import com.paydayme.spatialguide.core.service.DownloadService;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
+import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.model.download.Download;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.squareup.picasso.Picasso;
@@ -110,7 +112,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     @BindView(R.id.layoutImage) LinearLayout imageLayout;
     @BindView(R.id.progressDetails) ProgressBar detailsProgress;
     @BindView(R.id.progressPoints) ProgressBar pointsProgress;
-    @BindView(R.id.favoriteButton) MaterialFavoriteButton favoriteButton;
+    @BindView(R.id.favoriteButton) LikeButton favoriteButton;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -137,7 +139,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                     .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            finishAffinity();
+                            finish();
                         }
                     })
                     .setCancelable(false)
@@ -240,31 +242,55 @@ public class RouteDetailsActivity extends AppCompatActivity {
             }
         });
 
-        // TODO - make unfavorite API call
-        favoriteButton.setOnFavoriteChangeListener(new MaterialFavoriteButton.OnFavoriteChangeListener() {
+        favoriteButton.setOnLikeListener(new OnLikeListener() {
             @Override
-            public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
-                if(favorite) {
-                    HashMap tmpMap = new HashMap(1);
-                    tmpMap.put("route", route);
+            public void liked(LikeButton likeButton) {
+                HashMap tmpMap = new HashMap(1);
+                tmpMap.put("route", route.getRouteID());
 
-                    Call<ResponseBody> call = sgApiClient.markAsFavourite(authenticationHeader, tmpMap);
-                    call.enqueue(new Callback<ResponseBody>() {
-                        @Override
-                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                            if(response.isSuccessful()) {
-                                Toast.makeText(RouteDetailsActivity.this, "Route marked as favorite!", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
-                            }
+                Call<ResponseBody> call = sgApiClient.markAsFavourite(authenticationHeader, tmpMap);
+                call.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if(response.isSuccessful()) {
+                            Toast.makeText(RouteDetailsActivity.this, R.string.route_favorited_success, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
+                            Toast.makeText(RouteDetailsActivity.this, R.string.route_favourite_error, Toast.LENGTH_SHORT).show();
                         }
+                    }
 
-                        @Override
-                        public void onFailure(Call<ResponseBody> call, Throwable t) {
-                            Log.e(TAG, "onFavoriteChanged - onFailure: " + t.getMessage());
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e(TAG, "onFavoriteChanged - onFailure: " + t.getMessage());
+                        Toast.makeText(RouteDetailsActivity.this, R.string.route_favourite_error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                HashMap tmpMap = new HashMap(1);
+                tmpMap.put("route", route.getRouteID());
+
+                Call<ResponseBody> call = sgApiClient.markAsUnfavourite(authenticationHeader, tmpMap);
+                call.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if(response.isSuccessful()) {
+                            Toast.makeText(RouteDetailsActivity.this, R.string.route_unfavourite_success, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
+                            Toast.makeText(RouteDetailsActivity.this, R.string.route_unfavourite_error, Toast.LENGTH_SHORT).show();
                         }
-                    });
-                }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e(TAG, "onFavoriteChanged - onFailure: " + t.getMessage());
+                        Toast.makeText(RouteDetailsActivity.this, R.string.route_unfavourite_error, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
@@ -280,6 +306,32 @@ public class RouteDetailsActivity extends AppCompatActivity {
         pointsProgress.setIndeterminate(true);
 
         registerReceiver();
+    }
+
+    private void getUserInfo() {
+        Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
+
+        call.enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                if(response.isSuccessful()) {
+                    User currentUser = response.body();
+                    for(Integer favRoutes : currentUser.getFavoriteRoutes()) {
+                        if (favRoutes.equals(route.getRouteID())) {
+                            favoriteButton.setLiked(true);
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "getUserInfo - onResponse: some error occurred: " + response.errorBody().toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Log.e(TAG, "getUserInfo - onFailure: some error occurred: " + t.getMessage());
+            }
+        });
+
     }
 
     private void onNavigateRoute() {
@@ -427,7 +479,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
         imageLayout.setVisibility(View.GONE);
 
         // Route Map Image - Static map from Google Maps API
-        if(route.getRouteMapImage() != null) {
+        if(!route.getRouteMapImage().isEmpty()) {
             Picasso.get()
                     .load(route.getRouteMapImage())
                     .placeholder(R.drawable.progress_animation)
@@ -439,7 +491,9 @@ public class RouteDetailsActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onError(Exception e) {}
+                        public void onError(Exception e) {
+
+                        }
                     });
         }
 
@@ -475,6 +529,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
             public void onResponse(Call<Route> call, Response<Route> response) {
                 if (response.isSuccessful()) {
                     route = response.body();
+                    getUserInfo();
                     updateUI();
                 }
             }

@@ -39,7 +39,10 @@ public class Route implements Serializable {
     @SerializedName("Points")
     private List<Point> routePoints;
 
+    @SerializedName("Map_image")
     private String routeMapImage;
+
+    private boolean isFavorite;
 
     /**
      * Route constructor

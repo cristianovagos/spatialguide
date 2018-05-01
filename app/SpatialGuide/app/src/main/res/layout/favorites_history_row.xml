@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="5dp"
+    android:layout_gravity="center"
+    app:cardElevation="5dp"
+    app:cardUseCompatPadding="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white">
+
+        <com.lid.lib.LabelImageView
+            android:id="@+id/favoriteImage"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/app_name"
+            app:label_backgroundColor="@color/primary_darker"
+            app:label_orientation="RIGHT_TOP"
+            app:label_distance="40dp"
+            app:label_textSize="12dp"/>
+
+        <TextView
+            android:id="@+id/favoriteName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@id/favoriteImage"
+            android:layout_alignEnd="@+id/favoriteImage"
+            android:layout_alignBottom="@id/favoriteImage"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:paddingEnd="15dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="5dp"
+            android:layout_centerVertical="true"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/catamaran"
+            android:background="#4000"/>
+
+        <ProgressBar
+            android:id="@+id/favoriteProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="100dp"
+            android:layout_height="10dp"
+            android:layout_below="@id/favoriteName"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="5dp"
+            android:layout_toLeftOf="@+id/favoriteProgressText"
+            android:max="100"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/favoriteProgressText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/favoriteName"
+            android:layout_marginTop="10dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginEnd="10dp"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/favoriteDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/favoriteProgressText"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:paddingEnd="15dp"
+            android:paddingRight="15dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="10dp"
+            android:layout_centerVertical="true"
+            android:textSize="15sp"
+            android:maxLines="3"
+            android:ellipsize="marquee"
+            android:textColor="@color/monsoon"
+            android:fontFamily="@font/catamaran"/>
+
+        <!--<TextView-->
+            <!--android:id="@+id/favoriteAvailableText"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_below="@+id/favoriteDescription"-->
+            <!--android:paddingStart="0dp"-->
+            <!--android:paddingEnd="5dp"-->
+            <!--android:paddingLeft="0dp"-->
+            <!--android:paddingRight="5dp"-->
+            <!--android:layout_marginBottom="5dp"-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:textSize="12sp"-->
+            <!--android:text="@string/favorite_stored"-->
+            <!--android:textColor="@color/monsoon"-->
+            <!--android:fontFamily="@font/catamaran"-->
+            <!--android:visibility="gone"-->
+            <!--tools:ignore="RtlHardcoded" />-->
+
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

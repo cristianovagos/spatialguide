@@ -10,8 +10,8 @@ public final class Constant {
      */
 //    public static final String BASE_URL = "http://192.168.43.111:8000/";
 //    public static final String BASE_URL = "http://192.168.1.19:8000/";
-//    public static final String BASE_URL = "http://192.168.43.250:8000/";
-    public static final String BASE_URL = "http://192.168.1.99:8000";
+    public static final String BASE_URL = "http://192.168.43.250:8000/";
+//    public static final String BASE_URL = "http://192.168.1.99:8000";
 
     /**
      * Base URL of media files (Google Drive)

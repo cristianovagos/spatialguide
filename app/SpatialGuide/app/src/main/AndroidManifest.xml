@@ -3,10 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.paydayme.spatialguide">
 
+    <uses-feature android:name="android.hardware.bluetooth" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <application
         android:name=".core.InitApp"
@@ -60,6 +63,10 @@
             android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.activity.ForgotPasswordActivity"
+            android:theme="@style/AppTheme.Dark"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activity.FavoritesActivity"
             android:theme="@style/AppTheme.Dark"
             android:screenOrientation="portrait"/>
 

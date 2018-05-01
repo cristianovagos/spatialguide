@@ -36,6 +36,17 @@ public interface SGApiClient {
     Call<Route> getRoute(@Header("Authorization") String authKey, @Path("id") int id);
 
     /**
+     * Get a point with a specific ID
+     *
+     * @param authKey the authorization key
+     * @param id the Point ID
+     * @return the Point returned
+     */
+    @Headers("Content-Type: application/json")
+    @GET("point/{id}/?format=json")
+    Call<Point> getPoint(@Header("Authorization") String authKey, @Path("id") int id);
+
+    /**
      * Get all Routes
      *
      * @param authKey the authorization key
@@ -103,7 +114,14 @@ public interface SGApiClient {
     Call<ResponseBody> recoverPassword(@Body HashMap<String, Object> recoverPasswordBody);
 
     @Headers("Content-Type: application/json")
-    @POST("userfavourite/")
+    @POST("useraddfavourite/")
     Call<ResponseBody> markAsFavourite(@Header("Authorization") String authKey, @Body HashMap<String, Object> favouriteBody);
 
+    @Headers("Content-Type: application/json")
+    @POST("userremovefavourite/")
+    Call<ResponseBody> markAsUnfavourite(@Header("Authorization") String authKey, @Body HashMap<String, Object> favouriteBody);
+
+    @Headers("Content-Type: application/json")
+    @POST("visitpoint/")
+    Call<ResponseBody> markPointVisited(@Header("Authorization") String authKey, @Body HashMap<String, Object> visitedBody);
 }

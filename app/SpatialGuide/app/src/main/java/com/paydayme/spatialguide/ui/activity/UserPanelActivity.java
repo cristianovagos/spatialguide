@@ -564,6 +564,9 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
             case R.id.nav_history:
                 startActivity(new Intent(UserPanelActivity.this, HistoryActivity.class));
                 break;
+            case R.id.nav_favorites:
+                startActivity(new Intent(UserPanelActivity.this, FavoritesActivity.class));
+                break;
         }
 
         drawer.closeDrawer(GravityCompat.START);

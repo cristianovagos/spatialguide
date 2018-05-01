@@ -21,10 +21,10 @@
             android:id="@+id/nav_history"
             android:icon="@drawable/ic_history"
             android:title="History" />
-        <!--<item-->
-            <!--android:id="@+id/nav_favorites"-->
-            <!--android:icon="@drawable/ic_favorite"-->
-            <!--android:title="Favorites" />-->
+        <item
+            android:id="@+id/nav_favorites"
+            android:icon="@drawable/ic_favorite"
+            android:title="Favorites" />
     </group>
 
     <item android:title="Contact us">
