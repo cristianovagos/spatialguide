@@ -7,21 +7,38 @@ from .googleDrive import googledrive
 
 
 CREDENTIAL_PATH=os.path.join(settings.BASE_DIR,'app/googleDrive/google-drive-credencials.json')
+API_KEY= 'AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o'
 
 def get_allRoutes():
     routes = Route.objects.all()
     serializer = RouteSerializer(routes, many=True)
     tmp_list = serializer.data
-
     tab_names = []
     if len(tmp_list) > 0:
         tab_names = list(tmp_list[0].keys())
 
     route_list = []
     for route in tmp_list:
-        route_list.append(route)
+        route_list.append(dict(route))
 
     return (tab_names,route_list)
+
+def generate_mapImage(route_id):
+
+    points = get_route_points(route_id)
+
+    url = 'https://maps.googleapis.com/maps/api/staticmap?size=400x400&maptype=roadmap'
+
+    for p in points:
+        latitude = str(p['Latitude'])
+        longitude = str(p['Longitude'])
+        url+='&markers=color:red%7C'+latitude+','+longitude
+
+    url+= '&key='+API_KEY
+
+    route = Route.objects.get(pk=route_id)
+    route.Map_image=url
+    route.save()
 
 
 def get_route(route_id):

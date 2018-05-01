@@ -33,8 +33,6 @@ urlpatterns = [
     url(r'^add_route/$', rest.addRoute.as_view(), name='add_route'),
     url(r'^add_point/$', rest.addPoint.as_view(), name='add_point'),
 
-    ############ Rest ####################
-
     url(r'^route/((?P<route_id>\d+))/$', rest.RouteList.as_view()),
     url(r'^route/$', rest.RouteList.as_view(),),
     url(r'^route_points/((?P<route_id>\d+))/$', rest.Route_PointList.as_view()),

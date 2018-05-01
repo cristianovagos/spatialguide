@@ -14,13 +14,16 @@ def show_routes(request):
     if request.user.is_superuser:
         tab_names,route_list = get_allRoutes()
 
+        print(tab_names)
+        print(route_list)
         tparams = {
             'title': 'Route',
             'tab_names': tab_names,
             'route_list': route_list,
-            'add_btn': 'add_route',
+            'add_btn': 'add_route'
 
         }
+
         return render(request, 'tables.html', tparams)
     else:
         return redirect('login')

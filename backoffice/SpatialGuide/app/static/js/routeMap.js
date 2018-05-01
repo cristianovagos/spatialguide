@@ -9,16 +9,24 @@ function initMap() {
           center: center_LatLng
         });
 
-        console.log(point_array);
-
         point_array = JSON.parse(point_array.replace(/&quot;/g,'"'));
 
-
+        var markers= new Array();
         for(var i =0;i<point_array.length;i++){
-            new google.maps.Marker({
+            markers[i] = new google.maps.Marker({
                                     position: new google.maps.LatLng(point_array[i].Latitude,point_array[i].Longitude),
                                     map: map,
                                     title: point_array[i].Name,
                                     icon:'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' });
         }
+
+        if (markers.length != 0){
+            var bounds = new google.maps.LatLngBounds();
+            for (var i = 0; i < markers.length; i++) {
+                bounds.extend(markers[i].getPosition());
+            }
+
+            map.fitBounds(bounds);
+        }
+
 }

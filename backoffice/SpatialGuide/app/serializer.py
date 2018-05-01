@@ -13,13 +13,13 @@ class RouteSerializer(ModelSerializer):
 
     class Meta:
         model = Route
-        fields = '__all__'
+        exclude = ['Image','Map_image']
 
 class PointSerializer(ModelSerializer):
 
     class Meta:
         model = Point
-        fields = '__all__'
+        exclude = ['Image','Sound']
 
 class HeatPointSerializer(ModelSerializer):
 
@@ -32,8 +32,6 @@ class UserAttrSerializer(ModelSerializer):
     class Meta:
         model = User_Attributes
         fields = ['Image','Favorite_routes','Favorite_points']
-
-
 
 User = get_user_model()
 

@@ -38,7 +38,6 @@ class ShowRoute(APIView):
 
     def post(self,request,route_id):
         data = request.data
-        print(data)
         route = Route.objects.filter(pk=route_id).first()
 
         if 'add' in list(data.keys()):
@@ -47,9 +46,10 @@ class ShowRoute(APIView):
             if point_id:
                 point = Point.objects.filter(pk=point_id).first()
 
-                exists = Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first()
+                exists = Route_contains_Point.objects.filter(Q(Route_id=route.pk)).filter(Q(Point_id=point.pk)).first()
                 if not exists:
                     Route_contains_Point(Route=route,Point=point).save()
+                    generate_mapImage(route_id)
 
         if 'remove' in list(data.keys()):
             point_id = data.get('remove',None)
@@ -58,6 +58,7 @@ class ShowRoute(APIView):
                 point = Point.objects.filter(pk=point_id).first()
 
                 Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first().delete()
+                generate_mapImage(route_id)
 
 
         return self.get(request,route_id)
@@ -70,8 +71,12 @@ class RouteList(APIView):
         if route_id:
             route = Route.objects.filter(pk=route_id).first()
 
+
             if not route:
                 raise ValidationError('Route does not exist')
+
+            route.Number_Downloads = route.Number_Downloads + 1
+            route.save()
 
             points = Point.objects.filter(route_contains_point__Route_id=route_id)
 
