@@ -71,7 +71,6 @@ class RouteList(APIView):
         if route_id:
             route = Route.objects.filter(pk=route_id).first()
 
-
             if not route:
                 raise ValidationError('Route does not exist')
 

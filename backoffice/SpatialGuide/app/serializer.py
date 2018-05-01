@@ -13,9 +13,21 @@ class RouteSerializer(ModelSerializer):
 
     class Meta:
         model = Route
-        exclude = ['Image','Map_image']
+        fields = '__all__'
 
 class PointSerializer(ModelSerializer):
+
+    class Meta:
+        model = Point
+        fields = '__all__'
+
+class RouteTableSerializer(ModelSerializer):
+
+    class Meta:
+        model = Route
+        exclude = ['Image','Map_image']
+
+class PointTableSerializer(ModelSerializer):
 
     class Meta:
         model = Point
