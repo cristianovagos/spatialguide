@@ -39,8 +39,8 @@
                         <h5  style= "width:100%">Route Description</h5>
                         {{ route.Description }}
                         <br>
-                        <img src={{ route.Image }}>
                     </div>
+                     <img src="{{ route.Image }}" style="max-height: 250px; max-width: 250px;"/>
                     <div class="row">
                         <div class="card text-white bg-primary o-hidden h-100"  style= "margin-top: 20px; width:80%">
                             <div class="card-body">
@@ -64,6 +64,7 @@
                                 <div class="mr-5">Add Point</div>
                             </div>
                             <select class="text-black" >
+                                <option></option>
                                 {% for point in all_points %}
                                      <option>{{ point.Name }}</option>
                                 {% endfor %}
@@ -90,7 +91,7 @@
     {% load static %}
 
     <script>
-        var point_array="{{ point_list }}";
+        var point_array="{{ point_array }}";
     </script>
 
     <script src="{% static "js/routeMap.js" %}"></script>

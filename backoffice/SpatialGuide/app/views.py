@@ -36,6 +36,7 @@ def show_route(request,route_id):
 
         tab_names,all_points = get_allPoints()
 
+        print(json.dumps(points))
 
         tparams = {
             'title': 'Route',

@@ -151,7 +151,7 @@ class HeatMap(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-# userfavourite/
+# useraddfavourite/
 class AddFavorite(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -190,6 +190,46 @@ class AddFavorite(APIView):
                 error['route']='Route does not Exist!'
 
         return Response(error,status=status.HTTP_200_OK)
+
+# userremovefavourite/
+class RemoveFavourite(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        data = request.data
+
+        point = data.get('point', None)
+        route = data.get('route', None)
+
+        error = {}
+        try:
+            point = int(point)
+            point = Point.objects.filter(pk=point).first()
+        except:
+            point = None
+            error['point'] = 'Point does not Exist!'
+
+        try:
+            route = int(route)
+            route = Route.objects.filter(pk=route).first()
+        except:
+            route = None
+            error['route'] = 'Route does not Exist!'
+
+        user = User.objects.filter(username=request.user).first()
+        if user:
+            user_att = User_Attributes.objects.filter(pk=user.id).first()
+            if point:
+                user_att.Favorite_points.remove(point)
+            else:
+                error['point'] = 'Point does not Exist!'
+
+            if route:
+                user_att.Favorite_routes.remove(route)
+            else:
+                error['route'] = 'Route does not Exist!'
+
+        return Response(error, status=status.HTTP_200_OK)
 
 
 # register/
