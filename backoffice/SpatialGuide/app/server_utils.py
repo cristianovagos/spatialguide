@@ -11,7 +11,7 @@ API_KEY= 'AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o'
 
 def get_allRoutes():
     routes = Route.objects.all()
-    serializer = RouteSerializer(routes, many=True)
+    serializer = RouteTableSerializer(routes, many=True)
     tmp_list = serializer.data
     tab_names = []
     if len(tmp_list) > 0:
@@ -64,7 +64,7 @@ def get_ExcludedPoints(route_id):
 
 def get_allPoints():
     points = Point.objects.all()
-    serializer = PointSerializer(points, many=True)
+    serializer = PointTableSerializer(points, many=True)
     tmp_list = serializer.data
 
     tab_names = []
