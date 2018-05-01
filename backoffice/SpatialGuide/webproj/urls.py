@@ -48,7 +48,10 @@ urlpatterns = [
     url(r'^logout/$', rest.UserLogoutView.as_view(), name='logout'),
 
     url(r'^userinfo/$', rest.UserInfo.as_view(), name='userinfo'),
-    url(r'^userfavourite/$', rest.AddFavorite.as_view(), name='userfavourite'),
+    url(r'^useraddfavourite/$', rest.AddFavorite.as_view(), name='useraddfavourite'),
+    url(r'^userremovefavourite/$', rest.RemoveFavourite.as_view(), name='userremovefavourite'),
+
+    url(r'^visitpoint/$', rest.UserVisit.as_view(), name='visitpoint'),
 
     url(r'^changepass/$', rest.ChangePassword.as_view(), name='changepass'),
     url(r'^changeemail/$', rest.ChangeEmail.as_view(), name='changeemail'),

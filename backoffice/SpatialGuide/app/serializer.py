@@ -31,7 +31,7 @@ class UserAttrSerializer(ModelSerializer):
 
     class Meta:
         model = User_Attributes
-        fields = ['Image','Favorite_routes','Favorite_points']
+        fields = ['Image','Favorite_routes','Favorite_points','Visited_points']
 
 
 

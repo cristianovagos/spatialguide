@@ -39,6 +39,9 @@ class Route_contains_Point(models.Model):
     def __str__(self):
         return "Route '%s' contains point '%s'" %(self.Route.Name,self.Point.Name)
 
+class Point_Visited(models.Model):
+    Point_id = models.ForeignKey(Point, on_delete=models.CASCADE)
+    Visit_Date = models.DateField(default=date.today())
 
 class Heat_Point(models.Model):
     Latitude = models.FloatField()
@@ -49,6 +52,7 @@ class User_Attributes(models.Model):
     User_id = models.ForeignKey(User, on_delete=models.CASCADE)
     Favorite_points = models.ManyToManyField(Point)
     Favorite_routes = models.ManyToManyField(Route)
+    Visited_points = models.ManyToManyField(Point_Visited)
     Image = models.CharField(max_length=150)
 
 

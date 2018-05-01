@@ -150,6 +150,35 @@ class HeatMap(APIView):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+# visitpoint/
+class UserVisit(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        data = request.data
+
+        point = data.get('point',None)
+
+        error = {}
+        try:
+            point = int(point)
+            point = Point.objects.filter(pk=point).first()
+        except:
+            point = None
+            error['point'] = 'Point does not Exist!'
+            return Response(error,status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(username=request.user).first()
+
+        if user:
+            user_att = User_Attributes.objects.filter(pk=user.id).first()
+
+            new_point = Point_Visited(Point_id=point)
+            new_point.save()
+            user_att.Visited_points.add(new_point)
+
+        return Response(error, status=status.HTTP_200_OK)
+
 
 # useraddfavourite/
 class AddFavorite(APIView):
