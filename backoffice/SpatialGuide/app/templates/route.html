@@ -2,7 +2,7 @@
 
 {% block link %}
 
-    <style xmlns="http://www.w3.org/1999/html">
+    <style xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
         /* Always set the map height explicitly to define the size of the div
          * element that contains the map. */
         #map {
@@ -49,11 +49,15 @@
                                 </div>
                                 <div>Route Points</div>
                             </div>
-                            <select class="text-black" >
+                        <form action="" method="post">
+                            <select class="text-black" style="width: 100%">
                                 {% for point in points %}
                                      <option>{{ point.Name }}</option>
                                 {% endfor %}
                             </select>
+                        <br>
+                            <button type="submit" style="border-radius: 7px; width: 100%">Remove Point</button>
+                        </form>
                         </div>
 
                         <div class="card text-white bg-primary o-hidden h-100" style="margin-top: 20px; width:80%">
@@ -63,12 +67,15 @@
                                 </div>
                                 <div class="mr-5">Add Point</div>
                             </div>
-                            <select class="text-black" >
+                        <form action="" method="post">
+                            <select class="text-black" style="width: 100%">
                                 <option></option>
                                 {% for point in all_points %}
                                      <option>{{ point.Name }}</option>
                                 {% endfor %}
                             </select>
+                            <button type="submit" style="border-radius: 7px; width: 100%">Add Point</button>
+                        </form>
                         </div>
                     </div>
                 </div>
