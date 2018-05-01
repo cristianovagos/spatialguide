@@ -69,6 +69,15 @@ class RouteForm(ModelForm):
         model = Route
         fields = ['Name','Description']
 
+class RouteEditForm(ModelForm):
+    Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
+    Description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Description'}))
+    Image = forms.FileField(required=False)
+
+    class Meta:
+        model = Route
+        fields = ['Name','Description']
+
 
 class PointForm(ModelForm):
     Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
@@ -78,6 +87,19 @@ class PointForm(ModelForm):
     Longitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Longitude', 'readonly':'readonly'}))
     Image = forms.FileField()
     Sound = forms.FileField()
+
+    class Meta:
+        model = Point
+        fields = ['Name','Url','Description','Latitude','Longitude']
+
+class PointEditForm(ModelForm):
+    Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
+    Url = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Url'}))
+    Description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Description'}))
+    Latitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Latitude', 'readonly':'readonly'}))
+    Longitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Longitude', 'readonly':'readonly'}))
+    Image = forms.FileField(required=False)
+    Sound = forms.FileField(required=False)
 
     class Meta:
         model = Point

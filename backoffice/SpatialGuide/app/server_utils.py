@@ -7,7 +7,7 @@ from .googleDrive import googledrive
 
 
 CREDENTIAL_PATH=os.path.join(settings.BASE_DIR,'app/googleDrive/google-drive-credencials.json')
-API_KEY= 'AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o'
+API_KEY= 'AIzaSyDeglQrbGdL6r49ToFw2Ft1ugFJmma2oJM'
 
 def get_allRoutes():
     routes = Route.objects.all()

@@ -15,6 +15,108 @@ import json
 
 DRIVE_BASE_URL='http://drive.google.com/uc?export=view&id='
 
+
+class ShowPoints(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self,request):
+        tab_names, point_list = get_allPoints()
+
+        tparams = {
+            'title': 'Point',
+            'tab_names': tab_names,
+            'route_list': point_list,
+            'add_btn': 'add_point'
+
+        }
+        return render(request, 'tables.html', tparams)
+
+    def post(self,request):
+        data = request.data
+
+        if 'Name' in list(data.keys()):
+            point_id = data.get('point_id', None)
+            point_obj = Point.objects.get(pk=point_id)
+
+            form = PointEditForm(data,instance=point_obj)
+            if form.is_valid():
+                point=form.save()
+                if "Image" in request.FILES:
+                    point.Image = DRIVE_BASE_URL + request_filesaver(request.FILES['Image'])
+                if "Sound" in request.FILES:
+                    point.Sound = request_filesaver(request.FILES['Sound'])
+                point.save()
+
+        elif 'edit' in list(data.keys()):
+            point_id = data.get('edit', None)
+            point_obj = Point.objects.get(pk=point_id)
+
+            point = PointSerializer(point_obj).data
+            form = PointEditForm(instance=point_obj)
+
+            tparams = {
+                'title': 'Point',
+                'point_array': json.dumps(dict(point)),
+                'form_t': form,
+                'point_id': point_id
+            }
+
+            return render(request,'point_edit.html',tparams)
+
+        elif 'remove' in list(data.keys()):
+            point_id = data.get('remove',None)
+            point = Point.objects.get(pk=point_id)
+            point.delete()
+
+        return self.get(request)
+
+class ShowRoutes(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self,request):
+        tab_names, route_list = get_allRoutes()
+
+        tparams = {
+            'title': 'Route',
+            'tab_names': tab_names,
+            'route_list': route_list,
+            'add_btn': 'add_route'
+
+        }
+
+        return render(request, 'tables.html', tparams)
+
+    def post(self,request):
+        data = request.data
+        print(data)
+        if 'Name' in list(data.keys()):
+            route_id = data.get('route_id', None)
+            print(route_id)
+            route_obj = Route.objects.get(pk=route_id)
+
+            form = RouteEditForm(data, instance=route_obj)
+            if form.is_valid():
+                route = form.save()
+                if "Image" in request.FILES:
+                    route.Image = DRIVE_BASE_URL + request_filesaver(request.FILES['Image'])
+                route.save()
+
+        elif 'edit' in list(data.keys()):
+            route_id = data.get('edit', None)
+            route_obj = Route.objects.get(pk=route_id)
+
+            form = RouteEditForm(instance=route_obj)
+
+            tparams = {
+                'title': 'Point',
+                'form_t': form,
+                'route_id': route_id
+            }
+
+            return render(request, 'route_edit.html', tparams)
+
+        return self.get(request)
+
 class ShowRoute(APIView):
     permission_classes = [IsAdminUser]
 
@@ -38,6 +140,7 @@ class ShowRoute(APIView):
 
     def post(self,request,route_id):
         data = request.data
+        print(data)
         route = Route.objects.filter(pk=route_id).first()
 
         if 'add' in list(data.keys()):
@@ -59,6 +162,10 @@ class ShowRoute(APIView):
 
                 Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first().delete()
                 generate_mapImage(route_id)
+
+        if 'removeRoute' in list(data.keys()):
+            route.delete()
+            return redirect('show_routes')
 
 
         return self.get(request,route_id)
@@ -138,9 +245,6 @@ class addRoute(APIView):
         }
         return render(request, 'form_route.html', tparams)
 
-
-
-
 class addPoint(APIView):
     permission_classes = [IsAdminUser]
 
@@ -179,7 +283,6 @@ def request_filesaver(data):
 
     return save_media(str(data), tmp_file_path)
 
-
 # route_points/{route_id}
 class Route_PointList(APIView):
     permission_classes = [IsAuthenticated]
@@ -189,7 +292,6 @@ class Route_PointList(APIView):
         serializer = PointSerializer(route_points, many=True)
 
         return Response(serializer.data)
-
 
 # heatzone/
 class HeatMap(APIView):
@@ -240,7 +342,6 @@ class UserVisit(APIView):
 
 
         return Response(error, status=status.HTTP_200_OK)
-
 
 # useraddfavourite/
 class AddFavorite(APIView):
@@ -322,7 +423,6 @@ class RemoveFavourite(APIView):
 
         return Response(error, status=status.HTTP_200_OK)
 
-
 # register/
 class UserCreateView(CreateAPIView):
     permission_classes = [AllowAny]
@@ -392,7 +492,6 @@ class UserLoginView(APIView):
         else:
             return render(request,'login.html',{'error':'Credencials are Invalid!'})
 
-
 # userinfo/
 class UserInfo(APIView):
     permission_classes = [IsAuthenticated]
@@ -448,7 +547,6 @@ class ChangePassword(APIView):
         else:
             return Response(status=status.HTTP_304_NOT_MODIFIED)
 
-
 # changepass/
 class ChangeEmail(APIView):
     permission_classes = [IsAuthenticated]
@@ -475,7 +573,6 @@ class ChangeEmail(APIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_304_NOT_MODIFIED)
-
 
 # recoverpass/
 class RecoverPassword(APIView):

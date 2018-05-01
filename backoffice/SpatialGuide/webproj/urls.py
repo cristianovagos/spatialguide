@@ -25,10 +25,10 @@ from app import views,rest
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
-    url(r'^$', views.show_routes, name='home'),
-    url(r'^show_routes/$', views.show_routes, name='show_routes'),
+    url(r'^$', rest.ShowRoutes.as_view(), name='home'),
+    url(r'^show_routes/$', rest.ShowRoutes.as_view(), name='show_routes'),
     url(r'^display_route/((?P<route_id>\d+))/$', rest.ShowRoute.as_view() , name='display_route'),
-    url(r'^show_points/$', views.show_points, name='show_points'),
+    url(r'^show_points/$', rest.ShowPoints.as_view(), name='show_points'),
 
     url(r'^add_route/$', rest.addRoute.as_view(), name='add_route'),
     url(r'^add_point/$', rest.addPoint.as_view(), name='add_point'),

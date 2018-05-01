@@ -8,6 +8,16 @@
       #map {
         height: 100%;
       }
+      #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 300px;
+      }
       /* Optional: Makes the sample page fill the window. */
       html, body {
         height: 100%;
@@ -38,7 +48,7 @@
         </form>
       </div>
     </div>
-
+    <input id="pac-input" class="controls" type="text" style="height: 40px" placeholder="Search Box">
     <div class="container-fluid" id="map" style="width: 850px; height: 750px; float:right"></div>
 
   </div>
@@ -54,7 +64,7 @@
     <script src="../static/js/google_maps.js"></script>
 
     <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o&callback=initMap">
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o&libraries=places&callback=initMap">
     </script>
 
 
