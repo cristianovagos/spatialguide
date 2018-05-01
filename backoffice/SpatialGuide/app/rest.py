@@ -17,9 +17,11 @@ import json
 DRIVE_BASE_URL='http://drive.google.com/uc?export=view&id='
 
 class ShowPoints(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
         tab_names, point_list = get_allPoints()
 
         tparams = {
@@ -32,6 +34,8 @@ class ShowPoints(APIView):
         return render(request, 'tables.html', tparams)
 
     def post(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
         data = request.data
 
         if 'Name' in list(data.keys()):
@@ -71,9 +75,12 @@ class ShowPoints(APIView):
         return self.get(request)
 
 class ShowRoutes(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
+
         tab_names, route_list = get_allRoutes()
 
         tparams = {
@@ -87,6 +94,8 @@ class ShowRoutes(APIView):
         return render(request, 'tables.html', tparams)
 
     def post(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
         data = request.data
         print(data)
         if 'Name' in list(data.keys()):
@@ -118,10 +127,10 @@ class ShowRoutes(APIView):
         return self.get(request)
 
 class ShowRoute(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def get(self,request,route_id):
-        if not request.user.is_superuser and not request.user.is_staff:
+        if not request.user.is_staff:
             return redirect('login')
 
         points = get_route_points(route_id)
@@ -139,8 +148,10 @@ class ShowRoute(APIView):
         return render(request, 'route.html', tparams)
 
     def post(self,request,route_id):
+        if not request.user.is_staff:
+            return redirect('login')
         data = request.data
-        print(data)
+
         route = Route.objects.filter(pk=route_id).first()
 
         if 'add' in list(data.keys()):
@@ -221,9 +232,11 @@ class PointList(APIView):
             return Response(serializer.data)
 
 class addRoute(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
         tparams = {
             'title': 'Route',
             'form_t': RouteForm()
@@ -231,6 +244,8 @@ class addRoute(APIView):
         return render(request, 'form_route.html', tparams)
 
     def post(self, request):
+        if not request.user.is_staff:
+            return redirect('login')
         form = RouteForm(request.data, request.FILES)
 
         if form.is_valid():
@@ -249,6 +264,8 @@ class addPoint(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
         tab_names, point_list = get_allPoints()
 
         tparams = {
@@ -260,6 +277,8 @@ class addPoint(APIView):
         return render(request, 'form_point.html', tparams)
 
     def post(self, request):
+        if not request.user.is_staff:
+            return redirect('login')
         form = PointForm(request.data, request.FILES)
         if form.is_valid():
             point = form.save()
@@ -298,6 +317,8 @@ class HeatMap(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
         tparams={
             'title': 'Heat Map',
             'heatpoint_array': json.dumps(get_heatPoints())
@@ -624,9 +645,11 @@ class UserSuggestionView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 class UserSuggestionsAdminView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
         tab_names, user_suggestion = get_Suggestions()
 
         tparams = {
@@ -635,7 +658,5 @@ class UserSuggestionsAdminView(APIView):
             'route_list': user_suggestion,
 
         }
-
-        print('hello')
 
         return render(request, 'tables.html', tparams)
