@@ -38,23 +38,26 @@ class ShowRoute(APIView):
 
     def post(self,request,route_id):
         data = request.data
-
+        print(data)
         route = Route.objects.filter(pk=route_id).first()
 
         if 'add' in list(data.keys()):
-            point_id = data.get('add')
-            point = Point.objects.filter(pk=point_id).first()
+            point_id = data.get('add',None)
 
-            exists = Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first()
-            if not exists:
-                Route_contains_Point(Route=route,Point=point).save()
+            if point_id:
+                point = Point.objects.filter(pk=point_id).first()
+
+                exists = Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first()
+                if not exists:
+                    Route_contains_Point(Route=route,Point=point).save()
 
         if 'remove' in list(data.keys()):
-            point_id = data.get('remove')
+            point_id = data.get('remove',None)
 
-            point = Point.objects.filter(pk=point_id).first()
+            if point_id:
+                point = Point.objects.filter(pk=point_id).first()
 
-            Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first().delete()
+                Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first().delete()
 
 
         return self.get(request,route_id)
