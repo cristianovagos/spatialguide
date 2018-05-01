@@ -247,7 +247,7 @@ class RemoveFavourite(APIView):
 
         user = User.objects.filter(username=request.user).first()
         if user:
-            user_att = User_Attributes.objects.filter(pk=user.id).first()
+            user_att = User_Attributes.objects.filter(User_id__id=user.id).first()
             if point:
                 user_att.Favorite_points.remove(point)
             else:
