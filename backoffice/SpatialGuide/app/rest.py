@@ -171,7 +171,7 @@ class UserVisit(APIView):
         user = User.objects.filter(username=request.user).first()
 
         if user:
-            user_att = User_Attributes.objects.filter(pk=user.id).first()
+            user_att = User_Attributes.objects.filter(User_id__id=user.id).first()
 
             new_point = Point_Visited(Point_id=point)
             new_point.save()
@@ -207,7 +207,7 @@ class AddFavorite(APIView):
 
         user = User.objects.filter(username=request.user).first()
         if user:
-            user_att = User_Attributes.objects.filter(pk=user.id).first()
+            user_att = User_Attributes.objects.filter(User_id__id=user.id).first()
             if point:
                 user_att.Favorite_points.add(point)
             else:
@@ -293,6 +293,7 @@ class UserLoginView(APIView):
     def post(self,request, *args, **kwargs):
         serializer = UserLoginSerializer(data=request.data)
 
+
         if serializer.is_valid(raise_exception=True):
             new_data = serializer.data
             username = new_data['username']
@@ -319,10 +320,14 @@ class UserInfo(APIView):
         if not user:
             return Response({'error':'User doesn\'t Exist!'},status=status.HTTP_400_BAD_REQUEST)
 
-        user_att = User_Attributes.objects.filter(pk=user.id).first()
+        user_att = User_Attributes.objects.filter(User_id__id=user.id).first()
 
         user_serializer = UserSerializer(user).data
         user_att_serializer = UserAttrSerializer(user_att).data
+
+
+        tmp = User_Attributes.objects.filter(Visited_points__user_attributes__pk=user.pk)
+        print(tmp)
 
         full_user = user_serializer
         for key in list(user_att_serializer.keys()):

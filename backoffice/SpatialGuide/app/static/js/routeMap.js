@@ -9,6 +9,8 @@ function initMap() {
           center: center_LatLng
         });
 
+        console.log(point_array);
+
         point_array = JSON.parse(point_array.replace(/&quot;/g,'"'));
 
 
