@@ -97,4 +97,5 @@
     <string name="download_toast_error">Error on download!</string>
     <string name="error_password_change_equal">New password could not be equal to current password</string>
     <string name="error_email_change_equal">New password could not be equal to current password</string>
+    <string name="welcome_to_spatialguide">Welcome to SpatialGuide!</string>
 </resources>

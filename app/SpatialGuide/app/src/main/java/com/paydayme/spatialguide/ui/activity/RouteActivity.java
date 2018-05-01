@@ -24,20 +24,24 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
+import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.ui.adapter.RouteAdapter;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.hdodenhof.circleimageview.CircleImageView;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -48,6 +52,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USERNAME;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_EMAIL;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_IMAGE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_NAMES;
 import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 
 /**
@@ -67,6 +75,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     private SharedPreferences.Editor spEditor;
     private int routeSelected;
     private String authenticationHeader;
+    private User currentUser;
 
     // Views
     @BindView(R.id.availableRoutesList) RecyclerView avaliableRoutesRV;
@@ -75,6 +84,11 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     @BindView(R.id.nav_view) NavigationView navigationView;
     @BindView(R.id.noRoutesText) TextView noRoutesText;
     @BindView(R.id.swipeRefresh) SwipeRefreshLayout swipeRefreshLayout;
+
+    private TextView userNameMenu;
+    private CircleImageView userImageMenu;
+    private TextView userEmailMenu;
+    private LinearLayout menuErrorLayout;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,6 +101,8 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     }
 
     private void init() {
+        initMenuHeaderViews();
+
         // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(null);
@@ -151,11 +167,64 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 //        getFakeRoutes();
     }
 
+    private void initMenuHeaderViews() {
+        View header = navigationView.getHeaderView(0);
+        userNameMenu = (TextView) header.findViewById(R.id.userNameMenu);
+        userImageMenu = (CircleImageView) header.findViewById(R.id.userImageMenu);
+        userEmailMenu = (TextView) header.findViewById(R.id.userEmailMenu);
+        menuErrorLayout = (LinearLayout) header.findViewById(R.id.menuErrorLayout);
+    }
+
     private void getUserInfo() {
-        // TODO - get user info to be displayed on the menu
-        // first name, last name, email and image
+        Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
 
+        call.enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                if(response.isSuccessful()) {
+                    currentUser = response.body();
 
+                    String userNames = currentUser.getFirst_name() + " " + currentUser.getLast_name();
+                    spEditor.putString(SHARED_PREFERENCES_USER_NAMES, userNames);
+                    spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, currentUser.getEmail());
+                    spEditor.putString(SHARED_PREFERENCES_USER_IMAGE, currentUser.getUserImage());
+                    spEditor.putString(SHARED_PREFERENCES_USERNAME, currentUser.getUsername());
+                    spEditor.apply();
+
+                    // Get user info to be displayed on the header menu
+                    getUserInfoSharedPreferences();
+                } else {
+                    Log.e(TAG, "getUserInfo - onResponse: some error occurred: " + response.errorBody().toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Log.e(TAG, "getUserInfo - onFailure: some error occurred: " + t.getMessage());
+            }
+        });
+
+    }
+
+    private void getUserInfoSharedPreferences() {
+        String userNames = sharedPreferences.getString(SHARED_PREFERENCES_USER_NAMES, "");
+        String userEmail = sharedPreferences.getString(SHARED_PREFERENCES_USER_EMAIL, "");
+        String userImage = sharedPreferences.getString(SHARED_PREFERENCES_USER_IMAGE, "");
+
+        if(userNames.isEmpty() || userEmail.isEmpty()) {
+            menuErrorLayout.setVisibility(View.VISIBLE);
+        } else {
+            userNameMenu.setText(userNames);
+            userEmailMenu.setText(userEmail);
+        }
+
+        if(!userImage.isEmpty()) {
+            Picasso.get()
+                    .load(userImage)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.mipmap.ic_launcher_round)
+                    .into(userImageMenu);
+        }
     }
 
     private void getFakeRoutes() {

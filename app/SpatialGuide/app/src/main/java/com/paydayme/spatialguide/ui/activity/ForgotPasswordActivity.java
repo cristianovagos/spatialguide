@@ -20,8 +20,14 @@ import android.widget.Toast;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 
+import java.util.HashMap;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -131,13 +137,41 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         progressDialog.setMessage(getString(R.string.recovering_password));
         progressDialog.show();
 
-        // TODO - Recover password mechanism on API
-        onRecoverPassswordSuccess();
-        progressDialog.dismiss();
+        String username = emailUsernameText.getText().toString();
+        String newPassword = passwordText.getText().toString();
+        String newPassword2 = reEnterPasswordText.getText().toString();
+
+        HashMap tmpMap = new HashMap(3);
+        tmpMap.put("username", username);
+        tmpMap.put("new_pass", newPassword);
+        tmpMap.put("confirm_pass", newPassword2);
+
+        Call<ResponseBody> call = sgApiClient.recoverPassword(tmpMap);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()) {
+                    onRecoverPassswordSuccess();
+                    progressDialog.dismiss();
+                } else {
+                    Log.e(TAG, "recoverPassword - onResponse: some error occurred: " + response.errorBody().toString());
+                    progressDialog.dismiss();
+                    onRecoverPassswordFailure();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "recoverPassword - onFailure: " + t.getMessage());
+                progressDialog.dismiss();
+                onRecoverPassswordFailure();
+            }
+        });
     }
 
     public void onRecoverPassswordSuccess() {
         Log.d(TAG, "recovery success, going back to LoginActivity...");
+        Toast.makeText(ForgotPasswordActivity.this, "Password recovered successfully!", Toast.LENGTH_SHORT).show();
         recoverPasswordButton.setEnabled(true);
         setResult(RESULT_OK, null);
         finish();

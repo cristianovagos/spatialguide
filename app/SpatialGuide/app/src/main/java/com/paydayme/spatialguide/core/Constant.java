@@ -10,8 +10,8 @@ public final class Constant {
      */
 //    public static final String BASE_URL = "http://192.168.43.111:8000/";
 //    public static final String BASE_URL = "http://192.168.1.19:8000/";
-    public static final String BASE_URL = "http://192.168.43.250:8000/";
-//    public static final String BASE_URL = "http://192.168.1.16:8000";
+//    public static final String BASE_URL = "http://192.168.43.250:8000/";
+    public static final String BASE_URL = "http://192.168.1.99:8000";
 
     /**
      * Base URL of media files (Google Drive)
@@ -69,6 +69,10 @@ public final class Constant {
     public static final String SHARED_PREFERENCES_LOGIN_USERNAME = "com.paydayme.spatialguide.shared.login-username";
     public static final String SHARED_PREFERENCES_PASSWORD = "com.paydayme.spatialguide.shared.login-password";
     public static final String SHARED_PREFERENCES_LAST_ROUTE = "com.paydayme.spatialguide.shared.last_route";
+    public static final String SHARED_PREFERENCES_USER_NAMES = "com.paydayme.spatialguide.shared.user_names";
+    public static final String SHARED_PREFERENCES_USER_IMAGE = "com.paydayme.spatialguide.shared.user_image";
+    public static final String SHARED_PREFERENCES_USER_EMAIL = "com.paydayme.spatialguide.shared.user_email";
+    public static final String SHARED_PREFERENCES_USERNAME = "com.paydayme.spatialguide.shared.username";
 
     /**
      * SharedPreferences Preference keys

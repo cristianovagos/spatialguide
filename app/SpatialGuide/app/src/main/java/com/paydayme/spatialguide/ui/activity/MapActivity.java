@@ -33,6 +33,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -40,10 +41,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.URLUtil;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -83,6 +87,7 @@ import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
+import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.model.routexl.RouteXLRequest;
 import com.paydayme.spatialguide.model.routexl.RouteXLResponse;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
@@ -90,6 +95,7 @@ import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 import com.squareup.picasso.Picasso;
 import com.google.android.gms.maps.UiSettings;
+import com.uncopt.android.widget.text.justify.JustifiedTextView;
 
 import org.joda.time.DateTime;
 
@@ -104,6 +110,7 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.hdodenhof.circleimageview.CircleImageView;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -121,6 +128,9 @@ import static com.paydayme.spatialguide.core.Constant.REQUEST_PERMISSIONS_REQUES
 import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_EMAIL;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_IMAGE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_NAMES;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_AURALIZATION;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_DIRECTION_LINE_COLOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_HEATMAP;
@@ -202,6 +212,9 @@ public class MapActivity extends AppCompatActivity implements
     // Marker that will appear on Google Map when user click
     private Marker markerUserClick;
 
+    // For getting User info
+    private User currentUser;
+
     // SharedPreferences object
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor spEditor;
@@ -226,6 +239,12 @@ public class MapActivity extends AppCompatActivity implements
     @BindView(R.id.nav_view) NavigationView navigationView;
     @BindView(R.id.bottomNavView) BottomNavigationViewEx bottomNavigationViewEx;
     @BindView(R.id.toolbarRoutename) TextView toolbarRoutename;
+
+    // UI from Header Menu
+    private TextView userNameMenu;
+    private CircleImageView userImageMenu;
+    private TextView userEmailMenu;
+    private LinearLayout menuErrorLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -315,6 +334,8 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private void init(Bundle savedInstanceState) {
+        initMenuHeaderViews();
+
         // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(null);
@@ -346,6 +367,8 @@ public class MapActivity extends AppCompatActivity implements
 
         Log.d(TAG, "route selected: " + mRouteSelected);
 
+        getUserInfo();
+
         mRoute = getRoute();
 //        List<Point> tmpList = new ArrayList<>();
 //        tmpList.add(new Point("Fórum Aveiro", 40.641475, -8.653675));
@@ -368,6 +391,14 @@ public class MapActivity extends AppCompatActivity implements
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingsRequest();
+    }
+
+    private void initMenuHeaderViews() {
+        View header = navigationView.getHeaderView(0);
+        userNameMenu = (TextView) header.findViewById(R.id.userNameMenu);
+        userImageMenu = (CircleImageView) header.findViewById(R.id.userImageMenu);
+        userEmailMenu = (TextView) header.findViewById(R.id.userEmailMenu);
+        menuErrorLayout = (LinearLayout) header.findViewById(R.id.menuErrorLayout);
     }
 
     private void initSharedPreferences() {
@@ -401,6 +432,55 @@ public class MapActivity extends AppCompatActivity implements
                 .build();
 
         sgApiClient = retrofitSGApi.create(SGApiClient.class);
+    }
+
+    private void getUserInfo() {
+        Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
+
+        call.enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                if(response.isSuccessful()) {
+                    currentUser = response.body();
+
+                    String userNames = currentUser.getFirst_name() + " " + currentUser.getLast_name();
+                    spEditor.putString(SHARED_PREFERENCES_USER_NAMES, userNames);
+                    spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, currentUser.getEmail());
+                    spEditor.putString(SHARED_PREFERENCES_USER_IMAGE, currentUser.getUserImage());
+
+                    onUpdateUserInfo();
+                } else {
+                    Log.e(TAG, "getUserInfo - onResponse: some error occurred: " + response.errorBody().toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Log.e(TAG, "getUserInfo - onFailure: some error occurred: " + t.getMessage());
+            }
+        });
+
+    }
+
+    private void onUpdateUserInfo() {
+        String userNames = sharedPreferences.getString(SHARED_PREFERENCES_USER_NAMES, "");
+        String userEmail = sharedPreferences.getString(SHARED_PREFERENCES_USER_EMAIL, "");
+        String userImage = sharedPreferences.getString(SHARED_PREFERENCES_USER_IMAGE, "");
+
+        if(userNames.isEmpty() || userEmail.isEmpty()) {
+            menuErrorLayout.setVisibility(View.VISIBLE);
+        } else {
+            userNameMenu.setText(userNames);
+            userEmailMenu.setText(userEmail);
+        }
+
+        if(!userImage.isEmpty()) {
+            Picasso.get()
+                    .load(userImage)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.mipmap.ic_launcher_round)
+                    .into(userImageMenu);
+        }
     }
 
     private void setupBottomNavigationView() {
@@ -944,11 +1024,7 @@ public class MapActivity extends AppCompatActivity implements
         TextView dialogTitle = (TextView) view.findViewById(R.id.dialog_title);
         dialogTitle.setText(point.getPointName());
 
-        TextView dialogText = (TextView) view.findViewById(R.id.dialog_text);
-//        dialogText.setText("O Departamento de Eletrónica, Telecomunicações e Informática (DETI) foi fundado em 1974, " +
-//                "com o nome de Departamento de Eletrónica e Telecomunicações, tendo sido um dos primeiros " +
-//                "departamentos a iniciar atividade após a criação da Universidade de Aveiro em 1973. " +
-//                "Em 2006 foi alterada a sua designação por forma a espelhar a atividade existente no Departamento na área da Informática.");
+        JustifiedTextView dialogText = (JustifiedTextView) view.findViewById(R.id.dialog_text);
         dialogText.setText(point.getPointDescription());
 
         final ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
@@ -966,9 +1042,35 @@ public class MapActivity extends AppCompatActivity implements
                         }
                     });
         }
-//        ImageView dialogImage = (ImageView) view.findViewById(R.id.dialog_image);
-//        dialogImage.setImageResource(R.drawable.deti);
 
+        // TODO - make unfavorite API call
+        MaterialFavoriteButton favoriteButton = (MaterialFavoriteButton) view.findViewById(R.id.favoriteButton);
+        favoriteButton.setOnFavoriteChangeListener(new MaterialFavoriteButton.OnFavoriteChangeListener() {
+            @Override
+            public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
+                if(favorite) {
+                    HashMap tmpMap = new HashMap(1);
+                    tmpMap.put("point", point);
+
+                    Call<ResponseBody> call = sgApiClient.markAsFavourite(authenticationHeader, tmpMap);
+                    call.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            if(response.isSuccessful()) {
+                                Toast.makeText(MapActivity.this, "Point marked as favorite!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            Log.e(TAG, "onFavoriteChanged - onFailure: " + t.getMessage());
+                        }
+                    });
+                }
+            }
+        });
 
         //Ask the user if they want to quit
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
@@ -983,15 +1085,17 @@ public class MapActivity extends AppCompatActivity implements
                 .setCancelable(true);
 
         if(point.getPointURL() != null) {
-            builder.setNeutralButton("Learn more", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    String url = point.getPointURL();
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(Uri.parse(url));
-                    startActivity(intent);
-                }
-            });
+            final String url = point.getPointURL();
+            if(Patterns.WEB_URL.matcher(url).matches()) {
+                builder.setNeutralButton("Learn more", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(url));
+                        startActivity(intent);
+                    }
+                });
+            }
         }
 
         // Setting dialog title

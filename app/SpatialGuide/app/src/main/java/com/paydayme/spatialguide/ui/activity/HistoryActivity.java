@@ -28,12 +28,15 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
+import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
+import com.squareup.picasso.Picasso;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -48,6 +51,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_EMAIL;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_IMAGE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_NAMES;
 import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 
 public class HistoryActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -63,11 +69,17 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
 
     private String authenticationHeader;
     private int routeSelected;
+    private User currentUser;
 
     // Reference the views
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.drawer_layout) DrawerLayout drawer;
     @BindView(R.id.nav_view) NavigationView navigationView;
+
+    private TextView userNameMenu;
+    private CircleImageView userImageMenu;
+    private TextView userEmailMenu;
+    private LinearLayout menuErrorLayout;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -80,6 +92,8 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
     }
 
     private void init() {
+        initMenuHeaderViews();
+
         // Init retrofit
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -111,6 +125,9 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
             textView.setTypeface(tf);
         }
 
+        // Get user info to be displayed on the header menu
+        getUserInfoSharedPreferences();
+
         // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(null);
@@ -123,6 +140,35 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
 
         prepareNavigationMenu();
 
+    }
+
+    private void initMenuHeaderViews() {
+        View header = navigationView.getHeaderView(0);
+        userNameMenu = (TextView) header.findViewById(R.id.userNameMenu);
+        userImageMenu = (CircleImageView) header.findViewById(R.id.userImageMenu);
+        userEmailMenu = (TextView) header.findViewById(R.id.userEmailMenu);
+        menuErrorLayout = (LinearLayout) header.findViewById(R.id.menuErrorLayout);
+    }
+
+    private void getUserInfoSharedPreferences() {
+        String userNames = sharedPreferences.getString(SHARED_PREFERENCES_USER_NAMES, "");
+        String userEmail = sharedPreferences.getString(SHARED_PREFERENCES_USER_EMAIL, "");
+        String userImage = sharedPreferences.getString(SHARED_PREFERENCES_USER_IMAGE, "");
+
+        if(userNames.isEmpty() || userEmail.isEmpty()) {
+            menuErrorLayout.setVisibility(View.VISIBLE);
+        } else {
+            userNameMenu.setText(userNames);
+            userEmailMenu.setText(userEmail);
+        }
+
+        if(!userImage.isEmpty()) {
+            Picasso.get()
+                    .load(userImage)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.mipmap.ic_launcher_round)
+                    .into(userImageMenu);
+        }
     }
 
     @Override

@@ -97,4 +97,13 @@ public interface SGApiClient {
     @Headers("Content-Type: application/json")
     @GET("userinfo/")
     Call<User> getUserInfo(@Header("Authorization") String authKey);
+
+    @Headers("Content-Type: application/json")
+    @POST("recoverpass/")
+    Call<ResponseBody> recoverPassword(@Body HashMap<String, Object> recoverPasswordBody);
+
+    @Headers("Content-Type: application/json")
+    @POST("userfavourite/")
+    Call<ResponseBody> markAsFavourite(@Header("Authorization") String authKey, @Body HashMap<String, Object> favouriteBody);
+
 }

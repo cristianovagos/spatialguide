@@ -32,15 +32,18 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
+import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
+import com.squareup.picasso.Picasso;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,6 +64,10 @@ import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_RO
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LOGIN_USERNAME;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_PASSWORD;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_REMEMBER_ME;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USERNAME;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_EMAIL;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_IMAGE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_NAMES;
 import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 
 public class UserPanelActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -79,6 +86,8 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
     private String authenticationHeader;
     private int routeSelected;
 
+    private User currentUser;
+
     private AppCompatEditText passwordEditText;
     private AppCompatEditText newPasswordEditText;
     private AppCompatEditText reEnterNewPasswordEditText;
@@ -94,9 +103,13 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
     @BindView(R.id.username) TextView username;
     @BindView(R.id.username_first_last) TextView username_first_last;
     @BindView(R.id.email) TextView email;
-    @BindView(R.id.datemember) TextView datemember;
     @BindView(R.id.changepassword) Button btn_changepassword;
     @BindView(R.id.changeemail) Button btn_changeemail;
+
+    private TextView userNameMenu;
+    private CircleImageView userImageMenu;
+    private TextView userEmailMenu;
+    private LinearLayout menuErrorLayout;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -109,6 +122,8 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void init() {
+        initMenuHeaderViews();
+
         // Init retrofit
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -142,6 +157,8 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
             textView.setTypeface(tf);
         }
 
+        getUserInfoSharedPreferences();
+
         // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(null);
@@ -153,8 +170,6 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         toggle.syncState();
 
         prepareNavigationMenu();
-
-        getUserInfo();
     }
 
     private void initClickListeners() {
@@ -173,9 +188,44 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         });
     }
 
-    private void getUserInfo() {
-        // TODO - implement it
+    private void initMenuHeaderViews() {
+        View header = navigationView.getHeaderView(0);
+        userNameMenu = (TextView) header.findViewById(R.id.userNameMenu);
+        userImageMenu = (CircleImageView) header.findViewById(R.id.userImageMenu);
+        userEmailMenu = (TextView) header.findViewById(R.id.userEmailMenu);
+        menuErrorLayout = (LinearLayout) header.findViewById(R.id.menuErrorLayout);
+    }
 
+    private void getUserInfoSharedPreferences() {
+        String userNames = sharedPreferences.getString(SHARED_PREFERENCES_USER_NAMES, "");
+        String userEmail = sharedPreferences.getString(SHARED_PREFERENCES_USER_EMAIL, "");
+        String userImage = sharedPreferences.getString(SHARED_PREFERENCES_USER_IMAGE, "");
+        String userName = sharedPreferences.getString(SHARED_PREFERENCES_USERNAME, "");
+
+        if(userNames.isEmpty() || userEmail.isEmpty() || userName.isEmpty()) {
+            menuErrorLayout.setVisibility(View.VISIBLE);
+        } else {
+            userNameMenu.setText(userNames);
+            userEmailMenu.setText(userEmail);
+
+            username_first_last.setText(userNames);
+            username.setText(userName);
+            email.setText(userEmail);
+        }
+
+        if(!userImage.isEmpty()) {
+            Picasso.get()
+                    .load(userImage)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.mipmap.ic_launcher_round)
+                    .into(userImageMenu);
+
+            Picasso.get()
+                    .load(userImage)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.mipmap.ic_launcher_round)
+                    .into(userimage);
+        }
     }
 
     private void showChangeEmailDialog() {
@@ -417,6 +467,10 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                             spEditor.apply();
                         }
                     }
+
+                    // Edit the current shared prefs email for menu display
+                    spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, newEmailText);
+                    spEditor.apply();
 
                     Toast.makeText(UserPanelActivity.this, "Email changed successfully", Toast.LENGTH_SHORT).show();
                 } else {

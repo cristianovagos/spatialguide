@@ -30,6 +30,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
@@ -44,6 +45,7 @@ import com.squareup.picasso.Picasso;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -108,6 +110,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     @BindView(R.id.layoutImage) LinearLayout imageLayout;
     @BindView(R.id.progressDetails) ProgressBar detailsProgress;
     @BindView(R.id.progressPoints) ProgressBar pointsProgress;
+    @BindView(R.id.favoriteButton) MaterialFavoriteButton favoriteButton;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -237,6 +240,34 @@ public class RouteDetailsActivity extends AppCompatActivity {
             }
         });
 
+        // TODO - make unfavorite API call
+        favoriteButton.setOnFavoriteChangeListener(new MaterialFavoriteButton.OnFavoriteChangeListener() {
+            @Override
+            public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
+                if(favorite) {
+                    HashMap tmpMap = new HashMap(1);
+                    tmpMap.put("route", route);
+
+                    Call<ResponseBody> call = sgApiClient.markAsFavourite(authenticationHeader, tmpMap);
+                    call.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            if(response.isSuccessful()) {
+                                Toast.makeText(RouteDetailsActivity.this, "Route marked as favorite!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            Log.e(TAG, "onFavoriteChanged - onFailure: " + t.getMessage());
+                        }
+                    });
+                }
+            }
+        });
+
         getRouteLastUpdateAPI(routeSelected);
         if(isOnStorage(routeSelected)) {
             routeOnStorage = true;
@@ -342,6 +373,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                 return false;
             for(Point p : route.getRoutePoints()) {
                 try {
+                    // TODO - make sure the file is .wav
                     if(InternalStorage.getFile(this, Constant.POINT_STORAGE_SEPARATOR + p.getPointID() + ".wav") == null)
                         return false;
                 } catch (Exception e) {
