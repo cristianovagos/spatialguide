@@ -14,7 +14,9 @@ def get_allRoutes():
     serializer = RouteTableSerializer(routes, many=True)
     tmp_list = serializer.data
 
-    tab_names = list(tmp_list[0].keys())
+    tab_names=[]
+    if len(tab_names) > 0:
+        tab_names = list(tmp_list[0].keys())
 
     route_list = []
     for route in tmp_list:
@@ -94,7 +96,9 @@ def get_Suggestions():
    suggestion = User_Suggestions.objects.all()
    suggestion = UserSuggestionsSerializer(suggestion,many=True).data
 
-   tab_names= list(suggestion[0].keys())
+   tab_names = []
+   if len(tab_names) > 0:
+       tab_names= list(suggestion[0].keys())
 
    suggestion_list=[]
    for s in suggestion:
