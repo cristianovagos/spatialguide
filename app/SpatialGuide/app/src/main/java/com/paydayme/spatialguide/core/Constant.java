@@ -11,7 +11,7 @@ public final class Constant {
 //    public static final String BASE_URL = "http://192.168.43.111:8000/";
 //    public static final String BASE_URL = "http://192.168.1.19:8000/";
     public static final String BASE_URL = "http://192.168.43.250:8000/";
-//    public static final String BASE_URL = "http://192.168.1.99:8000";
+//    public static final String BASE_URL = "http://192.168.62.40:8000/";
 
     /**
      * Base URL of media files (Google Drive)
@@ -131,4 +131,15 @@ public final class Constant {
      * The default zoom value for the Google Maps camera.
      */
     public static final float DEFAULT_ZOOM_VALUE = 16f;
+
+    // Message types sent from the BluetoothChatService Handler
+    public static final int MESSAGE_STATE_CHANGE = 1;
+    public static final int MESSAGE_READ = 2;
+    public static final int MESSAGE_WRITE = 3;
+    public static final int MESSAGE_DEVICE_NAME = 4;
+    public static final int MESSAGE_TOAST = 5;
+
+    // Key names received from the BluetoothChatService Handler
+    public static final String DEVICE_NAME = "device_name";
+    public static final String TOAST = "toast";
 }

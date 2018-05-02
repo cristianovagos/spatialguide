@@ -1,10 +1,10 @@
 package com.paydayme.spatialguide.ui.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -17,7 +17,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ParcelUuid;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -65,6 +65,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -89,31 +90,31 @@ import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.RouteXLApiClient;
 import com.paydayme.spatialguide.core.api.SGApiClient;
+import com.paydayme.spatialguide.core.auralizationEngine.AuralizationEngine;
+import com.paydayme.spatialguide.core.bluetooth.SGBluetoothService;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.model.routexl.RouteXLRequest;
 import com.paydayme.spatialguide.model.routexl.RouteXLResponse;
+import com.paydayme.spatialguide.ui.adapter.BTDeviceAdapter;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 import com.squareup.picasso.Picasso;
-import com.google.android.gms.maps.UiSettings;
 import com.uncopt.android.widget.text.justify.JustifiedTextView;
 
 import org.joda.time.DateTime;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -131,6 +132,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.paydayme.spatialguide.core.Constant.DEFAULT_ZOOM_VALUE;
 import static com.paydayme.spatialguide.core.Constant.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS;
 import static com.paydayme.spatialguide.core.Constant.GOOGLE_DIRECTIONS_API_KEY;
+import static com.paydayme.spatialguide.core.Constant.POINT_STORAGE_SEPARATOR;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_CHECK_SETTINGS;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_PERMISSIONS_REQUEST_CODE;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_AUTH_KEY;
@@ -229,6 +231,7 @@ public class MapActivity extends AppCompatActivity implements
 
     private List<Integer> favoritePoints;
 
+
     // SharedPreferences object
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor spEditor;
@@ -259,6 +262,20 @@ public class MapActivity extends AppCompatActivity implements
     private CircleImageView userImageMenu;
     private TextView userEmailMenu;
     private LinearLayout menuErrorLayout;
+
+    // Bluetooth and IMU Stuff
+
+    // Intent request codes
+    private static final int REQUEST_CONNECT_DEVICE_SECURE = 2;
+    private static final int REQUEST_CONNECT_DEVICE_INSECURE = 3;
+    private static final int REQUEST_ENABLE_BT = 4;
+
+    private float [] rotation = {0f, 0f, 0f};
+    private BluetoothAdapter bluetoothAdapter = null;
+    private String connectedDeviceName = null;
+    private SGBluetoothService bluetoothService;
+    private AuralizationEngine auralizationEngine;
+    private Location lastLocation;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -393,6 +410,125 @@ public class MapActivity extends AppCompatActivity implements
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingsRequest();
+
+        configBluetooth();
+    }
+
+    private void configBluetooth() {
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if(bluetoothAdapter == null) {
+            spEditor.putBoolean(SHARED_PREFS_AURALIZATION, false);
+            spEditor.apply();
+            prefs_auralization = false;
+            Log.e(TAG, "configBluetooth: bluetooth is not available on this device");
+        }
+
+        ensureDiscoverable();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // If the BT is not ON, request for being enabled
+        if(!bluetoothAdapter.isEnabled()) {
+            startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BT);
+        } else if (bluetoothService == null) {
+            setupBluetoothService();
+        }
+    }
+
+    private void setupBluetoothService() {
+        bluetoothService = new SGBluetoothService(this, bluetoothHandler);
+    }
+
+    private void ensureDiscoverable() {
+        if (bluetoothAdapter.getScanMode() !=
+                BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(discoverableIntent);
+        }
+    }
+
+    @SuppressLint("HandlerLeak")
+    private final Handler bluetoothHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            switch (msg.what) {
+                case Constant.MESSAGE_STATE_CHANGE:
+                    switch (msg.arg1) {
+                        case SGBluetoothService.STATE_CONNECTED:
+                            Log.d(TAG, "handleMessage: connected");
+                            break;
+                        case SGBluetoothService.STATE_CONNECTING:
+                            Log.d(TAG, "handleMessage: connecting");
+                            break;
+                        case SGBluetoothService.STATE_LISTEN:
+                        case SGBluetoothService.STATE_NONE:
+                            Log.d(TAG, "handleMessage: not connected");
+                            break;
+                    }
+                    break;
+                case Constant.MESSAGE_WRITE:
+                    byte[] writeBuf = (byte[]) msg.obj;
+                    // construct a string from the buffer
+                    String writeMessage = new String(writeBuf);
+                    break;
+                case Constant.MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+                    // construct a string from the valid bytes in the buffer
+                    String readMessage = new String(readBuf, 0, msg.arg1);
+                    stringBuilder.append(readMessage + "\n");
+                    convertData(readMessage);
+
+                    if(auralizationEngine != null && auralizationEngine.isPlaying()) {
+                        Log.d(TAG, "handleMessage: updating auralization engine");
+
+                        Log.d(TAG, "handleMessage: Rotations: " + rotation[0] + "Y: " + rotation[1] + "Z: " + rotation[2]);
+                        if(!auralizationEngine.update(lastLocation.getLongitude(),
+                                lastLocation.getLatitude(), mCurrentLocation.getLongitude(),
+                                mCurrentLocation.getLatitude(), rotation[0], rotation[1], rotation[2])) {
+                            Log.d(TAG, "handleMessage: stopping auralization engine");
+                            auralizationEngine.StopAndUnload();
+                            auralizationEngine = null;
+                        }
+                    }
+                    break;
+                case Constant.MESSAGE_DEVICE_NAME:
+                    // save the connected device's name
+                    connectedDeviceName = msg.getData().getString(Constant.DEVICE_NAME);
+                    break;
+                case Constant.MESSAGE_TOAST:
+                    Toast.makeText(MapActivity.this, msg.getData().getString(Constant.TOAST),
+                                Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
+
+    /**
+     * Establish connection with other device
+     *
+     * @param address The b
+     * @param secure Socket Security type - Secure (true) , Insecure (false)
+     */
+    private void connectDevice(String address, boolean secure) {
+        // Get the BluetoothDevice object
+        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+        // Attempt to connect to the device
+        bluetoothService.connect(device, secure);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(bluetoothService != null) {
+            bluetoothService.stop();
+        }
     }
 
     private void initMenuHeaderViews() {
@@ -732,6 +868,16 @@ public class MapActivity extends AppCompatActivity implements
                         break;
                 }
                 break;
+            case REQUEST_ENABLE_BT:
+                // When the request to enable Bluetooth returns
+                if (resultCode == Activity.RESULT_OK) {
+                    // Bluetooth is now enabled, so set up a chat session
+                    setupBluetoothService();
+                } else {
+                    // User did not enable Bluetooth or an error occurred
+                    Log.d(TAG, "BT not enabled");
+                    prefs_auralization = false;
+                }
         }
     }
 
@@ -845,6 +991,7 @@ public class MapActivity extends AppCompatActivity implements
 
         // Check nearest location and if we are in trigger area
         Pair<Location, Point> locationPointPair = getNearestPointLocation(mCurrentLocation);
+        lastLocation = locationPointPair.first;
         if (mCurrentLocation.distanceTo(locationPointPair.first) <= Constant.TRIGGER_AREA_DISTANCE) {
 
             // if current time stamp is greater than 5 minutes (300000 ms)
@@ -856,12 +1003,20 @@ public class MapActivity extends AppCompatActivity implements
                 // update last timestamp
                 lastTimestamp = System.currentTimeMillis();
 
+                if (prefs_auralization && auralizationEngine == null) {
+                    // TODO insert auralization trigger here
+
+                    try {
+                        File f = InternalStorage.getFile(this, POINT_STORAGE_SEPARATOR + locationPointPair.second.getPointID() + ".wav");
+                        Log.d(TAG, "updateLocationUI: file: " + f.toString());
+                        auralizationEngine = new AuralizationEngine(this, f.getAbsolutePath());
+                    } catch (Exception e) {
+                        prefs_auralization = false;
+                    }
+                }
+
                 // show the dialog with info of location
                 showInfoDialog(true, locationPointPair.second);
-
-                if (prefs_auralization) {
-                    // TODO insert auralization trigger here
-                }
             }
         }
     }
@@ -1251,6 +1406,51 @@ public class MapActivity extends AppCompatActivity implements
         textView.setTypeface(tf);
     }
 
+    private void showBluetoothDevicesDialog() {
+        // Check if the dialog exists and if its showing
+        if(dialog != null && dialog.isShowing()) return;
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_bt_connection, null);
+
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.btRecyclerView);
+
+        final BTDeviceAdapter btDeviceAdapter = new BTDeviceAdapter(this, bluetoothAdapter.getBondedDevices(),
+                new BTDeviceAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BluetoothDevice item) {
+                bluetoothAdapter.cancelDiscovery();
+                connectDevice(item.getAddress(), false);
+            }
+        });
+
+        recyclerView.setAdapter(btDeviceAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        //Ask the user if they want to quit
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle("Select Bluetooth Device")
+                .setView(view)
+                .setCancelable(true);
+
+        // Creating dialog and adjusting size
+        dialog = builder.create();
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        lp.height = 1300;
+        lp.gravity = Gravity.CENTER;
+
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+
+        // Setting custom font to dialog
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
     private Pair<Location, Point> getNearestPointLocation(Location currentLocation) {
         float minDistance = Float.MAX_VALUE;
         Location minLocation = new Location("");
@@ -1322,6 +1522,12 @@ public class MapActivity extends AppCompatActivity implements
             startLocationUpdates();
         } else if (!checkPermissions()) {
             requestPermissions();
+        }
+
+        if(bluetoothService != null) {
+            if(bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
+                bluetoothService.start();
+            }
         }
 
         updateUI();
@@ -1584,4 +1790,15 @@ public class MapActivity extends AppCompatActivity implements
             }
         }
     };
+
+    //Convert the Data Received to Float
+    private void convertData(String data) {
+        String [] tmp = data.split("/");
+        rotation[0] = Float.valueOf(tmp[0]);
+        rotation[1] = Float.valueOf(tmp[1]);
+        rotation[2] = Float.valueOf(tmp[2]);
+        Log.d(TAG, "convertData: float converted 0: " + Math.toDegrees(rotation[0]));
+        Log.d(TAG, "convertData: float converted 1: " + Math.toDegrees(rotation[1]));
+        Log.d(TAG, "convertData: float converted 2: " + Math.toDegrees(rotation[2]));
+    }
 }

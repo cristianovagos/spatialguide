@@ -1,6 +1,8 @@
 package com.paydayme.spatialguide.core.auralizationEngine;
 
 import android.content.Context;
+import android.os.Environment;
+import android.util.Log;
 
 import com.google.vr.sdk.audio.GvrAudioEngine;
 import com.google.vr.sdk.base.testing.MathUtil;
@@ -22,30 +24,34 @@ public class AuralizationEngine {
 
     float [] quaternion = {0f, 0f, 0f, 0f,};
 
-    public AuralizationEngine (Context context, String soundFile,
-                               double longitudeHead, double latitudeHead, double longitudeSource, double latitudeSource)
-    {
+    public AuralizationEngine (Context context, String soundFile) {
         //Initialize the google VR Audion Engine
         gvrAudioEngine =
                 new GvrAudioEngine(context, GvrAudioEngine.RenderingMode.BINAURAL_HIGH_QUALITY);
 
         //load the sound file
         OBJECT_SOUND_FILE = soundFile;
+        Log.d("Cenas", "AuralizationEngine: OBJET: " + OBJECT_SOUND_FILE);
         new Thread(
                 new Runnable() {
                     @Override
                     public void run() {
                         // Preload the sound file
-                        gvrAudioEngine.setHeadPosition(0, 0, 0);
                         gvrAudioEngine.preloadSoundFile(OBJECT_SOUND_FILE);
                         sourceId = gvrAudioEngine.createSoundObject(OBJECT_SOUND_FILE);
+                        gvrAudioEngine.setSoundObjectPosition(sourceId, 0,0,0);
+                        gvrAudioEngine.playSound(sourceId, false);
                     }
                 })
                 .start();
     }
 
+    public boolean isPlaying() {
+        return gvrAudioEngine.isSoundPlaying(sourceId);
+    }
+
     //public function called to update the auralization engine, returns true, if the sound is still playing, otherwise returns false
-    public boolean update(double longitude, double latitude, double referenceX, double referenceY, double pitch, double roll, double yaw)
+    public boolean update(double longitude, double latitude, double referenceX, double referenceY, double yaw, double pitch, double roll)
     {
         if(!gvrAudioEngine.isSoundPlaying(sourceId))
             return false;
@@ -73,16 +79,17 @@ public class AuralizationEngine {
         sourceY = 1 * Math.cos(thetaY);
 
         //Update the source position on the google engine
-        gvrAudioEngine.setSoundObjectPosition(sourceId, (float)sourceX, (float)sourceY, 0f);
-
-
+        gvrAudioEngine.setSoundObjectPosition(sourceId, (float)sourceX, 0f, (float)sourceY);
     }
 
     //function to set head rotation
     private void setHeadRotation(double pitch, double roll, double yaw)
     {
         float [] quaternion = {0,0,0,0};
+//        quaternion = toQuaternion(pitch, yaw, roll);
+//        quaternion = toQuaternion(yaw, pitch, roll);
         quaternion = toQuaternion(pitch, roll, yaw);
+
 
         gvrAudioEngine.setHeadRotation(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
     }
@@ -95,12 +102,13 @@ public class AuralizationEngine {
     {
         float [] q = {0,0,0,0};
         // Abbreviations for the various angular functions
-        float cy = (float)Math.cos(Math.toRadians(yaw )* 0.5);
-        float sy = (float)Math.sin(Math.toRadians(yaw ) *0.5);
-        float cr = (float)Math.cos(Math.toRadians(roll) * 0.5);
-        float sr =(float) Math.sin(Math.toRadians(roll) * 0.5);
-        float cp = (float)Math.cos(Math.toRadians(pitch) * 0.5);
-        float sp = (float)Math.sin(Math.toRadians(pitch) * 0.5);
+
+        float cy = (float)Math.cos(yaw * 0.5);
+        float sy = (float)Math.sin(yaw  *0.5);
+        float cr = (float)Math.cos(roll * 0.5);
+        float sr =(float) Math.sin(roll * 0.5);
+        float cp = (float)Math.cos(pitch * 0.5);
+        float sp = (float)Math.sin(pitch * 0.5);
 
 
         q[0] = cy * sr * cp - sy * cr * sp;//q.x()
@@ -117,7 +125,8 @@ public class AuralizationEngine {
                 new Runnable() {
                     @Override
                     public void run() {
-
+                        gvrAudioEngine.preloadSoundFile("point-1.wav");
+                        sourceId = gvrAudioEngine.createSoundObject("point-1.wav");
                         gvrAudioEngine.playSound(sourceId, false);
                     }
                 })
