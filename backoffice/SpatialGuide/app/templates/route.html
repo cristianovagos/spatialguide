@@ -27,7 +27,11 @@
                 <a href="{% url 'show_routes' %}">Routes</a>
             </li>
             <li class="breadcrumb-item active">{{ route.Name }}</li>
+
+
         </ol>
+
+        <br>
 
         <div class="container-fluid">
             <div class="row">
@@ -94,11 +98,15 @@
                 </div>
             </div>
 
+        <br>
+        <br>
 
-          <div class="container-fluid"></div>
-
-          <div class="container-fluid" id="map" style="width: 850px; height: 750px; float:right"></div>
-
+        <div class="container-fluid" style="border-radius: 7px; width: 20%">
+            <form method="post" target="_self">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="removeRoute">Remove Route</button>
+            </form>
+        </div>
 
         </div>
 

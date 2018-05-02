@@ -56,14 +56,25 @@ class User_Attributes(models.Model):
     Visited_points = models.ManyToManyField(Point_Visited)
     Image = models.CharField(max_length=150)
 
-
-
+class User_Suggestions(models.Model):
+    Latitude = models.FloatField()
+    Longitude = models.FloatField()
+    Comment = models.CharField(max_length=1000)
 #################  FORMS  #############################
 
 class RouteForm(ModelForm):
     Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
     Description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Description'}))
     Image = forms.FileField()
+
+    class Meta:
+        model = Route
+        fields = ['Name','Description']
+
+class RouteEditForm(ModelForm):
+    Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
+    Description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Description'}))
+    Image = forms.FileField(required=False)
 
     class Meta:
         model = Route
@@ -78,6 +89,19 @@ class PointForm(ModelForm):
     Longitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Longitude', 'readonly':'readonly'}))
     Image = forms.FileField()
     Sound = forms.FileField()
+
+    class Meta:
+        model = Point
+        fields = ['Name','Url','Description','Latitude','Longitude']
+
+class PointEditForm(ModelForm):
+    Name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Name'}))
+    Url = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Url'}))
+    Description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Description'}))
+    Latitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Latitude', 'readonly':'readonly'}))
+    Longitude = forms.FloatField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Longitude', 'readonly':'readonly'}))
+    Image = forms.FileField(required=False)
+    Sound = forms.FileField(required=False)
 
     class Meta:
         model = Point

@@ -22,4 +22,6 @@ function initMap() {
           data: heatMapData,
           map: map
         });
+
+
 }

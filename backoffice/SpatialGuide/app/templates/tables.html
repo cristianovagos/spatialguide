@@ -18,9 +18,11 @@
           <i class="fa fa-table"></i> All {{ title }}s</div>
         <div class="card-body">
 
-        <div>
-            <a class="btn btn-primary" href="{% url add_btn %}" id="toggleNavPosition">Add {{ title }}</a>
-        </div>
+        {% if add_btn %}
+            <div>
+                <a class="btn btn-primary" href="{% url add_btn %}" id="toggleNavPosition">Add {{ title }}</a>
+            </div>
+        {% endif %}
 
 
         <div class="table-responsive">
@@ -52,6 +54,26 @@
                               {% endif %}
                           </td>
                         {% endfor %}
+                    {% if title == 'Point' %}
+                        <td >
+                            <form method="post" target="_self" style="width: 80%">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-block" name="edit" value="{{ route.id }}" >Edit {{ title }}</button>
+                            </form>
+                            <br>
+                            <form method="post" target="_self" style="width: 80%">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="remove" value="{{ route.id }}">Remove {{ title }}</button>
+                            </form>
+                        </td>
+                    {% elif title == 'Point' %}
+                        <td>
+                            <form method="post" target="_self" style="width: 80%">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-block" name="edit" value="{{ route.id }}" >Edit {{ title }}</button>
+                            </form>
+                        </td>
+                    {% endif %}
                     </tr>
                 {% endfor %}
               </tbody>
@@ -59,7 +81,6 @@
             </table>
           </div>
         </div>
-        <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
       </div>
     </div>
 
