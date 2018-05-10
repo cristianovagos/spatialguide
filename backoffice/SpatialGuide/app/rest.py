@@ -280,7 +280,18 @@ class addPoint(APIView):
         if not request.user.is_staff:
             return redirect('login')
         form = PointForm(request.data, request.FILES)
-        if form.is_valid():
+
+        print(request.data)
+
+        image_name = str(request.FILES['Image']).split('.')
+        image_name_type = image_name[len(image_name) - 1]
+
+        image_name_type = test_imageType(image_name_type)
+
+        sound_name = str(request.FILES['Sound']).split('.')
+        sound_name_type = sound_name[len(sound_name)-1] == 'wav'
+
+        if form.is_valid() and sound_name_type and image_name_type:
             point = form.save()
             point.Image = DRIVE_BASE_URL+request_filesaver(request.FILES['Image'])
             point.Sound = request_filesaver(request.FILES['Sound'])
@@ -295,6 +306,10 @@ class addPoint(APIView):
         }
 
         return render(request, 'form_point.html', tparams)
+
+def test_imageType(image_type):
+    return image_type == 'png' or image_type == 'jpg' or image_type == 'jpeg'
+
 
 def request_filesaver(data):
     path = default_storage.save(str(data), ContentFile(data.read()))
@@ -627,6 +642,7 @@ class UserLogoutView(APIView):
         logout(request)
         return redirect('login')
 
+# suggest/
 class UserSuggestionView(APIView):
     permission_classes = [IsAuthenticated]
 
