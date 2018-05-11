@@ -99,13 +99,19 @@
                 <a class="nav-link" href="#userscenarios" style="color: black;">User Scenarios</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#appfunctioning" style="color: black;">App development</a>
+                <a class="nav-link" href="#appfunctioning" style="color: black;">App Development</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#headposition" style="color: black;">Getting the head position</a>
+                <a class="nav-link" href="#headposition" style="color: black;">&nbsp;&nbsp;&nbsp;&nbsp;Getting the head position</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#auralization" style="color: black;">&nbsp;&nbsp;&nbsp;&nbsp;Auralization Engine</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#backend" style="color: black;">Backend Development</a>
               </li>
 			        <li class="nav-item">
-                <a class="nav-link" href="#nextWork" style="color: black;">What is next</a>
+                <a class="nav-link" href="#nextWork" style="color: black;">What is Next?</a>
               </li>
 			        <li class="nav-item">
                 <a class="nav-link" href="#timesheet" style="color: black;">Time Sheet</a>
@@ -159,37 +165,37 @@
         We gathered some user stories from people who are in the Tourism area (the scope of this app), so we at the 
         development stage are pretty sure and focused on what the app should have in order to complete user's requirements.
         <br><br>
-			  <img src="img/Jessica.jpg" class="img-fluid" alt="" >
+			  <img src="img/jessica.jpg" class="img-fluid" alt="" >
 			  <br><br>
               Jessica is an architecture grad student that is very interested in historical landmarks and modern art. 
               When she has some free time from classes she likes to travel and get in touch with new cultures. 
               As a born explorer, so it is very important for her to get the most out of the places she visits and so, 
               she frequently uses web advisors in order to get information on these new places. However, one of the things 
               that she finds utmost annoying is the fact that most of these web advisors require her to often look at her smartphone, 
-              making it very difficult for her to get an absolute immersive experience. So, she began using SpacialGuide app. 
+              making it very difficult for her to get an absolute immersive experience. So, she began using SpatialGuide app. 
               This tool has hallowed her to fully enjoy the experience, as it works as a voice guide that tours the visitors on 
               the landmarks history and highlights. One of her favorite things about this app is the audio specialization feature 
               that lets her contemplate the landmarks, at the time she gets information on it. <br><br>
               On her most recent trip to New York, Jessica decided to try a ride on a tourist bus, as it’s an easy and comfortable 
               way to get to know a big town like this.  However, due to the sound pollution, it was very difficult for her to 
-              understand what the tourist guide was saying. So Jessica decided to use the SpacialGuide app. In fact, it was by 
+              understand what the tourist guide was saying. So Jessica decided to use the SpatialGuide app. In fact, it was by 
               far easier for her to ignore the surrounding sounds and focus on the landmarks.
               <br><br>
-              <img src="img/Steve.jpg" class="img-fluid" alt="" >
+              <img src="img/steve.jpg" class="img-fluid" alt="" >
 			  <br><br>
               Steve, a 50 year-old tourist guide, is the older person working on his company. His vast experience makes 
               him one of the most required members of the company. Steve’s work ethics focus on guarantying his clients 
               have the best experience possible. Despite counting on his colleague’s help, Steve is a known “old school” 
               tourist guide, and so, he sometimes gets frustrated when dealing with new technologies. Recently his company 
               began looking for a tool that could help to give a better experience to the clients, without presenting itself 
-              as a tech-challenge. So, Steve and his colleagues began to use the SpaceGuide app. The simplicity of this tool 
+              as a tech-challenge. So, Steve and his colleagues began to use the SpatialGuide app. The simplicity of this tool 
               easily allows them to insert new routes, as well as audio files that inform the tourist on the history and 
               highlights of the landmarks. Ever since, Steve has become increasingly familiar with the software and is now 
               able to fully understand his clients ultimate goal, as well as to easily provide them the best experience they 
               could have.
 
 			  <!-- <br><br>
-              <img src="img/Paul.jpg" class="img-fluid" alt="" >
+              <img src="img/paul.jpg" class="img-fluid" alt="" >
               <br><br>
               Paul is one of the Administrators of SpatialGuide. His job is to make sure every user (tourist and guide) gets the best out of SpatialGuide.
               For that he needs to manage all the routes and user information so that everything goes right when the app is used.
@@ -225,7 +231,7 @@
             Use case: Tourism Company Employee<br>
             Actor: Steve<br><br>
             Steps:<br>
-            Steve works for a company that uses SpacialGuide App<br>
+            Steve works for a company that uses SpatialGuide App<br>
             Steve needs to add more tourist points on a specific area<br>
             Steve opens SpatialGuide Admin Panel on a web browser<br>
             Steve selects the desired point on the map<br>
@@ -237,45 +243,89 @@
 
           </p>
 
-      <h3 id="appfunctioning">App development</h3>
+      <h3 id="appfunctioning">App Development</h3>
       <p style="text-align: justify;">
-        As one of the main uses of the system is the Android app, it should have the basic user creation / access, to let users use the app and the system, 
-        so they can make track of the routes and points, and use the system anywhere.<br><br>
+        As said before, the Android app is one of the most important parts of the system, as it will be the most used for the end users that will indeed use
+        our system and navigate through places. As for the design, we follow the Android Material Design guidelines and appearance, as it's commonly used on many
+        Android apps today, and got inspiration on the today's most used Android apps. We are not any design experts neither aspire to be it, however we built it
+        at our taste. The colors used are inspired by this website, as we tried to be consistent between the website and the app itself. Upon entering the app, 
+        we use the commonly used DrawerLayout, with the left side Navigation Menu, and Toolbar so user can see the current status of the app usage.<br><br>
 
-        After the successful sign in, the user should then choose the route which will navigate on, which data is downloaded and stored on the internal device storage and then used
-        upon selection. The route data is fetched via our system REST API. To handle REST requests, it's used the library <a href="http://square.github.io/retrofit/" target="_blank">Retrofit</a>
-        for a safe, easy and async request onto our API. The REST API provides the information we need about routes, points of interest, among many other useful related information to the general app usage. 
-        The images URL fetched on the REST API is then injected on Android's ImageView using <a href="http://square.github.io/picasso/" target="_blank">Picasso</a>, which downloads and caches the image in a easy 
-        and straight-forward way.<br><br>
+        In the App development, all UI widgets are instantiated on the Java code using the library <a href="http://jakewharton.github.io/butterknife/" target="_blank">
+        ButterKnife</a>, for Dependency Injection use on the Java code, as well as <a href="https://projectlombok.org/" target="_blank">Lombok</a> for our data classes. 
+        ButterKnife binds all the views to variables on our code by only getting the view IDs and call them once. Lombok injects getters/setters and constructors on our 
+        data/entity classes, so we can write less code and have them built for us.<br><br>
+
+        As we open the app, it has the basic user creation / access screens, to let users use the app and the system. By letting have an user account, each user can 
+        then make track of the routes and points, and use the system anywhere. We also provide a way of set a new password, to recover system access.
+        <br><br>
+
+        After the successful sign in, the user should then choose the route which will navigate on, which data is downloaded and stored on the internal device storage 
+        and then used upon selection. The route data is fetched via our system REST API. To handle the HTTP requests to our custom built API, it's used the library 
+        <a href="http://square.github.io/retrofit/" target="_blank">Retrofit</a> for a safe, easy and async request onto our API. Retrofit then lets us use a factory that 
+        gets the data from a API and converts it into a POJO object, to be used on the Java side. We use the Google's <a href="https://github.com/google/gson" target="_blank">
+        GSON converter factory</a>, as it's the most common used converter, and lets us then annotate on the data/entity classes the exact field names on the JSON object,
+        and then it sets the object for us.<br><br>
+
+        Our custom built REST API provides the information we need about routes, points of interest, among many other useful related information to the general app usage,
+        as we will describe later.
+        The images URL fetched on the REST API is then injected on Android's ImageView using <a href="http://square.github.io/picasso/" target="_blank">Picasso</a>, 
+        which downloads and caches the image in a easy and straight-forward way. This libraries are used throughout the app when needed (displaying images / 
+        fetch information from the API).<br><br>
       
-        After the route selection, the user will enter in the route map screen, which will track the user current location with GPS, and with the markers of the route points of interest,
-        as well as the directions to the points of interest, fetched with <a href="https://developers.google.com/maps/documentation/directions/">Google Directions API</a>. 
-        We also offer the possibility of the user changing the order of the points to visit, by using drag and drop in the selection menu, and the user can also select one of two modes for it: 
-        "Shortest Path", which will take on the shortest route between the points selected, and "Adventure Mode", which will randomize the order of the point visit. 
-        The map will show the recommended direction based on the order of the points selected or the mode selected.<br><br>
+        After the route selection, the user will enter in the route map screen, which will track the user current location with GPS, and with the markers of the route 
+        points of interest, as well as the directions to the points of interest, fetched with <a href="https://developers.google.com/maps/documentation/directions/" target="_blank">
+        Google Directions API</a>, and then all displayed on a Google Map, provided by <a href="https://developers.google.com/maps/documentation/android-sdk/intro" target="_blank">
+        Google's Maps SDK</a>, as we integrate it on the app so users can see the current location and have a visual feedback on using the app and guidance.<br>
+        On the bottom we can see a options menu that provides the possiblity of customize the route order of the points to visit by setting it using drag and drop 
+        in the selection menu, as well as the user can select one of two modes for it: "Shortest Path", which will take on the shortest route between the points 
+        selected, and "Adventure Mode", which will randomize the order of the point visit. The map will then show the recommended direction based on the order of 
+        the points selected or the mode selected.<br><br>
 
-        When the user location approaches the point of interest, a popup window will appear with the point information, and the app will start playing the sound spatialized of that point,
-        according to the user head position.
+        When the user location approaches the point of interest (as we call this distance the <i>Trigger Area</i>), a popup window will appear with the point information, 
+        and the app will then play the sound spatialized according to that point and to the user's head position.
       </p>
       <br><br>
 
       <h3 id="headposition">Getting the head position</h3>
 			<p style="text-align: justify;">
         Initially, the goal was to fetch the head position (yaw, pitch, roll) of the user using a IMU Sensor (the equipment provided to us were InertiaCube BT).
-        However, as the device's SDK and Bluetooth had issues on how to get the coordinates, and spend lots of time trying to fix the problem, we switched to another way to 
-        get the user head position, with simply using another smartphone to provide the users head position with the gyroscope sensor of the smartphone.<br><br>
+        However, as the device's SDK and Bluetooth had issues on how to get the coordinates, and spend lots of time trying to fix the problem, we switched to another 
+        way to get the user head position, with simply using another smartphone to provide the users head position with the gyroscope sensor of the smartphone.<br><br>
         
-        That way, we can easily attach a smartphone to the headphones to test this approach, and use Bluetooth to communicate with both devices (SpatialGuide app and head position app).
-        For now, it's a easy solution to our problem, given the deadline. For this communication to work, we need to develop another app for the "sensor smartphone", being able to communicating both ways.
-        Then we can provide the user position to the auralization engine to then compute the spatial audio according to the user position and the position related to the point of interest.
+        That way, we can easily attach a smartphone to the headphones to test this approach, and use Bluetooth to communicate with both devices (SpatialGuide app and 
+        head position app). For now, it's a easy solution to our problem, given the deadline. For this communication to work, we need to develop another app for the 
+        "sensor smartphone", being able to communicating both ways.
+        Then we can provide the user position to the auralization engine to then compute the spatial audio according to the user position and the position related to 
+        the point of interest.
       </p>
       <br><br>
 
-			<h3 id="nextWork">What is next?</h3>
+      <h3 id="auralization">Auralization Engine</h3>
 			<p style="text-align: justify;">
-        <br>- Auralization Engine development and usage within the app;
-        <br>- Pairing with another smartphone that will be used as head-tracking sensor;
-        <br>- Add more features overall.
+        Coming soon...
+      </p>
+      <br><br>
+
+      <h3 id="backend">Backend Development</h3>
+			<p style="text-align: justify;">
+        Coming soon...
+      </p>
+      <br><br>
+
+			<h3 id="nextWork">What is Next?</h3>
+			<p style="text-align: justify;">
+        We feel our system is almost ready to ship to production. However, we also know that this system has much more potential and could be enhanced with some more 
+        features that will overall improve all system in the future.<br><br>
+        The app could be improved by code refactoring and architecture restructuring, as well as offering the ability to support offline usage, and other features such
+        as more customization and user interaction to provide a better user experience (Street View, etc).<br><br>
+        
+        What's left to be done in the current and final development stage:
+        <br>- Write documentation related to system development and usage;
+        <br>- Perform usability and overall development tests;
+        <br>- Deploy and test the system outdoors (possibly with a real Tourism company);
+        <br>- Hunting / fixing wild bugs it may have;
+        <br>- Preparing for public presentations (setting up demo videos, etc).
       </p>
       <br><br>
       
