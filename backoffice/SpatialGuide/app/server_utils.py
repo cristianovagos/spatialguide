@@ -15,8 +15,9 @@ def get_allRoutes():
     tmp_list = serializer.data
 
     tab_names=[]
-    if len(list(tmp_list[0].keys())) > 0:
-        tab_names = list(tmp_list[0].keys())
+    if len(tmp_list) > 0:
+        if len(list(tmp_list[0].keys())) > 0:
+            tab_names = list(tmp_list[0].keys())
 
     route_list = []
     for route in tmp_list:

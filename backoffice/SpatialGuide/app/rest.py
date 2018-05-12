@@ -117,7 +117,7 @@ class ShowRoutes(APIView):
             form = RouteEditForm(instance=route_obj)
 
             tparams = {
-                'title': 'Point',
+                'title': 'Route',
                 'form_t': form,
                 'route_id': route_id
             }

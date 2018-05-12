@@ -66,7 +66,7 @@
                                 <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="remove" value="{{ route.id }}">Remove {{ title }}</button>
                             </form>
                         </td>
-                    {% elif title == 'Point' %}
+                    {% elif title == 'Route' %}
                         <td>
                             <form method="post" target="_self" style="width: 80%">
                                 {% csrf_token %}
