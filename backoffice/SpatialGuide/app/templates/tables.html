@@ -24,25 +24,27 @@
             </div>
         {% endif %}
 
-
+        <br>
         <div class="table-responsive">
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
 
-              <thead>
+              <thead style="background-color:#e9ecef">
                   <tr>
                       {% for key in tab_names %}
                           <th>{{ key }}</th>
                       {% endfor %}
+                      <th></th>
                   </tr>
               </thead>
-              <tfoot>
+              <tfoot style="background-color:#e9ecef">
                   <tr>
                       {% for key in tab_names %}
                           <th>{{ key }}</th>
                       {% endfor %}
+                      <th></th>
                   </tr>
               </tfoot>
-              <tbody>
+              <tbody style="background-color:#ffffff">
                 {% for route in route_list %}
                     <tr>
                         {% for val in route.values %}

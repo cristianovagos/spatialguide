@@ -4,8 +4,14 @@
 {% block content %}
 
   <div class="container">
-        <div class="card card-login mx-auto mt-5">
-          <div class="card-header">Add {{ title }}</div>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}" >Dashboard</a>
+        </li>
+        <li class="breadcrumb-item active">Add Route</li>
+      </ol>
+        <div class="card">
+          <div class="card-header"><i class="fa fa-plus"></i> Add {{ title }}</div>
           <div class="card-body">
 
             <form method="post" enctype="multipart/form-data" target="_self">
@@ -17,9 +23,9 @@
                             {{ f }}
                         </div>
                     {% endfor %}
-
-                    <input type="submit" class="btn btn-primary btn-block" value="OK">
-
+                    <div style="width: 10%;">
+                        <input type="submit" class="btn btn-primary btn-block" value="OK">
+                    </div>
             </form>
 
           </div>
