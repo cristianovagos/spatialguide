@@ -1,3 +1,5 @@
+{% extends "navbar.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -19,7 +21,13 @@
 
 <body class="bg-dark">
   <div class="container">
-    <div class="card card-register mx-auto mt-5">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}" >Dashboard</a>
+        </li>
+        <li class="breadcrumb-item active">Register</li>
+      </ol>
+    <div class="card card-register">
 
       <div class="card-header">
           <div style="float: left">
@@ -93,3 +101,4 @@
 </body>
 
 </html>
+{% endblock %}
