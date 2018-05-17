@@ -25,13 +25,13 @@ class RouteTableSerializer(ModelSerializer):
 
     class Meta:
         model = Route
-        exclude = ['Image','Map_image']
+        exclude = ['Image','Map_image','LastUpdate']
 
 class PointTableSerializer(ModelSerializer):
 
     class Meta:
         model = Point
-        exclude = ['Image','Sound']
+        exclude = ['Image','Sound','LastUpdate']
 
 class HeatPointSerializer(ModelSerializer):
 

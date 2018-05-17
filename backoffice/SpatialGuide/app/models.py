@@ -60,6 +60,12 @@ class User_Suggestions(models.Model):
     Latitude = models.FloatField()
     Longitude = models.FloatField()
     Comment = models.CharField(max_length=1000)
+
+class User_Comments(models.Model):
+    User = models.ForeignKey(User, on_delete=models.CASCADE)
+    Point = models.ForeignKey(Point, on_delete=models.CASCADE)
+    Comment = models.CharField(max_length=1000)
+
 #################  FORMS  #############################
 
 class RouteForm(ModelForm):

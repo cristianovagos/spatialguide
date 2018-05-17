@@ -677,3 +677,20 @@ class UserSuggestionsAdminView(APIView):
         }
 
         return render(request, 'tables.html', tparams)
+
+class UserCommentsAdminView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
+        tab_names, user_suggestion = get_Suggestions()
+
+        tparams = {
+            'title': 'User Commments',
+            'tab_names': tab_names,
+            'route_list': user_suggestion,
+
+        }
+
+        return render(request, 'tables.html', tparams)
