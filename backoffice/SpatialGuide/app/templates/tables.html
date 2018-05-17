@@ -5,85 +5,90 @@
 {% block content %}
 
     <div class="container-fluid">
-      <!-- Breadcrumbs-->
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-          <a href="{% url 'home' %}" >Dashboard</a>
-        </li>
-        <li class="breadcrumb-item active">{{ title }}s</li>
-      </ol>
-      <!-- Example DataTables Card-->
-      <div class="card mb-3">
-        <div class="card-header">
-          <i class="fa fa-table"></i> All {{ title }}s</div>
-        <div class="card-body">
+        <!-- Breadcrumbs-->
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home' %}" >Dashboard</a>
+            </li>
+            <li class="breadcrumb-item active">{{ title }}s</li>
+        </ol>
+        <!-- Example DataTables Card-->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fa fa-table"></i> All {{ title }}s</div>
+            <div class="card-body">
 
-        {% if add_btn %}
-            <div>
-                <a class="btn btn-primary" href="{% url add_btn %}" id="toggleNavPosition">Add {{ title }}</a>
-            </div>
-        {% endif %}
+                {% if route_list|length > 0 %}
+                    <div>
+                        <a class="btn btn-primary" href="{% url add_btn %}" id="toggleNavPosition">Add {{ title }}</a>
+                    </div>
 
-        <br>
-        <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
 
-              <thead style="background-color:#e9ecef">
-                  <tr>
-                      {% for key in tab_names %}
-                          <th>{{ key }}</th>
-                      {% endfor %}
-                      <th></th>
-                  </tr>
-              </thead>
-              <tfoot style="background-color:#e9ecef">
-                  <tr>
-                      {% for key in tab_names %}
-                          <th>{{ key }}</th>
-                      {% endfor %}
-                      <th></th>
-                  </tr>
-              </tfoot>
-              <tbody style="background-color:#ffffff">
-                {% for route in route_list %}
-                    <tr>
-                        {% for val in route.values %}
-                          <td>
-                              {% if title == 'Route' %}
-                                <a href="{% url 'display_route' route.id %}">{{ val }}</a>
-                              {% else %}
-                                  {{ val }}
-                              {% endif %}
-                          </td>
-                        {% endfor %}
-                    {% if title == 'Point' %}
-                        <td >
-                            <form method="post" target="_self" style="width: 100%">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary btn-block" name="edit" value="{{ route.id }}" >Edit {{ title }}</button>
-                            </form>
-                            <br>
-                            <form method="post" target="_self" style="width: 100%">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="remove" value="{{ route.id }}">Remove {{ title }}</button>
-                            </form>
-                        </td>
-                    {% elif title == 'Route' %}
-                        <td>
-                            <form method="post" target="_self" style="width: 80%">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary btn-block" name="edit" value="{{ route.id }}" >Edit {{ title }}</button>
-                            </form>
-                        </td>
-                    {% endif %}
-                    </tr>
-                {% endfor %}
-              </tbody>
 
-            </table>
-          </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+
+                            <thead style="background-color:#e9ecef">
+                            <tr>
+                                {% for key in tab_names %}
+                                    <th>{{ key }}</th>
+                                {% endfor %}
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tfoot style="background-color:#e9ecef">
+                            <tr>
+                                {% for key in tab_names %}
+                                    <th>{{ key }}</th>
+                                {% endfor %}
+                                <th></th>
+                            </tr>
+                            </tfoot>
+                            <tbody style="background-color:#ffffff">
+                            {% for route in route_list %}
+                                <tr>
+                                    {% for val in route.values %}
+                                        <td>
+                                            {% if title == 'Route' %}
+                                                <a href="{% url 'display_route' route.id %}">{{ val }}</a>
+                                            {% else %}
+                                                {{ val }}
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                    {% if title == 'Point' %}
+                                        <td >
+                                            <form method="post" target="_self" style="width: 100%">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-primary btn-block" name="edit" value="{{ route.id }}" >Edit {{ title }}</button>
+                                            </form>
+                                            <br>
+                                            <form method="post" target="_self" style="width: 100%">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="remove" value="{{ route.id }}">Remove {{ title }}</button>
+                                            </form>
+                                        </td>
+                                    {% elif title == 'Route' %}
+                                        <td>
+                                            <form method="post" target="_self" style="width: 80%">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-primary btn-block" name="edit" value="{{ route.id }}" >Edit {{ title }}</button>
+                                            </form>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                    </div>
+                {% else %}
+                    <h5>There are no {{ title }}s! Please add your {{ title }} </h5>
+                    <a type="submit" class="btn btn-primary btn-block" name="Add" href="{% url add_btn %}" style="width: 20%">Add {{ title }}</a>
+                {% endif %}
         </div>
-      </div>
     </div>
 
 {% endblock %}

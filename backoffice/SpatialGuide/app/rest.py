@@ -669,9 +669,10 @@ class UserSuggestionsAdminView(APIView):
         tab_names, user_suggestion = get_Suggestions()
 
         tparams = {
-            'title': 'User Sugestions',
+            'title': 'User Suggestion',
             'tab_names': tab_names,
             'route_list': user_suggestion,
+            'add_btn': 'add_point'
 
         }
 
