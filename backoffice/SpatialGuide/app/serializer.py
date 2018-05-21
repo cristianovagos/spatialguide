@@ -170,3 +170,8 @@ class UserSuggestionsSerializer(ModelSerializer):
     class Meta:
         model = User_Suggestions
         fields = '__all__'
+
+class UserCommentsSerializer(ModelSerializer):
+    class Meta:
+        model = User_Comments
+        fields = '__all__'

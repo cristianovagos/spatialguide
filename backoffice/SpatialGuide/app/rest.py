@@ -678,19 +678,36 @@ class UserSuggestionsAdminView(APIView):
 
         return render(request, 'tables.html', tparams)
 
+class UserCommentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        user = data.get('user', None)
+        point = data.get('point', None)
+        comment = data.get('comment', None)
+
+        if not user or not point or not comment:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        comment = User_Comments(User=user, Point=point, Comment=comment)
+        comment.save()
+
+        return Response(status=status.HTTP_200_OK)
+
 class UserCommentsAdminView(APIView):
     permission_classes = [AllowAny]
 
     def get(self,request):
         if not request.user.is_staff:
             return redirect('login')
-        tab_names, user_suggestion = get_Suggestions()
+        tab_names, user_comments = get_Comments()
 
         tparams = {
             'title': 'User Commments',
             'tab_names': tab_names,
-            'route_list': user_suggestion,
+            'point_list': user_comments,
 
         }
 
-        return render(request, 'tables.html', tparams)
+        return render(request, 'comments.html', tparams)

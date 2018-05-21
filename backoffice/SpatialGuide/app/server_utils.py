@@ -107,6 +107,20 @@ def get_Suggestions():
 
    return (tab_names,suggestion_list)
 
+def get_Comments():
+   comment = User_Comments.objects.all()
+   comment = UserCommentsSerializer(comment,many=True).data
+
+   tab_names = []
+   if len(tab_names) > 0:
+       tab_names= list(comment[0].keys())
+
+   comment_list=[]
+   for s in comment:
+       comment_list.append(dict(s))
+
+   return (tab_names,comment_list)
+
 ################  Google Drive  ################
 
 def save_media(name,path):
