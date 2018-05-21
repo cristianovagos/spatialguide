@@ -18,6 +18,7 @@
                 <i class="fa fa-table"></i> All {{ title }}</div>
             <div class="card-body">
 
+                {% if comment_list|length > 0 %}
 
                 <div class="table-responsive">
                         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -39,7 +40,9 @@
                             </tr>
                             </tfoot>
                         </table>
-
+                {% else %}
+                    <h5>There are no {{ title }}s! Please add your {{ title }} </h5>
+                {% endif %}
         </div>
     </div>
 

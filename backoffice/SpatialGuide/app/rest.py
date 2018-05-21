@@ -706,7 +706,7 @@ class UserCommentsAdminView(APIView):
         tparams = {
             'title': 'User Commments',
             'tab_names': tab_names,
-            'point_list': user_comments,
+            'comment_list': user_comments,
 
         }
 
