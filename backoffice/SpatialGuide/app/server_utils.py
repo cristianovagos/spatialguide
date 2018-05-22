@@ -26,9 +26,7 @@ def get_allRoutes():
     return (tab_names,route_list)
 
 def generate_mapImage(route_id):
-
     points = get_route_points(route_id)
-
     url = 'https://maps.googleapis.com/maps/api/staticmap?size=400x400&maptype=roadmap'
 
     for p in points:
