@@ -49,7 +49,13 @@ class ShowPoints(APIView):
                     point.Image = DRIVE_BASE_URL + request_filesaver(request.FILES['Image'])
                 if "Sound" in request.FILES:
                     point.Sound = request_filesaver(request.FILES['Sound'])
+                point.LastUpdate = int(round(time.time() * 1000))
                 point.save()
+
+                routes = Route_contains_Point.objects.filter(Point=point).all()
+                for route in routes:
+                    route.Route.LastUpdate = int(round(time.time() * 1000))
+                    route.Route.save()
 
         elif 'edit' in list(data.keys()):
             point_id = data.get('edit', None)
@@ -108,6 +114,7 @@ class ShowRoutes(APIView):
                 route = form.save()
                 if "Image" in request.FILES:
                     route.Image = DRIVE_BASE_URL + request_filesaver(request.FILES['Image'])
+                route.LastUpdate = int(round(time.time() * 1000))
                 route.save()
 
         elif 'edit' in list(data.keys()):
@@ -164,6 +171,8 @@ class ShowRoute(APIView):
                 if not exists:
                     Route_contains_Point(Route=route,Point=point).save()
                     generate_mapImage(route_id)
+                    route.LastUpdate = int(round(time.time() * 1000))
+                    route.save()
 
         if 'remove' in list(data.keys()):
             point_id = data.get('remove',None)
@@ -173,6 +182,8 @@ class ShowRoute(APIView):
 
                 Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first().delete()
                 generate_mapImage(route_id)
+                route.LastUpdate = int(round(time.time() * 1000))
+                route.save()
 
         if 'removeRoute' in list(data.keys()):
             route.delete()
