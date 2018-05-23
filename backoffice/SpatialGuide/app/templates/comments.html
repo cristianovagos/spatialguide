@@ -39,9 +39,28 @@
                                 <th></th>
                             </tr>
                             </tfoot>
+                         <tbody style="background-color:#ffffff">
+                            {% for comment in comment_list %}
+                                <tr>
+                                    {% for val in comment.values %}
+                                        <td>
+                                                {{ val }}
+                                        </td>
+                                    {% endfor %}
+                                    {% if title == 'User Comments' %}
+                                        <td >
+                                            <form method="post" target="_self" style="width: 100%">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="remove" value="{{ route.id }}">Remove Comment</button>
+                                            </form>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
                         </table>
                 {% else %}
-                    <h5>There are no {{ title }}s! Please add your {{ title }} </h5>
+                    <h5>There are no {{ title }}! Please wait for {{ title }} to be added </h5>
                 {% endif %}
         </div>
     </div>

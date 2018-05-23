@@ -107,14 +107,15 @@ def get_Suggestions():
 
 def get_Comments():
    comment = User_Comments.objects.all()
-   comment = UserCommentsSerializer(comment,many=True).data
+   comment = UserCommentsSerializer(comment,many=True)
+   tmp_list = comment.data
 
    tab_names = []
-   if len(tab_names) > 0:
-       tab_names= list(comment[0].keys())
+   if len(tmp_list) > 0:
+       tab_names= list(tmp_list[0].keys())
 
    comment_list=[]
-   for s in comment:
+   for s in tmp_list:
        comment_list.append(dict(s))
 
    return (tab_names,comment_list)
