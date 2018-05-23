@@ -64,8 +64,7 @@ urlpatterns = [
     url(r'^comment/$', rest.UserCommentsView.as_view()),
     url(r'^comments/$', rest.UserCommentsAdminView.as_view(), name='comments'),
 ]
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns = format_suffix_patterns(urlpatterns)

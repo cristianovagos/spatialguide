@@ -563,12 +563,14 @@ class UserInfo(APIView):
         for key in list(user_att_serializer.keys()):
             full_user[key]=user_att_serializer[key]
 
-        points_visited = Point.objects.filter(point_visited__user_attributes__User_id_id=user.pk)
-        points_visited = PointSerializer(points_visited, many=True).data
-
+        points_visited = Point_Visited.objects.all().filter(Point_id__point_visited__user_attributes=user_att)
         points_id = []
+
         for p in points_visited:
-            points_id.append(p['id'])
+            tmp = {}
+            tmp['id']=p.Point_id.id
+            tmp['Visit_Data']=p.Visit_Date
+            points_id.append(tmp)
 
         full_user['Visited_points']=points_id
 
