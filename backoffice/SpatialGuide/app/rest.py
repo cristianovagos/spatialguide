@@ -380,15 +380,21 @@ class UserVisit(APIView):
 
         user = User.objects.filter(username=request.user).first()
 
-        if user:
-            user_att = User_Attributes.objects.filter(User_id__id=user.id).first()
-            new_point = Point_Visited(Point_id=point)
-            new_point.save()
+        if user and point:
+            user_att = User_Attributes.objects.get(User_id=user)
 
-            user_att.Visited_points.add(new_point)
+            visited_point = user_att.Visited_points.filter(Point_id=point)
+            print(visited_point)
+            if not visited_point.exists():
+                new_point = Point_Visited(Point_id=point)
+                new_point.save()
 
+                user_att.Visited_points.add(new_point)
 
-        return Response(error, status=status.HTTP_200_OK)
+            return Response(error, status=status.HTTP_200_OK)
+        else:
+            error={'error':'Wrong Parameter.'}
+            return Response(error,status=status.HTTP_400_BAD_REQUEST)
 
 # useraddfavourite/
 class AddFavorite(APIView):
