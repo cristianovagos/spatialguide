@@ -84,7 +84,7 @@ public class DownloadService extends IntentService {
         DownloadInterface downloadInterface = retrofit.create(DownloadInterface.class);
 
         for(Point p : route.getRoutePoints()) {
-            downloadList.add(p.getPointAudioURL());
+            downloadList.add(Constant.FILES_BASE_URL_SEPARATOR + p.getPointAudioURL());
             pointsID.add(p.getPointID());
         }
 

@@ -10,7 +10,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -18,21 +17,16 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
@@ -40,6 +34,7 @@ import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.User;
+import com.paydayme.spatialguide.model.VisitedPoint;
 import com.paydayme.spatialguide.ui.adapter.HistoryFavoritesAdapter;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 import com.squareup.picasso.Picasso;
@@ -78,16 +73,17 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
 
     private String authenticationHeader;
     private int routeSelected;
-    private List<Integer> pointsVisited;
+    private List<VisitedPoint> pointsVisited;
     private List<Object> pointsList = new ArrayList<>();
 
     // Reference the views
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.drawer_layout) DrawerLayout drawer;
     @BindView(R.id.nav_view) NavigationView navigationView;
-    @BindView(R.id.noHistoryText) TextView noFavoritesText;
-    @BindView(R.id.historyList) RecyclerView favoritesRV;
+    @BindView(R.id.noHistoryText) TextView noHistoryText;
+    @BindView(R.id.historyList) RecyclerView historyRV;
     @BindView(R.id.swipeRefresh) SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.loadingLayout) RelativeLayout loadingLayout;
 
     private TextView userNameMenu;
     private CircleImageView userImageMenu;
@@ -120,7 +116,6 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
         routeSelected = sharedPreferences.getInt(SHARED_PREFERENCES_LAST_ROUTE, -1);
 
         swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.primary));
-//        swipeRefreshLayout.setProgressViewOffset(false, 120, 155);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -196,17 +191,16 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
 
 
     private void getHistory() {
-        Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
+        historyRV.setVisibility(View.GONE);
+        noHistoryText.setVisibility(View.GONE);
 
+        Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                if(response.isSuccessful()) {
-                    if (response.body() != null) {
-                        pointsVisited = response.body().getVisitedPoints();
-                        getPoints();
-                    }
-
+                if(response.isSuccessful() && response.body() != null) {
+                    pointsVisited = response.body().getVisitedPoints();
+                    getPoints();
                 } else {
                     Log.e(TAG, "getHistory - onResponse: some error occurred: " + response.errorBody().toString());
                 }
@@ -214,24 +208,28 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                Log.e(TAG, "getHistory - onFailure: some error occurred: " + t.getMessage());
+                Log.e(TAG, "getHistory - onFailure: " + t.getMessage());
             }
         });
     }
 
     private void getPoints() {
-        if(pointsVisited.isEmpty())
+        if(pointsVisited.isEmpty()) {
             updateUI();
-        for(int i : pointsVisited) {
-            Call<Point> call = sgApiClient.getPoint(authenticationHeader, i);
+            return;
+        }
+        for(VisitedPoint visitedPoint : pointsVisited) {
+            Call<Point> call = sgApiClient.getPoint(authenticationHeader, visitedPoint.getId());
             call.enqueue(new Callback<Point>() {
                 @Override
                 public void onResponse(Call<Point> call, Response<Point> response) {
                     if(response.isSuccessful() && response.body() != null) {
-                        pointsList.add(response.body());
+                        if(pointsList != null && !pointsList.contains(response.body()))
+                            pointsList.add(response.body());
                     } else {
-                        Log.e(TAG, "getPoints - onResponse: " + response.errorBody().toString());
+                        Log.e(TAG, "getPoints - onResponse: some error occurred: " + response.errorBody().toString());
                     }
+                    updateUI();
                 }
 
                 @Override
@@ -240,26 +238,29 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
                 }
             });
         }
-        updateUI();
     }
 
     private void updateUI() {
         if(swipeRefreshLayout.isRefreshing())
             swipeRefreshLayout.setRefreshing(false);
 
+        loadingLayout.setVisibility(View.GONE);
+
         if(pointsList.isEmpty()) {
-            noFavoritesText.setVisibility(View.VISIBLE);
+            noHistoryText.setVisibility(View.VISIBLE);
+            return;
         } else {
-            noFavoritesText.setVisibility(View.GONE);
+            noHistoryText.setVisibility(View.GONE);
+            historyRV.setVisibility(View.VISIBLE);
         }
 
         // Setting the point adapter and the recyclerview to receive route points
         HistoryFavoritesAdapter historyFavoritesAdapter = new HistoryFavoritesAdapter(this, pointsList);
 
-        favoritesRV.setHasFixedSize(true);
-        favoritesRV.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-        favoritesRV.setItemAnimator(new DefaultItemAnimator());
-        favoritesRV.setAdapter(historyFavoritesAdapter);
+        historyRV.setHasFixedSize(true);
+        historyRV.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        historyRV.setItemAnimator(new DefaultItemAnimator());
+        historyRV.setAdapter(historyFavoritesAdapter);
     }
 
     @Override

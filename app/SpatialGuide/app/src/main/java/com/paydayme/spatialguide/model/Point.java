@@ -42,6 +42,9 @@ public class Point implements Serializable{
     @SerializedName("Point_Date")
     private Date pointDate;
 
+    @SerializedName("LastUpdate")
+    private long lastUpdate;
+
     // TODO BACKEND - Needs to be stored if the point has been visited by the user
     private boolean pointVisited;
 

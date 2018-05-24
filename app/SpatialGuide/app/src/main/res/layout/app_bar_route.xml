@@ -22,7 +22,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Select a Route"
+                android:text="@string/select_a_route"
                 style="@style/Toolbar.TitleText"
                 android:layout_gravity="center"/>
 

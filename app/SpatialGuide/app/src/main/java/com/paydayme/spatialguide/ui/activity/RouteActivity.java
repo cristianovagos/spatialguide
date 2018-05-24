@@ -25,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
@@ -84,6 +85,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     @BindView(R.id.nav_view) NavigationView navigationView;
     @BindView(R.id.noRoutesText) TextView noRoutesText;
     @BindView(R.id.swipeRefresh) SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.loadingLayout) RelativeLayout loadingLayout;
 
     private TextView userNameMenu;
     private CircleImageView userImageMenu;
@@ -110,7 +112,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         avaliableRoutesRV.setLayoutManager(new LinearLayoutManager(this));
         avaliableRoutesRV.setAdapter(new RouteAdapter(this, routeList, new RouteAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(Route item) {}
+            public void onItemClick(Route item, View view) {}
         }));
 
         swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.primary));
@@ -162,9 +164,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         }
 
         getUserInfo();
-
         getRoutesAPI();
-//        getFakeRoutes();
     }
 
     private void initMenuHeaderViews() {
@@ -177,7 +177,6 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 
     private void getUserInfo() {
         Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
-
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
@@ -203,7 +202,6 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
                 Log.e(TAG, "getUserInfo - onFailure: some error occurred: " + t.getMessage());
             }
         });
-
     }
 
     private void getUserInfoSharedPreferences() {
@@ -227,34 +225,6 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         }
     }
 
-    private void getFakeRoutes() {
-        List<Point> tmpList = new ArrayList<>();
-        tmpList.add(new Point(1,"Fórum Aveiro", 40.641475, -8.653675, "examples/mp3/SoundHelix-Song-1.mp3"));
-        tmpList.add(new Point(2,"Praça do Peixe", 40.642313, -8.655352, "examples/mp3/SoundHelix-Song-2.mp3"));
-        tmpList.add(new Point(3,"Estação de Comboios", 40.643304, -8.641302, "examples/mp3/SoundHelix-Song-3.mp3"));
-        tmpList.add(new Point(4,"Sé de Aveiro", 40.639469, -8.650397, "examples/mp3/SoundHelix-Song-4.mp3"));
-
-        routeList.add( new Route(1,
-                "Test Route 1",
-                "Welcome to the test route 1! Here it is how a route will look like in the SpatialGuide app.",
-                "https://i0.wp.com/gazetarural.com/wp-content/uploads/2017/12/Aveiro-Ria.jpg",
-                tmpList, 0, "2010-02-03", 1234567890) );
-
-        routeList.add( new Route(2,
-                "Test Route 2",
-                "Welcome to the test route 2! Here it is how a route will look like in the SpatialGuide app.",
-                "https://www.visitportugal.com/sites/www.visitportugal.com/files/mediateca/TAP_PracaComercio_01e_CL-co.jpg",
-                tmpList, 0, "2010-02-03", 1234567890) );
-
-        routeList.add( new Route(3,
-                "Test Route 3",
-                "Welcome to the test route 3! Here it is how a route will look like in the SpatialGuide app.",
-                "https://www.visitportugal.com/sites/www.visitportugal.com/files/styles/destinos_galeria/public/mediateca/N22312.jpg",
-                tmpList, 0, "2010-02-03", 1234567890) );
-
-        updateUI();
-    }
-
     private void updateUI() {
         if(swipeRefreshLayout.isRefreshing())
             swipeRefreshLayout.setRefreshing(false);
@@ -268,7 +238,8 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         // Setting the point adapter and the recyclerview to receive route points
         RouteAdapter routeAdapter = new RouteAdapter(this, routeList, new RouteAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(Route item) {
+            public void onItemClick(Route item, View view) {
+                view.setEnabled(false);
                 Intent intent = new Intent(RouteActivity.this, RouteDetailsActivity.class);
                 Bundle bundle = new Bundle();
 
@@ -276,6 +247,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
                 bundle.putInt("route", item.getRouteID());
                 intent.putExtras(bundle);
                 startActivity(intent);
+                view.setEnabled(true);
                 finish();
             }
         });
@@ -284,6 +256,8 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         avaliableRoutesRV.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         avaliableRoutesRV.setItemAnimator(new DefaultItemAnimator());
         avaliableRoutesRV.setAdapter(routeAdapter);
+
+        loadingLayout.setVisibility(View.GONE);
     }
 
     private void getRoutesAPI() {

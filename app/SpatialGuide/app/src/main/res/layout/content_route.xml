@@ -8,6 +8,40 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <RelativeLayout
+        android:id="@+id/loadingLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:layout_marginTop="150dp">
+
+        <ImageView
+            android:id="@+id/loadingLogo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@mipmap/logo_launcher"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"/>
+
+        <ProgressBar
+            android:id="@+id/progressLoading"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:indeterminateTint="@color/primary"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/loading"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/black"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/progressLoading"/>
+
+    </RelativeLayout>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/availableRoutesList"
         android:layout_width="match_parent"

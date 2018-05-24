@@ -64,7 +64,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="25dp"
                 android:src="@drawable/ic_email2"
-                android:tint="@color/monsoon"/>
+                android:tint="@color/black"/>
 
             <LinearLayout
                 android:orientation="vertical"
@@ -76,7 +76,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Email"
-                    android:textColor="@color/monsoon"
+                    android:textColor="@color/black"
                     android:textStyle="bold"/>
 
                 <TextView
@@ -128,8 +128,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:gravity="center">
+            android:layout_marginTop="20dp">
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/changepassword"
@@ -138,8 +137,7 @@
                 android:layout_weight="1"
                 android:drawableTop="@drawable/ic_password"
                 android:text="@string/change_password"
-                android:textSize="12sp"
-                android:layout_gravity="center"/>
+                android:textSize="12sp"/>
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/changeemail"
@@ -148,10 +146,35 @@
                 android:layout_weight="1"
                 android:text="@string/change_email"
                 android:drawableTop="@drawable/ic_email"
-                android:textSize="12sp"
-                android:layout_gravity="center"/>
+                android:textSize="12sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_weight="1"/>
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/changeimage"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:text="@string/change_user_image"
+                android:drawableTop="@drawable/ic_image"
+                android:textSize="12sp"/>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_weight="1"/>
 
         </LinearLayout>
 
     </LinearLayout>
+
 </LinearLayout>

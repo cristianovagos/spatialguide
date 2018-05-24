@@ -10,8 +10,8 @@ Preferences Screen XML
 
 -->
 
-<PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
         android:title="GENERAL">
@@ -42,6 +42,15 @@ Preferences Screen XML
             android:key="com.paydayme.spatialguide.prefs.location_accuracy"
             android:entries="@array/location_priority"
             android:entryValues="@array/location_priority_values" />
+
+        <com.paydayme.spatialguide.ui.preferences.NumberPickerPreference
+            android:defaultValue="25"
+            android:dialogMessage="The trigger area is the maximum distance of your current location towards a point of interest.\n\nPlease select the distance:"
+            android:max="100"
+            custom:min="1"
+            android:key="com.paydayme.spatialguide.prefs.trigger_area"
+            android:title="Trigger Area Distance"
+            android:summary="The maximum distance (in km) from current location towards a point of interest that we consider you are at."/>
 
     </PreferenceCategory>
 

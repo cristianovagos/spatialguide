@@ -26,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.paydayme.spatialguide.R;
@@ -83,6 +84,7 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
     @BindView(R.id.noFavoritesText) TextView noFavoritesText;
     @BindView(R.id.favoritesList) RecyclerView favoritesRV;
     @BindView(R.id.swipeRefresh) SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.loadingLayout) RelativeLayout loadingLayout;
 
     private TextView userNameMenu;
     private CircleImageView userImageMenu;
@@ -193,14 +195,15 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void getFavorites() {
-        Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
+        favoritesRV.setVisibility(View.GONE);
+        noFavoritesText.setVisibility(View.GONE);
 
+        Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
                 if(response.isSuccessful()) {
                     if (response.body() != null) {
-                        Log.d(TAG, "getFavorites - onResponse: + " + response.body());
                         favoritePoints = response.body().getFavoritePoints();
                         favoriteRoutes = response.body().getFavoriteRoutes();
                     }
@@ -218,16 +221,21 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void getRoutes() {
+        if(favoriteRoutes.isEmpty()) {
+            updateUI();
+            return;
+        }
         for(int i : favoriteRoutes) {
             Call<Route> call = sgApiClient.getRoute(authenticationHeader, i);
             call.enqueue(new Callback<Route>() {
                 @Override
                 public void onResponse(Call<Route> call, Response<Route> response) {
                     if(response.isSuccessful() && response.body() != null) {
-                        favoritesList.add(response.body());
+                        if(favoritesList != null && !favoritesList.contains(response.body()))
+                            favoritesList.add(response.body());
                         getPoints();
                     } else {
-                        Log.e(TAG, "getRoutes - onResponse: " + response.errorBody().toString());
+                        Log.e(TAG, "getRoutes - onResponse: some error occurred: " + response.errorBody().toString());
                     }
                 }
 
@@ -240,17 +248,20 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void getPoints() {
-        if(favoritePoints.isEmpty())
+        if(favoritePoints.isEmpty()) {
             updateUI();
+            return;
+        }
         for(int i : favoritePoints) {
             Call<Point> call = sgApiClient.getPoint(authenticationHeader, i);
             call.enqueue(new Callback<Point>() {
                 @Override
                 public void onResponse(Call<Point> call, Response<Point> response) {
                     if(response.isSuccessful() && response.body() != null) {
-                        favoritesList.add(response.body());
+                        if(favoritesList != null && !favoritesList.contains(response.body()))
+                            favoritesList.add(response.body());
                     } else {
-                        Log.e(TAG, "getPoints - onResponse: " + response.errorBody().toString());
+                        Log.e(TAG, "getPoints - onResponse: some error occurred: " + response.errorBody().toString());
                     }
                     updateUI();
                 }
@@ -267,10 +278,14 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
         if(swipeRefreshLayout.isRefreshing())
             swipeRefreshLayout.setRefreshing(false);
 
+        loadingLayout.setVisibility(View.GONE);
+
         if(favoritesList.isEmpty()) {
             noFavoritesText.setVisibility(View.VISIBLE);
+            return;
         } else {
             noFavoritesText.setVisibility(View.GONE);
+            favoritesRV.setVisibility(View.VISIBLE);
         }
 
         // Setting the point adapter and the recyclerview to receive route points

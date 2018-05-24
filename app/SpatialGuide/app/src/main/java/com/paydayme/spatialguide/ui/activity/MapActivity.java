@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -46,6 +48,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -149,7 +152,9 @@ import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MAP_TYPE;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MARKER_UNVISITED_COLOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MARKER_VISITED_COLOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_TRAVEL_MODE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_TRIGGER_AREA_VALUE;
 import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
+import static com.paydayme.spatialguide.core.Constant.TRIGGER_AREA_DISTANCE;
 import static com.paydayme.spatialguide.core.Constant.UPDATE_INTERVAL_IN_MILLISECONDS;
 
 /**
@@ -229,8 +234,7 @@ public class MapActivity extends AppCompatActivity implements
     private long lastTimestamp;
     private long heatmapTimestamp;
 
-    private List<Integer> favoritePoints;
-
+    private List<Integer> favoritePoints = new ArrayList<>();
 
     // SharedPreferences object
     private SharedPreferences sharedPreferences;
@@ -246,6 +250,7 @@ public class MapActivity extends AppCompatActivity implements
     private String prefs_unvisited_marker_color;
     private String prefs_visited_marker_color;
     private String prefs_direction_line_color;
+    private int prefs_trigger_area_value;
 
     // Variables from SharedPreferences
     private String authenticationHeader;
@@ -462,14 +467,14 @@ public class MapActivity extends AppCompatActivity implements
                 case Constant.MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
                         case SGBluetoothService.STATE_CONNECTED:
-                            Log.d(TAG, "handleMessage: connected");
+                            Log.d(TAG, "handleMessage: Bluetooth connected");
                             break;
                         case SGBluetoothService.STATE_CONNECTING:
-                            Log.d(TAG, "handleMessage: connecting");
+                            Log.d(TAG, "handleMessage: connecting to Bluetooth device");
                             break;
                         case SGBluetoothService.STATE_LISTEN:
                         case SGBluetoothService.STATE_NONE:
-                            Log.d(TAG, "handleMessage: not connected");
+                            Log.d(TAG, "handleMessage: not connected to Bluetooth device");
                             break;
                     }
                     break;
@@ -483,7 +488,11 @@ public class MapActivity extends AppCompatActivity implements
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     stringBuilder.append(readMessage + "\n");
-                    convertData(readMessage);
+                    try {
+                        convertData(readMessage);
+                    } catch (Exception e) {
+                        Log.e(TAG, "handleMessage: error ");
+                    }
 
                     if(auralizationEngine != null && auralizationEngine.isPlaying()) {
                         Log.d(TAG, "handleMessage: updating auralization engine");
@@ -493,7 +502,7 @@ public class MapActivity extends AppCompatActivity implements
                                 lastLocation.getLatitude(), mCurrentLocation.getLongitude(),
                                 mCurrentLocation.getLatitude(), rotation[0], rotation[1], rotation[2])) {
                             Log.d(TAG, "handleMessage: stopping auralization engine");
-                            auralizationEngine.StopAndUnload();
+                            auralizationEngine.stopAndUnload();
                             auralizationEngine = null;
                         }
                     }
@@ -543,6 +552,7 @@ public class MapActivity extends AppCompatActivity implements
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
 
+        prefs_trigger_area_value = sharedPreferences.getInt(SHARED_PREFS_TRIGGER_AREA_VALUE, TRIGGER_AREA_DISTANCE);
         prefs_heatmap = sharedPreferences.getBoolean(SHARED_PREFS_HEATMAP, false);
         prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
         prefs_map_type = sharedPreferences.getString(SHARED_PREFS_MAP_TYPE, "1");
@@ -632,9 +642,16 @@ public class MapActivity extends AppCompatActivity implements
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.ic_sortroute: {
+                    case R.id.ic_sortroute:
                         showRouteOrderDialog();
-                    }
+                        break;
+                    case R.id.ic_soundoptions:
+                        if(auralizationEngine != null)
+                            showSoundOptionsDialog();
+                        else
+                            Toast.makeText(MapActivity.this, "No sound played yet, please approach a point of interest",
+                                    Toast.LENGTH_SHORT).show();
+                        break;
                 }
                 return true;
             }
@@ -963,7 +980,6 @@ public class MapActivity extends AppCompatActivity implements
 
         // If user toggled heatmap feature, send location to API
         if (prefs_heatmap) {
-
             // Send heatmaps each minute
             if(System.currentTimeMillis() - heatmapTimestamp > 60000) {
                 heatmapTimestamp = System.currentTimeMillis();
@@ -992,7 +1008,7 @@ public class MapActivity extends AppCompatActivity implements
         // Check nearest location and if we are in trigger area
         Pair<Location, Point> locationPointPair = getNearestPointLocation(mCurrentLocation);
         lastLocation = locationPointPair.first;
-        if (mCurrentLocation.distanceTo(locationPointPair.first) <= Constant.TRIGGER_AREA_DISTANCE) {
+        if (mCurrentLocation.distanceTo(locationPointPair.first) <= prefs_trigger_area_value) {
 
             // if current time stamp is greater than 5 minutes (300000 ms)
             // then show the info dialog and do auralization
@@ -1005,11 +1021,10 @@ public class MapActivity extends AppCompatActivity implements
 
                 if (prefs_auralization && auralizationEngine == null) {
                     // TODO insert auralization trigger here
-
                     try {
                         File f = InternalStorage.getFile(this, POINT_STORAGE_SEPARATOR + locationPointPair.second.getPointID() + ".wav");
-                        Log.d(TAG, "updateLocationUI: file: " + f.toString());
                         auralizationEngine = new AuralizationEngine(this, f.getAbsolutePath());
+                        auralizationEngine.play();
                     } catch (Exception e) {
                         prefs_auralization = false;
                     }
@@ -1164,6 +1179,95 @@ public class MapActivity extends AppCompatActivity implements
                 .writeTimeout(1, TimeUnit.SECONDS).build();
     }
 
+    private void showSoundOptionsDialog() {
+        // Check if the dialog exists and if its showing
+        if(dialog != null && dialog.isShowing()) return;
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_sound_options, null);
+        AppCompatButton playSound = (AppCompatButton) view.findViewById(R.id.playSound);
+        final AppCompatButton pauseSound = (AppCompatButton) view.findViewById(R.id.pauseSound);
+        AppCompatButton stopSound = (AppCompatButton) view.findViewById(R.id.stopSound);
+        ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
+
+        if(auralizationEngine != null) {
+            if(auralizationEngine.isPlaying()) {
+                pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_pause_btn, 0,0);
+            }
+            else {
+                pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_play_btn, 0,0);
+            }
+        }
+
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        playSound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(auralizationEngine != null) {
+                    auralizationEngine.stopAndUnload();
+                    auralizationEngine.play();
+                }
+            }
+        });
+
+        pauseSound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(auralizationEngine != null) {
+                    if(auralizationEngine.isPlaying()) {
+                        auralizationEngine.pause();
+                        pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_play_btn, 0,0);
+                    }
+                    else {
+                        auralizationEngine.resume();
+                        pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_pause_btn, 0,0);
+                    }
+                }
+            }
+        });
+
+        stopSound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(auralizationEngine != null) {
+                    auralizationEngine.stopAndUnload();
+                }
+            }
+        });
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setView(view);
+
+        // Creating dialog and adjusting size
+        dialog = builder.create();
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.show();
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        if(lp.height > 1100)
+            lp.height = 1100;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER;
+        dialog.getWindow().setAttributes(lp);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    }
+
+    private void changeFontAlertDialog() {
+        // Setting custom font to dialog
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
     private void showSuggestionDialog(final LatLng latLng) {
         // Check if the dialog exists and if its showing
         if(dialog != null && dialog.isShowing()) return;
@@ -1171,47 +1275,111 @@ public class MapActivity extends AppCompatActivity implements
         LayoutInflater inflater = LayoutInflater.from(this);
         View view = inflater.inflate(R.layout.dialog_suggestion, null);
         final AppCompatEditText suggestionText = (AppCompatEditText) view.findViewById(R.id.input_suggestion);
+        AppCompatButton confirmButton = (AppCompatButton) view.findViewById(R.id.confirmSuggestionBtn);
+        ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
-                .setTitle("Suggest this location")
-                .setView(view)
-                .setPositiveButton("Send", new DialogInterface.OnClickListener() {
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String suggestion = suggestionText.getText().toString();
+                if(suggestion.isEmpty()) {
+                    Toast.makeText(MapActivity.this, "Please enter a suggestion to proceed.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                HashMap tmpMap = new HashMap(3);
+                tmpMap.put("latitude", latLng.latitude);
+                tmpMap.put("longitude", latLng.longitude);
+                tmpMap.put("comment", suggestion);
+
+                Call<ResponseBody> call = sgApiClient.sendSuggestion(authenticationHeader, tmpMap);
+                call.enqueue(new Callback<ResponseBody>() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // TODO backend
-                        String suggestion = suggestionText.getText().toString();
-                        Log.d(TAG, "show suggestion dialog onClick: " + suggestion);
-                        Log.d(TAG, "suggestion position: lat: " + latLng.latitude + " lon: " + latLng.longitude);
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if(response.isSuccessful()) {
+                            Toast.makeText(MapActivity.this, "Suggestion sent! Thank you!", Toast.LENGTH_LONG).show();
+                            dialog.dismiss();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Toast.makeText(MapActivity.this, "Failed to send suggestion. Want to try sending again?", Toast.LENGTH_LONG).show();
                     }
                 });
+            }
+        });
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setView(view)
+                .setCancelable(false);
 
         // Creating dialog and adjusting size
         dialog = builder.create();
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.show();
+
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = 900;
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        if(lp.height > 1100)
+            lp.height = 1100;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER;
-
-        dialog.show();
         dialog.getWindow().setAttributes(lp);
-
-        // Setting custom font to dialog
-        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-        textView.setTypeface(tf);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
     }
 
     private void showInfoDialog(boolean inLocation, final Point point) {
         // Check if the dialog exists and if its showing
         if(dialog != null && dialog.isShowing()) return;
+        final String url = point.getPointURL();
 
         LayoutInflater inflater = LayoutInflater.from(this);
         View view = inflater.inflate(R.layout.dialog_point_info, null);
 
-        TextView dialogTitle = (TextView) view.findViewById(R.id.dialog_title);
-        dialogTitle.setText(point.getPointName());
+        TextView dialogTitle = (TextView) view.findViewById(R.id.dialogInfoTitle);
+        ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
+        AppCompatButton confirmButton = (AppCompatButton) view.findViewById(R.id.confirmInfoBtn);
+        AppCompatButton learnMoreButton = (AppCompatButton) view.findViewById(R.id.learnMoreBtn);
+
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        if(url != null && !Patterns.WEB_URL.matcher(url).matches()) {
+            learnMoreButton.setVisibility(View.GONE);
+        }
+
+        learnMoreButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(url));
+                startActivity(intent);
+            }
+        });
+
+        TextView dialogContentTitle = (TextView) view.findViewById(R.id.dialog_title);
+        dialogContentTitle.setText(point.getPointName());
 
         JustifiedTextView dialogText = (JustifiedTextView) view.findViewById(R.id.dialog_text);
         dialogText.setText(point.getPointDescription());
@@ -1232,109 +1400,99 @@ public class MapActivity extends AppCompatActivity implements
                     });
         }
 
-        LikeButton favoriteButton = (LikeButton) view.findViewById(R.id.favoriteButton);
-        if(favoritePoints.contains(point.getPointID()))
-            favoriteButton.setLiked(true);
-        favoriteButton.setOnLikeListener(new OnLikeListener() {
-            @Override
-            public void liked(LikeButton likeButton) {
-                HashMap tmpMap = new HashMap(1);
-                tmpMap.put("point", point.getPointID());
+        if(favoritePoints != null) {
+            LikeButton favoriteButton = (LikeButton) view.findViewById(R.id.favoriteButton);
+            if(favoritePoints.contains(point.getPointID()))
+                favoriteButton.setLiked(true);
+            favoriteButton.setOnLikeListener(new OnLikeListener() {
+                @Override
+                public void liked(final LikeButton likeButton) {
+                    likeButton.setEnabled(false);
+                    HashMap tmpMap = new HashMap(1);
+                    tmpMap.put("point", point.getPointID());
 
-                Call<ResponseBody> call = sgApiClient.markAsFavourite(authenticationHeader, tmpMap);
-                call.enqueue(new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        if(response.isSuccessful()) {
-                            Toast.makeText(MapActivity.this, R.string.point_favorited_success, Toast.LENGTH_SHORT).show();
-                        } else {
-                            Log.e(TAG, "liked - onResponse: " + response.errorBody().toString());
+                    Call<ResponseBody> call = sgApiClient.markAsFavourite(authenticationHeader, tmpMap);
+                    call.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            if(response.isSuccessful()) {
+                                Toast.makeText(MapActivity.this, R.string.point_favorited_success, Toast.LENGTH_SHORT).show();
+                            } else {
+                                Log.e(TAG, "liked - onResponse: " + response.errorBody().toString());
+                                Toast.makeText(MapActivity.this, R.string.point_favourite_error, Toast.LENGTH_SHORT).show();
+                            }
+                            likeButton.setEnabled(true);
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            Log.e(TAG, "liked - onFailure: " + t.getMessage());
                             Toast.makeText(MapActivity.this, R.string.point_favourite_error, Toast.LENGTH_SHORT).show();
+                            likeButton.setEnabled(true);
                         }
-                    }
+                    });
+                }
 
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Log.e(TAG, "liked - onFailure: " + t.getMessage());
-                        Toast.makeText(MapActivity.this, R.string.point_favourite_error, Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
+                @Override
+                public void unLiked(final LikeButton likeButton) {
+                    likeButton.setEnabled(false);
+                    HashMap tmpMap = new HashMap(1);
+                    tmpMap.put("point", point.getPointID());
 
-            @Override
-            public void unLiked(LikeButton likeButton) {
-                HashMap tmpMap = new HashMap(1);
-                tmpMap.put("point", point.getPointID());
+                    Call<ResponseBody> call = sgApiClient.markAsUnfavourite(authenticationHeader, tmpMap);
+                    call.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            if(response.isSuccessful()) {
+                                Toast.makeText(MapActivity.this, R.string.point_unfavourite_success, Toast.LENGTH_SHORT).show();
+                            } else {
+                                Log.e(TAG, "unliked - onResponse: " + response.errorBody().toString());
+                                Toast.makeText(MapActivity.this, R.string.point_unfavourite_error, Toast.LENGTH_SHORT).show();
+                            }
+                            likeButton.setEnabled(true);
+                        }
 
-                Call<ResponseBody> call = sgApiClient.markAsUnfavourite(authenticationHeader, tmpMap);
-                call.enqueue(new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        if(response.isSuccessful()) {
-                            Toast.makeText(MapActivity.this, R.string.point_unfavourite_success, Toast.LENGTH_SHORT).show();
-                        } else {
-                            Log.e(TAG, "unliked - onResponse: " + response.errorBody().toString());
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            Log.e(TAG, "unliked - onFailure: " + t.getMessage());
                             Toast.makeText(MapActivity.this, R.string.point_unfavourite_error, Toast.LENGTH_SHORT).show();
+                            likeButton.setEnabled(true);
                         }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Log.e(TAG, "unliked - onFailure: " + t.getMessage());
-                        Toast.makeText(MapActivity.this, R.string.point_unfavourite_error, Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
+                    });
+                }
+            });
+        } else {
+            LinearLayout favoriteLayout = (LinearLayout) view.findViewById(R.id.favoriteLayout);
+            favoriteLayout.setVisibility(View.GONE);
+        }
 
         //Ask the user if they want to quit
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
                 .setView(view)
-                .setIcon(R.mipmap.ic_info)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
                 .setCancelable(true);
-
-        if(point.getPointURL() != null) {
-            final String url = point.getPointURL();
-            if(Patterns.WEB_URL.matcher(url).matches()) {
-                builder.setNeutralButton("Learn more", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(url));
-                        startActivity(intent);
-                    }
-                });
-            }
-        }
 
         // Setting dialog title
         if (inLocation)
-            builder.setTitle("You are at " + point.getPointName());
-        else
-            builder.setTitle(point.getPointName());
+            dialogTitle.setText("You are at " + point.getPointName());
+        else {
+            dialogTitle.setText(point.getPointName());
+        }
 
         // Creating dialog and adjusting size
         dialog = builder.create();
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.show();
+
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = 900;
-        lp.height = 1300;
+        if(lp.height > 1100)
+            lp.height = 1100;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER;
-
-        dialog.show();
         dialog.getWindow().setAttributes(lp);
-
-        // Setting custom font to dialog
-        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-        textView.setTypeface(tf);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
     }
 
     private void showRouteOrderDialog() {
@@ -1343,6 +1501,11 @@ public class MapActivity extends AppCompatActivity implements
 
         LayoutInflater inflater = LayoutInflater.from(this);
         View view = inflater.inflate(R.layout.dialog_route_order, null);
+
+        AppCompatButton confirmOrderButton = (AppCompatButton) view.findViewById(R.id.confirmOrderBtn);
+        AppCompatButton shortestPathButton = (AppCompatButton) view.findViewById(R.id.shortestPathBtn);
+        AppCompatButton adventureModeButton = (AppCompatButton) view.findViewById(R.id.adventureModeBtn);
+        ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
 
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.routeDragRecyclerview);
 
@@ -1360,50 +1523,58 @@ public class MapActivity extends AppCompatActivity implements
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new RouteOrderRecyclerHelper(callback));
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        confirmOrderButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shortestPath = false;
+                dialog.dismiss();
+            }
+        });
+
+        shortestPathButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shortestPath = true;
+                dialog.dismiss();
+            }
+        });
+
+        adventureModeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Collections.shuffle(mRoute.getRoutePoints());
+                shortestPath = false;
+                dialog.dismiss();
+            }
+        });
+
         //Ask the user if they want to quit
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
-                .setTitle("Change Route Order")
                 .setView(view)
-                .setNegativeButton("Shortest Path", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        shortestPath = true;
-                        dialog.dismiss();
-                    }
-                })
-                .setNeutralButton("Adventure Mode", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Collections.shuffle(mRoute.getRoutePoints());
-                        shortestPath = false;
-                        dialog.dismiss();
-                    }
-                })
-                .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        shortestPath = false;
-                        dialog.dismiss();
-                    }
-                })
                 .setCancelable(false);
 
         // Creating dialog and adjusting size
         dialog = builder.create();
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.show();
+
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = 900;
-        lp.height = 1300;
+        if(lp.height > 1100)
+            lp.height = 1100;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER;
-
-        dialog.show();
         dialog.getWindow().setAttributes(lp);
-
-        // Setting custom font to dialog
-        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-        textView.setTypeface(tf);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
     }
 
     private void showBluetoothDevicesDialog() {
@@ -1436,19 +1607,18 @@ public class MapActivity extends AppCompatActivity implements
         // Creating dialog and adjusting size
         dialog = builder.create();
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.show();
+
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = 900;
-        lp.height = 1300;
+        if(lp.height > 1100)
+            lp.height = 1100;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER;
-
-        dialog.show();
         dialog.getWindow().setAttributes(lp);
-
-        // Setting custom font to dialog
-        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-        textView.setTypeface(tf);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
     }
 
     private Pair<Location, Point> getNearestPointLocation(Location currentLocation) {
@@ -1539,6 +1709,20 @@ public class MapActivity extends AppCompatActivity implements
 
         // Remove location updates to save battery.
         stopLocationUpdates();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if(bluetoothService != null) {
+            bluetoothService.stop();
+        }
+
+        if(auralizationEngine != null && auralizationEngine.isPlaying()) {
+            auralizationEngine.stopAndUnload();
+            auralizationEngine = null;
+        }
     }
 
     /**
@@ -1760,6 +1944,9 @@ public class MapActivity extends AppCompatActivity implements
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             switch (key) {
+                case SHARED_PREFS_TRIGGER_AREA_VALUE:
+                    prefs_trigger_area_value = sharedPreferences.getInt(SHARED_PREFS_TRIGGER_AREA_VALUE, TRIGGER_AREA_DISTANCE);
+                    break;
                 case SHARED_PREFS_AURALIZATION:
                     prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
                     break;
@@ -1792,7 +1979,7 @@ public class MapActivity extends AppCompatActivity implements
     };
 
     //Convert the Data Received to Float
-    private void convertData(String data) {
+    private void convertData(String data) throws Exception {
         String [] tmp = data.split("/");
         rotation[0] = Float.valueOf(tmp[0]);
         rotation[1] = Float.valueOf(tmp[1]);

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.lid.lib.LabelImageView;
@@ -15,6 +16,7 @@ import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -28,7 +30,7 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
     private static final String TAG = "RouteAdapter";
 
     public interface OnItemClickListener {
-        void onItemClick(Route item);
+        void onItemClick(Route item, View view);
     }
 
     private Context context;
@@ -59,6 +61,7 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
         @BindView(R.id.routeName) TextView name;
         @BindView(R.id.routeDescription) TextView description;
         @BindView(R.id.routeImage) LabelImageView image;
+        @BindView(R.id.routeImageProgress) ProgressBar imageProgress;
 
         private Context context;
 
@@ -79,13 +82,22 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
             if(!item.getRouteImage().isEmpty()) {
                 Picasso.get()
                         .load(item.getRouteImage())
-                        .placeholder(R.drawable.progress_animation)
                         .error(R.drawable.not_available)
-                        .into(image);
+                        .into(image, new Callback() {
+                            @Override
+                            public void onSuccess() {
+                                imageProgress.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                imageProgress.setVisibility(View.GONE);
+                            }
+                        });
             }
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) {
-                    listener.onItemClick(item);
+                    listener.onItemClick(item, itemView);
                 }
             });
         }
@@ -105,7 +117,6 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
                     return false;
                 }
             }
-
             return true;
         } catch (IOException e) {
             Log.d(TAG, "isOnStorage IOException: " + e.getMessage());

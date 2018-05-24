@@ -6,7 +6,7 @@
         android:title="Route Reorder">
     </item>
     <item
-        android:id="@+id/ic_play"
+        android:id="@+id/ic_soundoptions"
         android:icon="@drawable/ic_play_bnv"
         android:title="Sound Options">
     </item>

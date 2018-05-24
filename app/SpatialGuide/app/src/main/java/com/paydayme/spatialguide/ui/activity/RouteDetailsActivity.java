@@ -16,6 +16,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
@@ -23,10 +24,13 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +46,7 @@ import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.model.download.Download;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -88,12 +93,15 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private String authenticationHeader;
 
     private ProgressDialog progressDialog;
+    private AlertDialog alertDialog;
 
     private int routeSelected;
     private PointAdapter pointAdapter;
     private List<Point> pointList = new ArrayList<>();
     private boolean routeOnStorage = false;
     private long currentRouteLastUpdate = 0;
+    private Route currentRoute;
+    private boolean hasUpdate = false;
 
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.routeList) RecyclerView recyclerView;
@@ -106,13 +114,13 @@ public class RouteDetailsActivity extends AppCompatActivity {
     @BindView(R.id.fabButton) FloatingActionButton fabButton;
     @BindView(R.id.fabText) TextView fabText;
     @BindView(R.id.collapsingToolbar) CollapsingToolbarLayout collapsingToolbarLayout;
-    @BindView(R.id.layoutDetails) LinearLayout detailsLayout;
-    @BindView(R.id.layoutPoints) LinearLayout pointsLayout;
     @BindView(R.id.mapCard) CardView mapCard;
-    @BindView(R.id.layoutImage) LinearLayout imageLayout;
-    @BindView(R.id.progressDetails) ProgressBar detailsProgress;
-    @BindView(R.id.progressPoints) ProgressBar pointsProgress;
     @BindView(R.id.favoriteButton) LikeButton favoriteButton;
+    @BindView(R.id.cardDetails) CardView cardDetails;
+    @BindView(R.id.cardPoints) CardView cardPoints;
+    @BindView(R.id.loadingLayout) RelativeLayout loadingLayout;
+    @BindView(R.id.mainLayout) LinearLayout mainLayout;
+    @BindView(R.id.progressMap) ProgressBar progressMap;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -124,13 +132,9 @@ public class RouteDetailsActivity extends AppCompatActivity {
         // Get route selected on the previous screen
         Intent intent = getIntent();
         routeSelected = intent.getIntExtra("route", -1);
-        Log.d(TAG, "route selected: " + routeSelected);
 
         if (routeSelected != -1) {
             init();
-
-            getRouteDetailsAPI(routeSelected);
-//            getFakeData();
         } else {
             Log.e(TAG, "Invalid route!");
             AlertDialog dialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
@@ -167,6 +171,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(RouteDetailsActivity.this, RouteActivity.class));
+                finish();
             }
         });
 
@@ -204,9 +209,11 @@ public class RouteDetailsActivity extends AppCompatActivity {
         fabButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(alertDialog != null && alertDialog.isShowing()) return;
+                fabButton.setEnabled(false);
                 if (!routeOnStorage) {
                     //Ask the user if wants to download the route
-                    AlertDialog dialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                    alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
                             .setTitle(getString(R.string.download_route))
                             .setMessage(getString(R.string.download_route_prompt))
                             .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
@@ -218,12 +225,10 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             .setNegativeButton(getString(android.R.string.no), null)
                             .setCancelable(false)
                             .show();
-                    TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-                    Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-                    textView.setTypeface(tf);
+                    changeFontAlertDialog();
                 } else {
                     //Ask the user if wants to navigate in this route
-                    AlertDialog dialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                    alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
                             .setTitle(getString(R.string.navigate_route))
                             .setMessage(getString(R.string.navigate_route_prompt))
                             .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
@@ -235,16 +240,16 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             .setNegativeButton(getString(android.R.string.no), null)
                             .setCancelable(false)
                             .show();
-                    TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-                    Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-                    textView.setTypeface(tf);
+                    changeFontAlertDialog();
                 }
+                fabButton.setEnabled(true);
             }
         });
 
         favoriteButton.setOnLikeListener(new OnLikeListener() {
             @Override
-            public void liked(LikeButton likeButton) {
+            public void liked(final LikeButton likeButton) {
+                likeButton.setEnabled(false);
                 HashMap tmpMap = new HashMap(1);
                 tmpMap.put("route", route.getRouteID());
 
@@ -258,18 +263,21 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
                             Toast.makeText(RouteDetailsActivity.this, R.string.route_favourite_error, Toast.LENGTH_SHORT).show();
                         }
+                        likeButton.setEnabled(true);
                     }
 
                     @Override
                     public void onFailure(Call<ResponseBody> call, Throwable t) {
                         Log.e(TAG, "onFavoriteChanged - onFailure: " + t.getMessage());
                         Toast.makeText(RouteDetailsActivity.this, R.string.route_favourite_error, Toast.LENGTH_SHORT).show();
+                        likeButton.setEnabled(true);
                     }
                 });
             }
 
             @Override
-            public void unLiked(LikeButton likeButton) {
+            public void unLiked(final LikeButton likeButton) {
+                likeButton.setEnabled(false);
                 HashMap tmpMap = new HashMap(1);
                 tmpMap.put("route", route.getRouteID());
 
@@ -283,34 +291,31 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
                             Toast.makeText(RouteDetailsActivity.this, R.string.route_unfavourite_error, Toast.LENGTH_SHORT).show();
                         }
+                        likeButton.setEnabled(true);
                     }
 
                     @Override
                     public void onFailure(Call<ResponseBody> call, Throwable t) {
                         Log.e(TAG, "onFavoriteChanged - onFailure: " + t.getMessage());
                         Toast.makeText(RouteDetailsActivity.this, R.string.route_unfavourite_error, Toast.LENGTH_SHORT).show();
+                        likeButton.setEnabled(true);
                     }
                 });
             }
         });
 
         getRouteLastUpdateAPI(routeSelected);
-        if(isOnStorage(routeSelected)) {
-            routeOnStorage = true;
-            fabText.setVisibility(View.VISIBLE);
-        } else {
-            fabButton.setImageResource(R.drawable.ic_download);
-        }
-
-        detailsProgress.setIndeterminate(true);
-        pointsProgress.setIndeterminate(true);
-
         registerReceiver();
+    }
+
+    private void changeFontAlertDialog() {
+        TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
     }
 
     private void getUserInfo() {
         Call<User> call = sgApiClient.getUserInfo(authenticationHeader);
-
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
@@ -331,7 +336,6 @@ public class RouteDetailsActivity extends AppCompatActivity {
                 Log.e(TAG, "getUserInfo - onFailure: some error occurred: " + t.getMessage());
             }
         });
-
     }
 
     private void onNavigateRoute() {
@@ -380,11 +384,12 @@ public class RouteDetailsActivity extends AppCompatActivity {
             Log.d(TAG, "onReceive: intent " + intent.getAction());
             if(intent.getAction().equals(BROADCAST_MESSAGE_PROGRESS)){
                 Download download = intent.getParcelableExtra("download");
-                int index = intent.getIntExtra("index", -1);
-                int total = intent.getIntExtra("total", -1);
+                Integer index = intent.getIntExtra("index", -1);
+                Integer total = intent.getIntExtra("total", -1);
 
                 if(download.getProgress() == 100) {
-                    progressDialog.setMessage("Downloading files...\n" + index + "/" + total + " completed");
+                    if(index != null && total != null && total > 1)
+                        progressDialog.setMessage("Downloading files...\n" + index + "/" + total + " completed");
                 }
             } else if (intent.getAction().equals(BROADCAST_ERROR_DOWNLOAD)) {
                 Log.e(TAG, "onReceive: going to on download failed");
@@ -425,19 +430,12 @@ public class RouteDetailsActivity extends AppCompatActivity {
                 return false;
             for(Point p : route.getRoutePoints()) {
                 try {
-                    // TODO - make sure the file is .wav
                     if(InternalStorage.getFile(this, Constant.POINT_STORAGE_SEPARATOR + p.getPointID() + ".wav") == null)
                         return false;
                 } catch (Exception e) {
                     Log.d(TAG, "isOnStorage IOException: " + e.getMessage());
                     return false;
                 }
-            }
-
-            Log.d(TAG, "isOnStorage - server LastUpdate: " + currentRouteLastUpdate);
-            Log.d(TAG, "isOnStorage - internal LastUpdate: " + route.getLastUpdate());
-            if (currentRouteLastUpdate > route.getLastUpdate()) {
-                return false;
             }
             return true;
         } catch (IOException e) {
@@ -449,19 +447,29 @@ public class RouteDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private void getFakeData() {
-        List<Point> tmpList = new ArrayList<>();
-        tmpList.add(new Point(1,"Fórum Aveiro", 40.641475, -8.653675, "examples/mp3/SoundHelix-Song-1.mp3"));
-        tmpList.add(new Point(2,"Praça do Peixe", 40.642313, -8.655352, "examples/mp3/SoundHelix-Song-2.mp3"));
-        tmpList.add(new Point(3,"Estação de Comboios", 40.643304, -8.641302, "examples/mp3/SoundHelix-Song-3.mp3"));
-        tmpList.add(new Point(4,"Sé de Aveiro", 40.639469, -8.650397, "examples/mp3/SoundHelix-Song-4.mp3"));
-
-        route = new Route(1,
-                "Test Route",
-                "Welcome to the test route! Here it is how a route will look like in the SpatialGuide app.",
-                "https://i0.wp.com/gazetarural.com/wp-content/uploads/2017/12/Aveiro-Ria.jpg",
-                tmpList, 0, "2010-02-03", 1234567890);
-        updateUI();
+    private void showUpdateRouteDialog() {
+        alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                .setTitle(getString(R.string.update_dialog_title))
+                .setMessage(getString(R.string.update_dialog_message))
+                .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        route = currentRoute;
+                        onDownloadRoute();
+                        getUserInfo();
+                        updateUI();
+                    }
+                })
+                .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        getUserInfo();
+                        updateUI();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        changeFontAlertDialog();
     }
 
     private void updateUI() {
@@ -473,10 +481,35 @@ public class RouteDetailsActivity extends AppCompatActivity {
                     .load(route.getRouteImage())
                     .placeholder(R.drawable.progress_animation)
                     .error(R.drawable.not_available)
-                    .into(routeImage);
-            routeImage.setVisibility(View.VISIBLE);
+                    .into(routeImage, new com.squareup.picasso.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            collapsingToolbarLayout.setVisibility(View.VISIBLE);
+                            loadingLayout.setVisibility(View.GONE);
+                            mainLayout.setVisibility(View.VISIBLE);
+                            fabButton.setVisibility(View.VISIBLE);
+
+                            if(routeOnStorage)
+                                fabText.setVisibility(View.VISIBLE);
+                            else
+                                fabButton.setImageResource(R.drawable.ic_download2);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            collapsingToolbarLayout.setVisibility(View.VISIBLE);
+                            loadingLayout.setVisibility(View.GONE);
+                            mainLayout.setVisibility(View.VISIBLE);
+                            fabButton.setVisibility(View.VISIBLE);
+
+                            if(routeOnStorage)
+                                fabText.setVisibility(View.VISIBLE);
+                            else
+                                fabButton.setImageResource(R.drawable.ic_download2);
+                            Log.e(TAG, "updateUI - onError: error fetching image: " + e.getMessage());
+                        }
+                    });
         }
-        imageLayout.setVisibility(View.GONE);
 
         // Route Map Image - Static map from Google Maps API
         if(!route.getRouteMapImage().isEmpty()) {
@@ -487,12 +520,12 @@ public class RouteDetailsActivity extends AppCompatActivity {
                     .into(routeMapImage, new com.squareup.picasso.Callback() {
                         @Override
                         public void onSuccess() {
-                            mapCard.setVisibility(View.VISIBLE);
+                            progressMap.setVisibility(View.GONE);
                         }
 
                         @Override
                         public void onError(Exception e) {
-
+                            mapCard.setVisibility(View.GONE);
                         }
                     });
         }
@@ -503,22 +536,20 @@ public class RouteDetailsActivity extends AppCompatActivity {
         String downloadStr = route.getRouteDownloads() + " " + getString(R.string.downloads);
         routeDownloads.setText(downloadStr);
         routeDate.setText(route.getRouteDate());
-        detailsProgress.setVisibility(View.GONE);
-        detailsLayout.setVisibility(View.VISIBLE);
+        cardDetails.setVisibility(View.VISIBLE);
 
         // Setting the point adapter and the recyclerview to receive route points
         pointList = route.getRoutePoints();
         pointAdapter = new PointAdapter(this, pointList, false);
         recyclerView.setAdapter(pointAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        if(pointList.isEmpty()) {
+
+        if(pointList.isEmpty())
             noPointsText.setVisibility(View.VISIBLE);
-        } else {
+        else
             noPointsText.setVisibility(View.GONE);
-            fabButton.setVisibility(View.VISIBLE);
-        }
-        pointsLayout.setVisibility(View.VISIBLE);
-        pointsProgress.setVisibility(View.GONE);
+
+        cardPoints.setVisibility(View.VISIBLE);
     }
 
     private void getRouteDetailsAPI(int routeID) {
@@ -548,13 +579,40 @@ public class RouteDetailsActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Route> call, Response<Route> response) {
                 if(response.isSuccessful()) {
-                    currentRouteLastUpdate = response.body().getLastUpdate();
+                    currentRoute = response.body();
+                    currentRouteLastUpdate = currentRoute.getLastUpdate();
+
+                    if(isOnStorage(routeSelected)) {
+                        routeOnStorage = true;
+
+                        // Verificar se existe update na rota / pontos
+                        if(currentRouteLastUpdate > route.getLastUpdate())
+                            hasUpdate = true;
+                        for(Point point : route.getRoutePoints())
+                            for(Point currentPoint : currentRoute.getRoutePoints())
+                                if(point.getPointID() == currentPoint.getPointID() && currentPoint.getLastUpdate() > point.getLastUpdate())
+                                    hasUpdate = true;
+
+                        // se houver update na rota/pontos perguntar ao utilizador se quer atualizar
+                        // caso contrario mantem-se com os dados que tem ate agora pois estao no dispositivo
+                        if(hasUpdate) {
+                            showUpdateRouteDialog();
+                        } else {
+                            getUserInfo();
+                            updateUI();
+                        }
+                    } else {
+                        // a rota nao existe no dispositivo, vamos buscar os dados à API
+                        getRouteDetailsAPI(routeSelected);
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<Route> call, Throwable t) {
                 Log.e(TAG, "onFailure: obtaining route last update " + t.getMessage());
+                getUserInfo();
+                updateUI();
             }
         });
     }

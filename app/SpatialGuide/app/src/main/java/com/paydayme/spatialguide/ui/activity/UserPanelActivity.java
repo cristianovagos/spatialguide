@@ -3,6 +3,7 @@ package com.paydayme.spatialguide.ui.activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,6 +40,7 @@ import android.widget.Toast;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
+import com.paydayme.spatialguide.core.image.ImagePicker;
 import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
@@ -88,6 +90,8 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
 
     private User currentUser;
 
+    private final int PICK_IMAGE_ID = 3421; // a random value, just for checking
+
     private AppCompatEditText passwordEditText;
     private AppCompatEditText newPasswordEditText;
     private AppCompatEditText reEnterNewPasswordEditText;
@@ -105,6 +109,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
     @BindView(R.id.email) TextView email;
     @BindView(R.id.changepassword) Button btn_changepassword;
     @BindView(R.id.changeemail) Button btn_changeemail;
+    @BindView(R.id.changeimage) Button btn_changeimage;
 
     private TextView userNameMenu;
     private CircleImageView userImageMenu;
@@ -184,6 +189,22 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
             @Override
             public void onClick(View v) {
                 showChangeEmailDialog();
+            }
+        });
+
+        btn_changeimage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent chooseImageIntent = ImagePicker.getPickImageIntent(getApplicationContext());
+                startActivityForResult(chooseImageIntent, PICK_IMAGE_ID);
+            }
+        });
+
+        userimage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent chooseImageIntent = ImagePicker.getPickImageIntent(getApplicationContext());
+                startActivityForResult(chooseImageIntent, PICK_IMAGE_ID);
             }
         });
     }
@@ -273,7 +294,10 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = 900;
-        lp.height = 1300;
+        if(lp.height > 1300)
+            lp.height = 1300;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER;
 
         dialog.show();
@@ -383,7 +407,10 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = 900;
-        lp.height = 1300;
+        if(lp.height > 1300)
+            lp.height = 1300;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER;
 
         dialog.show();
@@ -523,6 +550,23 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                 Toast.makeText(UserPanelActivity.this, "Some error occurred while changing password", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case PICK_IMAGE_ID:
+                Bitmap bitmap = ImagePicker.getImageFromResult(this, resultCode, data);
+                if(bitmap != null) {
+                    // todo send image to API, update user image on drawer
+                    userimage.setImageBitmap(bitmap);
+                    userImageMenu.setImageBitmap(bitmap);
+                }
+                break;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+                break;
+        }
     }
 
     @Override

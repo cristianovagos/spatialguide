@@ -13,42 +13,29 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         android:fitsSystemWindows="true">
 
-        <!--
-            app:expandedTitleTextAppearance="@android:color/transparent"
-        -->
-
         <android.support.design.widget.CollapsingToolbarLayout
             android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="300dp"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:contentScrim="?attr/colorPrimary"
-            app:expandedTitleTextAppearance="@style/TextAppearance.Design.CollapsingToolbar.Expanded.Shadow"
-            android:fitsSystemWindows="true">
-
-            <LinearLayout
-                android:id="@+id/layoutImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/white">
-
-                <ProgressBar
-                    android:layout_gravity="center"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:indeterminateTint="@color/primary"
-                    />
-
-            </LinearLayout>
+            app:title=""
+            android:fitsSystemWindows="true"
+            android:visibility="gone">
 
             <ImageView
                 android:id="@+id/routeImage"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 app:layout_collapseMode="parallax"
-                android:scaleType="centerCrop"
-                android:visibility="gone" />
-            
+                android:scaleType="centerCrop" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="85dp"
+                android:background="#7000"
+                android:layout_gravity="bottom"/>
+
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
@@ -58,7 +45,7 @@
 
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
-    
+
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -69,264 +56,290 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingTop="10dp">
+            android:orientation="vertical">
 
-            <android.support.v7.widget.CardView
+            <RelativeLayout
+                android:id="@+id/loadingLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                app:cardElevation="5dp"
-                app:cardUseCompatPadding="true">
+                android:layout_height="match_parent"
+                android:background="@color/white"
+                android:layout_marginTop="200dp">
+
+                <ImageView
+                    android:id="@+id/loadingLogo"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@mipmap/logo_launcher"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"/>
 
                 <ProgressBar
-                    android:id="@+id/progressDetails"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="visible"
-                    android:background="@color/white"
+                    android:id="@+id/progressLoading"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
                     android:indeterminateTint="@color/primary"
-                    />
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"/>
 
-                <LinearLayout
-                    android:id="@+id/layoutDetails"
-                    android:background="@color/white"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:orientation="vertical">
+                    android:text="@string/loading"
+                    android:layout_marginTop="5dp"
+                    android:textColor="@color/black"
+                    android:layout_centerHorizontal="true"
+                    android:layout_below="@+id/progressLoading"/>
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+            </RelativeLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="5dp"
-                            android:paddingStart="10dp"
-                            android:textColor="@color/monsoon"
-                            android:text="@string/route_details"
-                            android:textStyle="bold"
-                            android:textSize="20sp"
-                            android:fontFamily="@font/catamaran"
-                            tools:ignore="RtlSymmetry" />
-
-                        <TextView
-                            android:id="@+id/routeAvailableText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:textColor="@color/monsoon"
-                            android:text="@string/route_available"
-                            android:paddingEnd="8dp"
-                            android:visibility="gone"
-                            android:gravity="top|end"
-                            tools:ignore="RtlSymmetry" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_marginTop="5dp"
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <ImageView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="2.5"
-                            android:layout_gravity="center_vertical"
-                            android:src="@drawable/ic_clock"
-                            android:contentDescription="@string/date_added" />
-
-                        <TextView
-                            android:id="@+id/routeDate"
-                            android:layout_gravity="center_vertical"
-                            android:textSize="14sp"
-                            android:layout_width="0dp"
-                            android:layout_weight="8"
-                            android:layout_height="wrap_content"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/catamaran"
-                            android:textColor="@color/monsoon"/>
-
-                        <ImageView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="2.5"
-                            android:layout_gravity="center_vertical"
-                            android:src="@drawable/ic_download"
-                            android:contentDescription="@string/downloads" />
-
-                        <TextView
-                            android:id="@+id/routeDownloads"
-                            android:layout_gravity="center_vertical"
-                            android:textSize="14sp"
-                            android:layout_width="0dp"
-                            android:layout_weight="8"
-                            android:layout_height="wrap_content"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/catamaran"
-                            android:textColor="@color/monsoon"/>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="5dp"
-                            android:paddingStart="10dp"
-                            android:textColor="@color/monsoon"
-                            android:text="Mark as favorite:"
-                            android:textSize="15sp"
-                            android:fontFamily="@font/catamaran"
-                            android:layout_gravity="center_vertical"
-                            tools:ignore="RtlSymmetry" />
-
-                        <com.like.LikeButton
-                            android:id="@+id/favoriteButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            app:icon_type="heart"
-                            app:icon_size="20dp"/>
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/routeDescription"
-                        android:padding="12dp"
-                        android:textSize="13sp"
-                        android:layout_marginTop="5dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/monsoon"
-                        android:fontFamily="@font/catamaran" />
-
-                </LinearLayout>
-
-            </android.support.v7.widget.CardView>
-
-            <android.support.v7.widget.CardView
+            <LinearLayout
+                android:id="@+id/mainLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                app:cardElevation="5dp"
-                app:cardUseCompatPadding="true">
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                <ProgressBar
-                    android:id="@+id/progressPoints"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="visible"
-                    android:background="@color/white"
-                    android:indeterminateTint="@color/primary"
-                    />
-
-                <LinearLayout
-                    android:id="@+id/layoutPoints"
-                    android:background="@color/white"
-                    android:orientation="vertical"
+                <android.support.v7.widget.CardView
+                    android:id="@+id/cardDetails"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:cardElevation="5dp"
+                    app:cardUseCompatPadding="true"
                     android:visibility="gone">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="5dp"
-                        android:paddingStart="10dp"
-                        android:paddingBottom="5dp"
-                        android:textColor="@color/monsoon"
-                        android:text="@string/route_points"
-                        android:textStyle="bold"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/catamaran"
-                        tools:ignore="RtlSymmetry" />
-
-                    <TextView
-                        android:id="@+id/noPointsText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:paddingBottom="5dp"
-                        android:textColor="@color/monsoon"
-                        android:text="@string/no_points_route_details"
-                        android:textSize="15sp"
-                        android:visibility="gone"/>
-
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/routeList"
+                    <LinearLayout
+                        android:background="@color/white"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingStart="10dp"
-                        android:paddingBottom="10dp"
-                        tools:ignore="RtlSymmetry">
+                        android:orientation="vertical"
+                        android:padding="10dp">
 
-                    </android.support.v7.widget.RecyclerView>
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                </LinearLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/black"
+                                android:text="@string/route_details"
+                                android:textAllCaps="true"
+                                android:textSize="18sp"
+                                android:fontFamily="@font/catamaran"
+                                tools:ignore="RtlSymmetry" />
 
-            </android.support.v7.widget.CardView>
+                            <TextView
+                                android:id="@+id/routeAvailableText"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:textColor="@color/monsoon"
+                                android:text="@string/route_available"
+                                android:paddingEnd="8dp"
+                                android:visibility="gone"
+                                android:gravity="top|end"
+                                tools:ignore="RtlSymmetry" />
 
-            <android.support.v7.widget.CardView
-                android:id="@+id/mapCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:visibility="gone"
-                app:cardElevation="5dp"
-                app:cardUseCompatPadding="true">
+                        </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/layoutMap"
-                    android:background="@color/white"
-                    android:orientation="vertical"
+                        <LinearLayout
+                            android:layout_marginTop="5dp"
+                            android:orientation="horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <ImageView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2.5"
+                                android:layout_gravity="center_vertical"
+                                android:src="@drawable/ic_calendar"
+                                android:contentDescription="@string/date_added" />
+
+                            <TextView
+                                android:id="@+id/routeDate"
+                                android:layout_gravity="center_vertical"
+                                android:layout_width="0dp"
+                                android:layout_weight="8"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/catamaran"
+                                android:textSize="14sp"
+                                android:textColor="@color/monsoon"/>
+
+                            <ImageView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2.5"
+                                android:layout_gravity="center_vertical"
+                                android:src="@drawable/ic_download"
+                                android:contentDescription="@string/downloads" />
+
+                            <TextView
+                                android:id="@+id/routeDownloads"
+                                android:layout_gravity="center_vertical"
+                                android:layout_width="0dp"
+                                android:layout_weight="8"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/catamaran"
+                                android:textSize="14sp"
+                                android:textColor="@color/monsoon"/>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="30dp"
+                            android:layout_marginTop="10dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/black"
+                                android:text="@string/mark_as_favorite"
+                                android:textAllCaps="true"
+                                android:textSize="15sp"
+                                android:fontFamily="@font/catamaran"
+                                android:layout_gravity="center_vertical"
+                                tools:ignore="RtlSymmetry" />
+
+                            <com.like.LikeButton
+                                android:id="@+id/favoriteButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:icon_type="heart"
+                                app:icon_size="20dp"
+                                android:layout_gravity="center_vertical"/>
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.1dp"
+                            android:background="@color/monsoon"
+                            android:layout_marginTop="10dp"/>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:textSize="15sp"
+                            android:text="@string/route_description"
+                            android:textAllCaps="true"
+                            android:fontFamily="@font/catamaran"
+                            android:textColor="@color/black"/>
+
+                        <TextView
+                            android:id="@+id/routeDescription"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="12dp"
+                            android:textSize="13sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/monsoon"
+                            android:fontFamily="@font/catamaran" />
+
+                    </LinearLayout>
+
+                </android.support.v7.widget.CardView>
+
+                <android.support.v7.widget.CardView
+                    android:id="@+id/cardPoints"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    app:cardElevation="5dp"
+                    app:cardUseCompatPadding="true"
+                    android:visibility="gone">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="5dp"
-                        android:paddingStart="10dp"
-                        android:paddingBottom="10dp"
-                        android:textColor="@color/monsoon"
-                        android:text="@string/map_route_details"
-                        android:textStyle="bold"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/catamaran"
-                        tools:ignore="RtlSymmetry" />
-
-                    <TextView
-                        android:id="@+id/mapNotAvailableText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:paddingBottom="5dp"
-                        android:textColor="@color/monsoon"
-                        android:text="@string/map_not_available"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/catamaran"
-                        android:visibility="gone"/>
-
-                    <ImageView
-                        android:id="@+id/mapImage"
+                    <LinearLayout
+                        android:background="@color/white"
+                        android:orientation="vertical"
                         android:layout_width="match_parent"
-                        android:layout_height="300dp"
-                        android:padding="10dp"
-                        android:layout_marginBottom="10dp"
-                        android:scaleType="centerCrop"
-                        android:contentDescription="@string/map" />
+                        android:layout_height="wrap_content">
 
-                </LinearLayout>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="10dp"
+                            android:paddingStart="10dp"
+                            android:paddingBottom="5dp"
+                            android:textColor="@color/black"
+                            android:text="@string/route_points"
+                            android:textSize="15sp"
+                            android:textAllCaps="true"
+                            android:fontFamily="@font/catamaran"
+                            tools:ignore="RtlSymmetry" />
 
-            </android.support.v7.widget.CardView>
+                        <TextView
+                            android:id="@+id/noPointsText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:paddingBottom="5dp"
+                            android:textColor="@color/monsoon"
+                            android:text="@string/no_points_route_details"
+                            android:textSize="15sp"
+                            android:visibility="gone"/>
+
+                        <android.support.v7.widget.RecyclerView
+                            android:id="@+id/routeList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="10dp"
+                            android:paddingBottom="10dp"
+                            tools:ignore="RtlSymmetry"/>
+
+                    </LinearLayout>
+
+                </android.support.v7.widget.CardView>
+
+                <android.support.v7.widget.CardView
+                    android:id="@+id/mapCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="365dp"
+                    android:layout_marginTop="5dp"
+                    app:cardElevation="5dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:id="@+id/layoutMap"
+                        android:background="@color/white"
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:textColor="@color/black"
+                            android:text="@string/map_route_details"
+                            android:textAllCaps="true"
+                            android:textSize="15sp"
+                            android:fontFamily="@font/catamaran"
+                            tools:ignore="RtlSymmetry" />
+
+                        <ProgressBar
+                            android:id="@+id/progressMap"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:layout_gravity="center"
+                            android:indeterminateTint="@color/primary" />
+
+                        <ImageView
+                            android:id="@+id/mapImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="300dp"
+                            android:layout_marginBottom="10dp"
+                            android:scaleType="centerCrop" />
+
+                    </LinearLayout>
+
+                </android.support.v7.widget.CardView>
+
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -363,14 +376,5 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             tools:ignore="UnusedAttribute" />
     </FrameLayout>
-
-    <!--<android.support.design.widget.FloatingActionButton-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:src="@android:color/transparent" />-->
-
-    <!--app:layout_anchor="@id/app_bar_layout"-->
-    <!--app:layout_anchorGravity="bottom|right|end"-->
-
 
 </android.support.design.widget.CoordinatorLayout>

@@ -195,11 +195,14 @@ public class LoginActivity extends AppCompatActivity {
 
         // disable login button
         loginButton.setEnabled(false);
+        forgotPasswordLink.setClickable(false);
+        signupLink.setClickable(false);
 
         // progress dialog
         final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
-                R.style.AppTheme_Dark_Dialog);
+                R.style.CustomDialogTheme);
         progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(false);
         progressDialog.setMessage(getString(R.string.authenticating));
         progressDialog.show();
 
@@ -230,11 +233,7 @@ public class LoginActivity extends AppCompatActivity {
                                 }
                             }, 1000);
                 } else {
-                    try {
-                        Log.e(TAG, "onResponse (login failed): " + response.errorBody().string());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    Log.e(TAG, "onResponse (login failed): server responded with error");
                     progressDialog.dismiss();
                     onLoginFailure();
                 }
@@ -287,7 +286,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginSuccess() {
-        loginButton.setEnabled(true);
         startActivity(new Intent(LoginActivity.this, RouteActivity.class));
         finish();
     }
@@ -296,6 +294,8 @@ public class LoginActivity extends AppCompatActivity {
         // Present Toast with error
         Toast.makeText(this, getString(R.string.error_login), Toast.LENGTH_LONG).show();
         loginButton.setEnabled(true);
+        forgotPasswordLink.setClickable(true);
+        signupLink.setClickable(true);
     }
 
     public boolean isLoginValid() {

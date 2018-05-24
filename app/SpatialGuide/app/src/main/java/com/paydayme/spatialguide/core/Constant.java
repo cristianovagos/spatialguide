@@ -10,15 +10,15 @@ public final class Constant {
      */
 //    public static final String BASE_URL = "http://192.168.43.111:8000/";
 //    public static final String BASE_URL = "http://192.168.1.19:8000/";
-    public static final String BASE_URL = "http://192.168.43.250:8000/";
-//    public static final String BASE_URL = "http://192.168.62.40:8000/";
+//    public static final String BASE_URL = "http://192.168.43.250:8000/";
+    public static final String BASE_URL = "http://94.60.61.49";
+//    public static final String BASE_URL = "http://192.168.1.99:8000/";
 
     /**
      * Base URL of media files (Google Drive)
      */
     public static final String FILES_BASE_URL = "http://drive.google.com/";
     public static final String FILES_BASE_URL_SEPARATOR = "uc?export=view&id=";
-//    public static final String FILES_BASE_URL = "https://www.soundhelix.com/";
 
     /**
      * SpatialGuide Website to go on menu drawer click
@@ -45,8 +45,18 @@ public final class Constant {
     /**
      * Distance of the Trigger Area, the minimum area required for the spatial audio
      * and point of interest information to display in the screen.
+     *
+     * This is the default value.
      */
-    public static final int TRIGGER_AREA_DISTANCE = 25;
+//    public static final int TRIGGER_AREA_DISTANCE = 25;
+    public static final int TRIGGER_AREA_DISTANCE = 50;
+
+    /**
+     * Minimum and maximum values for trigger area distance.
+     * These will appear on the settings screen for letting user customize the trigger area.
+     */
+    public static final int MIN_TRIGGER_AREA_VALUE = 1;
+    public static final int MAX_TRIGGER_AREA_VALUE = 100;
 
     /**
      * String used to store/access the routes saved in internal device storage.
@@ -81,6 +91,7 @@ public final class Constant {
     public static final String SHARED_PREFS_AURALIZATION = "com.paydayme.spatialguide.prefs.auralization_engine";
     public static final String SHARED_PREFS_HEATMAP = "com.paydayme.spatialguide.prefs.send_location_heatmap";
     public static final String SHARED_PREFS_TRAVEL_MODE = "com.paydayme.spatialguide.prefs.travel_mode";
+    public static final String SHARED_PREFS_TRIGGER_AREA_VALUE = "com.paydayme.spatialguide.prefs.trigger_area";
     public static final String SHARED_PREFS_LOCATION_ACCURACY = "com.paydayme.spatialguide.prefs.location_accuracy";
     public static final String SHARED_PREFS_MAP_TYPE = "com.paydayme.spatialguide.prefs.map_type";
     public static final String SHARED_PREFS_MARKER_UNVISITED_COLOR = "com.paydayme.spatialguide.prefs.unvisited_marker_color";
@@ -113,7 +124,7 @@ public final class Constant {
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 100;
 
     /**
      * The fastest rate for active location updates. Exact. Updates will never be more frequent

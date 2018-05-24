@@ -40,7 +40,7 @@ public class User {
     List<Integer> favoriteRoutes;
 
     @SerializedName("Visited_points")
-    List<Integer> visitedPoints;
+    List<VisitedPoint> visitedPoints;
 
     public User(String username, String first_name, String last_name, String password, String email) {
         this.username = username;

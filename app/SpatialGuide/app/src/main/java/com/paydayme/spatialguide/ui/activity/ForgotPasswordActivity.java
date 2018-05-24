@@ -130,9 +130,10 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         }
 
         recoverPasswordButton.setEnabled(false);
+        loginLink.setEnabled(false);
 
         final ProgressDialog progressDialog = new ProgressDialog(ForgotPasswordActivity.this,
-                R.style.AppTheme_Dark_Dialog);
+                R.style.CustomDialogTheme);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage(getString(R.string.recovering_password));
         progressDialog.show();
@@ -173,6 +174,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         Log.d(TAG, "recovery success, going back to LoginActivity...");
         Toast.makeText(ForgotPasswordActivity.this, "Password recovered successfully!", Toast.LENGTH_SHORT).show();
         recoverPasswordButton.setEnabled(true);
+        loginLink.setEnabled(true);
         setResult(RESULT_OK, null);
         finish();
     }
@@ -180,6 +182,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     public void onRecoverPassswordFailure() {
         Toast.makeText(getBaseContext(), getText(R.string.error_recovering_password), Toast.LENGTH_LONG).show();
         recoverPasswordButton.setEnabled(true);
+        loginLink.setEnabled(true);
     }
 
     public boolean isRecoverPassswordValid() {
