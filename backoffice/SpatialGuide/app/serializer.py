@@ -1,57 +1,59 @@
 from rest_framework.serializers import (
-                                        CharField,
-                                        ModelSerializer,
-                                        EmailField,
-                                        ValidationError
-                                )
+    CharField,
+    ModelSerializer,
+    EmailField,
+    ValidationError
+)
 from django.contrib.auth import get_user_model, authenticate, login
 from django.db.models import Q
 
 from .models import *
 
-class RouteSerializer(ModelSerializer):
 
+class RouteSerializer(ModelSerializer):
     class Meta:
         model = Route
         fields = '__all__'
+
 
 class PointSerializer(ModelSerializer):
-
     class Meta:
         model = Point
         fields = '__all__'
 
-class RouteTableSerializer(ModelSerializer):
 
+class RouteTableSerializer(ModelSerializer):
     class Meta:
         model = Route
-        exclude = ['Image','Map_image','LastUpdate']
+        exclude = ['Image', 'Map_image', 'LastUpdate']
+
 
 class PointTableSerializer(ModelSerializer):
-
     class Meta:
         model = Point
-        exclude = ['Image','Sound','LastUpdate']
+        exclude = ['Image', 'Sound', 'LastUpdate']
+
 
 class HeatPointSerializer(ModelSerializer):
-
     class Meta:
         model = Heat_Point
         fields = '__all__'
 
-class UserAttrSerializer(ModelSerializer):
 
+class UserAttrSerializer(ModelSerializer):
     class Meta:
         model = User_Attributes
-        fields = ['Image','Favorite_routes','Favorite_points']
+        fields = ['Image', 'Favorite_routes', 'Favorite_points']
+
 
 User = get_user_model()
 
-class UserSerializer(ModelSerializer):
 
+class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ['username','first_name','last_name','email','last_login']
+        fields = ['username', 'first_name', 'last_name', 'email', 'last_login']
+
 
 class UserCreateSerializer(ModelSerializer):
     password2 = CharField()
@@ -70,7 +72,7 @@ class UserCreateSerializer(ModelSerializer):
             'last_name'
         ]
         extra_kwargs = {'password':
-                            {"write_only":True},
+                            {"write_only": True},
                         'password2':
                             {"write_only": True}
                         }
@@ -85,7 +87,7 @@ class UserCreateSerializer(ModelSerializer):
 
         return value
 
-    def validate_password(self,value):
+    def validate_password(self, value):
         data = self.get_initial()
 
         password = value
@@ -95,7 +97,7 @@ class UserCreateSerializer(ModelSerializer):
             raise ValidationError('Passwords do not match!')
         return password
 
-    def validate_email(self,value):
+    def validate_email(self, value):
         data = self.get_initial()
         email1 = value
         email2 = data.get('email2')
@@ -115,8 +117,8 @@ class UserCreateSerializer(ModelSerializer):
         email = validated_data['email']
 
         user_obj = User(
-                username = username,
-                email = email
+            username=username,
+            email=email
         )
 
         if 'first_name' in list(validated_data.keys()):
@@ -132,9 +134,10 @@ class UserCreateSerializer(ModelSerializer):
 
         return validated_data
 
+
 class UserLoginSerializer(ModelSerializer):
-    username = CharField(required=False,allow_blank=True)
-    email = EmailField(required=False,allow_blank=True)
+    username = CharField(required=False, allow_blank=True)
+    email = EmailField(required=False, allow_blank=True)
 
     class Meta:
         model = User
@@ -144,17 +147,18 @@ class UserLoginSerializer(ModelSerializer):
             'password'
         ]
         extra_kwargs = {'password':
-                            {"write_only":True}
-                    }
+                            {"write_only": True}
+                        }
 
-    def validate(self,data):
+    def validate(self, data):
         username = data.get('username', None)
-        email = data.get('email', None )
+        email = data.get('email', None)
 
         if not username and not email:
             raise ValidationError('A username or email is required to login.')
 
-        user = User.objects.filter(Q(username=username) | Q(email=email) | Q(username=email) | Q(email=username)).distinct()
+        user = User.objects.filter(
+            Q(username=username) | Q(email=email) | Q(username=email) | Q(email=username)).distinct()
         user_object = None
 
         if user.exists() and user.count() == 1:
@@ -166,7 +170,14 @@ class UserLoginSerializer(ModelSerializer):
 
         return data
 
+
 class UserSuggestionsSerializer(ModelSerializer):
     class Meta:
         model = User_Suggestions
+        fields = '__all__'
+
+
+class UserCommentsSerializer(ModelSerializer):
+    class Meta:
+        model = User_Comments
         fields = '__all__'

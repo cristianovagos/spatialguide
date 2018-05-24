@@ -1,3 +1,7 @@
+from django.conf import settings
+from django.contrib import messages
+from django.http import HttpResponse
+from django.core.mail import send_mail
 from django.shortcuts import render,redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,6 +13,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from rest_framework import status
+
 from .server_utils import *
 
 
@@ -49,7 +54,13 @@ class ShowPoints(APIView):
                     point.Image = DRIVE_BASE_URL + request_filesaver(request.FILES['Image'])
                 if "Sound" in request.FILES:
                     point.Sound = request_filesaver(request.FILES['Sound'])
+                point.LastUpdate = int(round(time.time() * 1000))
                 point.save()
+
+                routes = Route_contains_Point.objects.filter(Point=point).all()
+                for route in routes:
+                    route.Route.LastUpdate = int(round(time.time() * 1000))
+                    route.Route.save()
 
         elif 'edit' in list(data.keys()):
             point_id = data.get('edit', None)
@@ -108,6 +119,7 @@ class ShowRoutes(APIView):
                 route = form.save()
                 if "Image" in request.FILES:
                     route.Image = DRIVE_BASE_URL + request_filesaver(request.FILES['Image'])
+                route.LastUpdate = int(round(time.time() * 1000))
                 route.save()
 
         elif 'edit' in list(data.keys()):
@@ -163,6 +175,8 @@ class ShowRoute(APIView):
                 exists = Route_contains_Point.objects.filter(Q(Route_id=route.pk)).filter(Q(Point_id=point.pk)).first()
                 if not exists:
                     Route_contains_Point(Route=route,Point=point).save()
+                    route.LastUpdate = int(round(time.time() * 1000))
+                    route.save()
                     generate_mapImage(route_id)
 
         if 'remove' in list(data.keys()):
@@ -172,6 +186,8 @@ class ShowRoute(APIView):
                 point = Point.objects.filter(pk=point_id).first()
 
                 Route_contains_Point.objects.filter(Q(Route=route) and Q(Point=point)).first().delete()
+                route.LastUpdate = int(round(time.time() * 1000))
+                route.save()
                 generate_mapImage(route_id)
 
         if 'removeRoute' in list(data.keys()):
@@ -369,15 +385,21 @@ class UserVisit(APIView):
 
         user = User.objects.filter(username=request.user).first()
 
-        if user:
-            user_att = User_Attributes.objects.filter(User_id__id=user.id).first()
-            new_point = Point_Visited(Point_id=point)
-            new_point.save()
+        if user and point:
+            user_att = User_Attributes.objects.get(User_id=user)
 
-            user_att.Visited_points.add(new_point)
+            visited_point = user_att.Visited_points.filter(Point_id=point)
+            print(visited_point)
+            if not visited_point.exists():
+                new_point = Point_Visited(Point_id=point)
+                new_point.save()
 
+                user_att.Visited_points.add(new_point)
 
-        return Response(error, status=status.HTTP_200_OK)
+            return Response(error, status=status.HTTP_200_OK)
+        else:
+            error={'error':'Wrong Parameter.'}
+            return Response(error,status=status.HTTP_400_BAD_REQUEST)
 
 # useraddfavourite/
 class AddFavorite(APIView):
@@ -482,7 +504,11 @@ class UserCreateView(CreateAPIView):
                 user.is_superuser=1
                 user.is_staff=1
                 user.save()
-                return redirect('show_routes')
+                subject = 'SpatialGuide Confirmation Email'
+                message = 'Thank you %s for registering in the SpatialGuide App' % user.username
+                from_email = settings.EMAIL_HOST_USER
+                to_list = [user.email, settings.EMAIL_HOST_USER]
+                send_mail(subject, message, from_email, to_list)
 
             return Response(new_data, status=status.HTTP_200_OK)
 
@@ -546,12 +572,14 @@ class UserInfo(APIView):
         for key in list(user_att_serializer.keys()):
             full_user[key]=user_att_serializer[key]
 
-        points_visited = Point.objects.filter(point_visited__user_attributes__User_id_id=user.pk)
-        points_visited = PointSerializer(points_visited, many=True).data
+        points_visited = user_att.Visited_points.all()
 
         points_id = []
         for p in points_visited:
-            points_id.append(p['id'])
+            tmp = {}
+            tmp['id']=p.Point_id.id
+            tmp['Visit_Data']=p.Visit_Date
+            points_id.append(tmp)
 
         full_user['Visited_points']=points_id
 
@@ -678,19 +706,40 @@ class UserSuggestionsAdminView(APIView):
 
         return render(request, 'tables.html', tparams)
 
+class UserCommentsView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        data = request.data
+        user_post = request.user
+        point = data.get('point', None)
+        comment = data.get('comment', None)
+
+        point = Point.objects.get(pk=point)
+        user_post = User.objects.get(username=user_post)
+
+        if not user_post or not point or not comment:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        comment = User_Comments(User=user_post, Point=point, Comment=comment)
+        comment.save()
+
+        return Response(status=status.HTTP_200_OK)
+
 class UserCommentsAdminView(APIView):
     permission_classes = [AllowAny]
 
     def get(self,request):
         if not request.user.is_staff:
             return redirect('login')
-        tab_names, user_suggestion = get_Suggestions()
+        tab_names, user_comments = get_Comments()
 
         tparams = {
-            'title': 'User Commments',
+            'title': 'User Comments',
             'tab_names': tab_names,
-            'route_list': user_suggestion,
+            'comment_list': user_comments,
 
         }
 
-        return render(request, 'tables.html', tparams)
+        return render(request, 'comments.html', tparams)
+

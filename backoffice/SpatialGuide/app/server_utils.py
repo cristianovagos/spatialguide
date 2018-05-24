@@ -26,9 +26,7 @@ def get_allRoutes():
     return (tab_names,route_list)
 
 def generate_mapImage(route_id):
-
     points = get_route_points(route_id)
-
     url = 'https://maps.googleapis.com/maps/api/staticmap?size=400x400&maptype=roadmap'
 
     for p in points:
@@ -106,6 +104,21 @@ def get_Suggestions():
        suggestion_list.append(dict(s))
 
    return (tab_names,suggestion_list)
+
+def get_Comments():
+   comment = User_Comments.objects.all()
+   comment = UserCommentsSerializer(comment,many=True)
+   tmp_list = comment.data
+
+   tab_names = []
+   if len(tmp_list) > 0:
+       tab_names= list(tmp_list[0].keys())
+
+   comment_list=[]
+   for s in tmp_list:
+       comment_list.append(dict(s))
+
+   return (tab_names,comment_list)
 
 ################  Google Drive  ################
 
