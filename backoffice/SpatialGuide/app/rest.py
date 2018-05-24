@@ -510,7 +510,7 @@ class UserCreateView(CreateAPIView):
                 to_list = [user.email, settings.EMAIL_HOST_USER]
                 send_mail(subject, message, from_email, to_list)
 
-            return Response(new_data, status=status.HTTP_200_OK)
+            return redirect('show_routes')
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -685,6 +685,7 @@ class UserSuggestionView(APIView):
 
         suggestion = User_Suggestions(Latitude=latitude,Longitude=longitude,Comment=comment)
         suggestion.save()
+
 
         return Response(status=status.HTTP_200_OK)
 
