@@ -1,6 +1,6 @@
 package com.example.red_d.imu_test;
 
-import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -17,8 +17,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -27,6 +29,26 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, AdapterView.OnItemClickListener{
+
+    private final BroadcastReceiver socketReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive: socketReceiver " + intent.getAction());
+            if(intent.getAction().equals("SOCKET CLOSED")){
+                startConnection();
+                sending = false;
+            }
+
+            if(intent.getAction().equals("SOCKET CONNECTED"))
+                sending = true;
+
+            if(intent.getAction().equals("CONNECTION LOST")) {
+                bluetoothConnectionService.kill();
+                sending = false;
+                startConnection();
+            }
+        }
+    };
 
     // Create a BroadcastReceiver for ACTION_FOUND.
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -38,16 +60,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 switch (state)
                 {
                     case BluetoothAdapter.STATE_OFF:
-                        Log.d(TAG, "onReceive: State off");
+                        //Log.d(TAG, "onReceive: State off");
                         break;
                     case BluetoothAdapter.STATE_ON:
-                        Log.d(TAG, "onReceive: State ON");
+                        //Log.d(TAG, "onReceive: State ON");
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
-                        Log.d(TAG, "onReceive: State TURNING off");
+                        //Log.d(TAG, "onReceive: State TURNING off");
                         break;
                     case BluetoothAdapter.STATE_TURNING_ON:
-                        Log.d(TAG, "onReceive: State turning on");
+                        //Log.d(TAG, "onReceive: State turning on");
                         break;
                 }
             }
@@ -63,19 +85,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 switch (state)
                 {
                     case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
-                        Log.d(TAG, "Receiver2:  Discover On");
+                        //Log.d(TAG, "Receiver2:  Discover On");
                         break;
                     case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
-                        Log.d(TAG, "Receiver2: Discover On: Enable to receive connections");
+                        //Log.d(TAG, "Receiver2: Discover On: Enable to receive connections");
                         break;
                     case BluetoothAdapter.SCAN_MODE_NONE:
-                        Log.d(TAG, "onReceive2: Discover Disable");
+                        //Log.d(TAG, "onReceive2: Discover Disable");
                         break;
                     case BluetoothAdapter.STATE_CONNECTING:
-                        Log.d(TAG, "onReceive2: Connecting");
+                        //Log.d(TAG, "onReceive2: Connecting");
                         break;
                     case BluetoothAdapter.STATE_CONNECTED:
-                        Log.d(TAG, "onReceive2: Connected");
+                        //Log.d(TAG, "onReceive2: Connected");
                         break;
                 }
             }
@@ -86,12 +108,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            Log.d(TAG, "onReceive: ACTION FOUND.");
-
+            //Log.d(TAG, "onReceive: ACTION FOUND.");
             if (action.equals(BluetoothDevice.ACTION_FOUND)){
                 BluetoothDevice device = intent.getParcelableExtra (BluetoothDevice.EXTRA_DEVICE);
                 btDevice.add(device);
-                Log.d(TAG, "onReceive: " + device.getName() + ": " + device.getAddress());
+                //Log.d(TAG, "onReceive: " + device.getName() + ": " + device.getAddress());
                 deviceListAdaptorAdapter = new DeviceListAdapter(context, R.layout.device_list_view, btDevice);
                 lvNewDevices.setAdapter(deviceListAdaptorAdapter);
             }
@@ -105,22 +126,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
+            //Log.d(TAG, "onReceive: intent action: " + intent.getAction());
 
             if(action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)){
                 BluetoothDevice mDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 //3 cases:
                 //case1: bonded already
                 if (mDevice.getBondState() == BluetoothDevice.BOND_BONDED){
-                    Log.d(TAG, "BroadcastReceiver: BOND_BONDED.");
+                    //Log.d(TAG, "BroadcastReceiver: BOND_BONDED.");
                     mBluetoothDevice = mDevice;
                 }
                 //case2: creating a bone
                 if (mDevice.getBondState() == BluetoothDevice.BOND_BONDING) {
-                    Log.d(TAG, "BroadcastReceiver: BOND_BONDING.");
+                    //Log.d(TAG, "BroadcastReceiver: BOND_BONDING.");
                 }
                 //case3: breaking a bond
                 if (mDevice.getBondState() == BluetoothDevice.BOND_NONE) {
-                    Log.d(TAG, "BroadcastReceiver: BOND_NONE.");
+                    //Log.d(TAG, "BroadcastReceiver: BOND_NONE.");
                 }
             }
         }
@@ -135,10 +157,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     BluetoothAdapter bluetoothAdapter;
     BluetoothDevice mBluetoothDevice;
-    Button button, discoverButton;
-
-    Button startConnection;
-    Button send;
 
     private static final String TAG = "MainActivity";
     
@@ -150,19 +168,29 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float [] accelerometerReading = {0f, 0f, 0f};
     private float [] rotation = {0f, 0f, 0f};
     private TextView yawText;
-    private  TextView pitchText;
+    private TextView pitchText;
     private TextView rollText;
 
-    boolean sending = false;
+    private boolean sending = false;
+    private ImageView headOri;
+    private float currentDegree = 0f;
+
+    private static final int REQUEST_ENABLE_BT = 4;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        sending = false;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         sensorConfig();
         bluetoothConfig();
-
+        toogleBT();
+        IntentFilter filtro = new IntentFilter("SOCKET CONNECTED");
+        registerReceiver(socketReceiver,filtro);
+        IntentFilter filtro2 = new IntentFilter("SOCKET CLOSED");
+        registerReceiver(socketReceiver,filtro2);
+        IntentFilter filtro3 = new IntentFilter("CONNECTION LOST");
+        registerReceiver(socketReceiver,filtro3);
     }
 
     @Override
@@ -172,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         unregisterReceiver(mReceiver2);
         unregisterReceiver(mReceiver3);
         unregisterReceiver(mBroadcastReceiver4);
+        unregisterReceiver(socketReceiver);
     }
 
     private void sensorConfig()
@@ -188,83 +217,51 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         yawText = (TextView) findViewById(R.id.yaw);
         pitchText = (TextView) findViewById(R.id.pitch);
         rollText = (TextView) findViewById(R.id.roll);
+        headOri = (ImageView) findViewById(R.id.head);
 
     }
 
     private void bluetoothConfig()
     {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        lvNewDevices = (ListView) findViewById(R.id.list);
-        lvNewDevices.setOnItemClickListener(MainActivity.this);
-
-        Button button = (Button) findViewById(R.id.button);
-        discoverButton = (Button) findViewById(R.id.discovery);
-        send = (Button) findViewById(R.id.send);
-        startConnection = (Button) findViewById(R.id.startConnection);
+        for (BluetoothDevice device : bluetoothAdapter.getBondedDevices()) {
+            if(device.getName().equals("SpatialG")) {
+                mBluetoothDevice = device;
+                bluetoothConnectionService = new BluetoothConnectionService(MainActivity.this);
+                startConnection();
+                break;
+            }
+        }
 
         btDevice = new ArrayList<>();
         //Broadcasts when bond state changes (ie:pairing)
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(mBroadcastReceiver4, filter);
-
-
-
-        discoverButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toogleDiscover();
-            }
-        });
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toogleBT();
-            }
-        });
-
-        startConnection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startConnection();
-            }
-        });
-
-       send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                sending = true;
-            }
-        });
     }
 
     private void startConnection() {
         startBTConnection(mBluetoothDevice, MY_UUID_INSECURE);
     }
+    /**
+     * This method is required for all devices running API23+
+     * Android must programmatically check the permissions for bluetooth. Putting the proper permissions
+     * in the manifest is not enough.
+     *
+     * NOTE: This will only execute on versions > LOLLIPOP because it is not needed otherwise.
+     */
 
-    private void toogleDiscover()
-    {
-        Log.d(TAG, "toogleDiscover: Device discover");
-        Intent discoverIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-        startActivity(discoverIntent);
-
-        IntentFilter intentFilter = new IntentFilter(bluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
-        registerReceiver(mReceiver2, intentFilter);
-    }
+    //SENSOR STUFF
 
     public void toogleBT()
     {
         if(bluetoothAdapter == null)
         {
-            Log.d(TAG, "toogleBT: No BT device");
+            //Log.d(TAG, "toogleBT: No BT device");
         }
         if(!bluetoothAdapter.isEnabled())
         {
             Intent btIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivity(btIntent);
-
             IntentFilter btIntentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
             registerReceiver(mReceiver, btIntentFilter);
         }
@@ -276,79 +273,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-
-    public void btnDiscover(View view) {
-
-        if(bluetoothAdapter.isDiscovering())
-        {
-            bluetoothAdapter.cancelDiscovery();
-
-            checkBTPermissions();
-            bluetoothAdapter.startDiscovery();
-            IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            registerReceiver(mReceiver3, intentFilter);
-        }
-        if(!bluetoothAdapter.isDiscovering())
-        {
-            checkBTPermissions();
-            bluetoothAdapter.startDiscovery();
-            IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            registerReceiver(mReceiver3, intentFilter);
-        }
-
-    }
-    /**
-     * This method is required for all devices running API23+
-     * Android must programmatically check the permissions for bluetooth. Putting the proper permissions
-     * in the manifest is not enough.
-     *
-     * NOTE: This will only execute on versions > LOLLIPOP because it is not needed otherwise.
-     */
-    private void checkBTPermissions() {
-        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
-            int permissionCheck = 0;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                permissionCheck = this.checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION");
-
-                permissionCheck += this.checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION");
-                if (permissionCheck != 0) {
-
-                    this.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
-                }
-            }
-        }else{
-            Log.d(TAG, "checkBTPermissions: No need to check permissions. SDK version < LOLLIPOP.");
-        }
-    }
-
-    //SENSOR STUFF
-
-
-
-
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         //cancel discover
         bluetoothAdapter.cancelDiscovery();
-        Log.d(TAG, "onItemClick: Clicked");
-
+        //Log.d(TAG, "onItemClick: Clicked");
         String dname = btDevice.get(position).getName();
-        String daddress = btDevice.get(position).getAddress();
-
         //create the bond
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            Log.d(TAG, "Trying to pair with " + dname);
+            //Log.d(TAG, "Trying to pair with " + dname);
             btDevice.get(position).createBond();
-
             mBluetoothDevice = btDevice.get(position);
             bluetoothConnectionService = new BluetoothConnectionService(MainActivity.this);
         }
     }
 
-
     public void startBTConnection(BluetoothDevice device, UUID uuid)
     {
-        Log.d(TAG, "startConnection: starting connection");
+        //Log.d(TAG, "startConnection: starting connection");
         bluetoothConnectionService.startClient(device, uuid);
     }
 
@@ -365,12 +307,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             magnetometerReading = event.values;
             //Log.d(TAG, "Magnetic: X" + magnetometerReading[0] + " Y:" + magnetometerReading[1] + " Z:" + magnetometerReading[2]);
         }
+
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
         {
             accelerometerReading = event.values;
             //Log.d(TAG, "Accelarator: X" + accelerometerReading[0] + " Y:" + accelerometerReading[1] + " Z:" + accelerometerReading[2]);
         }
-
 
         // Rotation matrix based on current readings from accelerometer and magnetometer.
         final float[] rotationMatrix = new float[9];
@@ -386,11 +328,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         pitchText.setText("Yaw: "+Math.toDegrees(orientationAngles[1]));
         rollText.setText("Roll: "+Math.toDegrees(orientationAngles[2]));
 
+        float degree = Math.round(event.values[1]);
+        // create a rotation animation (reverse turn degree degrees)
+        RotateAnimation ra = new RotateAnimation(currentDegree, -degree, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        // how long the animation will take place
+        ra.setDuration(210);
+        // set the animation after the end of the reservation status
+        ra.setFillAfter(true);
+        // Start the animation
+        headOri.startAnimation(ra);
+        currentDegree = -degree;
+        String test = ("" + String.valueOf(rotation[0]) + "/" + String.valueOf(rotation[1]) + "/" + String.valueOf(rotation[2])+"/");
+        //Log.d(TAG, "onClick: " + test);
+        byte[] bytes = test.getBytes(Charset.defaultCharset());
+        //Log.d(TAG, "SENDING: " + sending);
         if(sending) {
-            String test = ("" + String.valueOf(rotation[0]) + "/" + String.valueOf(rotation[1]) + "/" + String.valueOf(rotation[2])+"/");
-            Log.d(TAG, "onClick: " + test);
-            byte[] bytes = test.getBytes(Charset.defaultCharset());
-            bluetoothConnectionService.write(bytes);
+            if (bluetoothConnectionService != null) {
+                bluetoothConnectionService.write(bytes);
+            }
         }
     }
 }
