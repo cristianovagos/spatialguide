@@ -1,3 +1,7 @@
+from django.conf import settings
+from django.contrib import messages
+from django.http import HttpResponse
+from django.core.mail import send_mail
 from django.shortcuts import render,redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,6 +13,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from rest_framework import status
+
 from .server_utils import *
 
 
@@ -499,7 +504,11 @@ class UserCreateView(CreateAPIView):
                 user.is_superuser=1
                 user.is_staff=1
                 user.save()
-                return redirect('show_routes')
+                subject = 'SpatialGuide Confirmation Email'
+                message = 'Thank you %s for registering in the SpatialGuide App' % user.username
+                from_email = settings.EMAIL_HOST_USER
+                to_list = [user.email, settings.EMAIL_HOST_USER]
+                send_mail(subject, message, from_email, to_list)
 
             return Response(new_data, status=status.HTTP_200_OK)
 
@@ -733,3 +742,4 @@ class UserCommentsAdminView(APIView):
         }
 
         return render(request, 'comments.html', tparams)
+
