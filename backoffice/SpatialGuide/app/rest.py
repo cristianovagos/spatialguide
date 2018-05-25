@@ -556,11 +556,12 @@ class UserLoginView(APIView):
         else:
             return render(request,'login.html',{'error':'Credencials are Invalid!'})
 
-# userinfo/
+# userinfo/ or userinfo/( id )
 class UserInfo(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self,request):
+    def get(self,request,user_id=None):
+        
         if user_id:
             user = User.objects.filter(pk=user_id).first()
         else:
