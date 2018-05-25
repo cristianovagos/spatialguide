@@ -34,6 +34,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
+    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     private static final String TAG = "ForgotPasswordActivity";
 

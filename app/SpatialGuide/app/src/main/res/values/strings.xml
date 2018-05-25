@@ -115,4 +115,6 @@
     <string name="route_description">Description:</string>
     <string name="pick_image_intent_text">Select a image:</string>
     <string name="change_user_image">Change image</string>
+    <string name="no_connection">No Internet connection</string>
+    <string name="no_connection_message">This app requires a Internet connection.\nPlease turn it on.</string>
 </resources>

@@ -1,8 +1,11 @@
 package com.paydayme.spatialguide.ui.activity;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -22,6 +25,7 @@ import android.widget.Toast;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.model.User;
+import com.paydayme.spatialguide.utils.NetworkUtil;
 
 import java.io.IOException;
 
@@ -34,6 +38,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 
 /**
  * Created by cvagos on 13-03-2018.
@@ -44,6 +49,9 @@ public class SignupActivity extends AppCompatActivity {
 
     // API Stuff
     private SGApiClient sgApiClient;
+
+    private IntentFilter intentFilter;
+    private AlertDialog dialog;
 
     // Reference the views
     @BindView(R.id.input_username) AppCompatEditText usernameText;
@@ -68,6 +76,8 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
+        intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
+
         // Binding the views defined above
         ButterKnife.bind(this);
 
@@ -86,6 +96,18 @@ public class SignupActivity extends AppCompatActivity {
         tilReEnterEmail.setTypeface(tf);
         tilPassword.setTypeface(tf);
         tilReEnterPassword.setTypeface(tf);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(networkReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(networkReceiver);
     }
 
     private void initRetrofit() {
@@ -284,4 +306,37 @@ public class SignupActivity extends AppCompatActivity {
 
         return valid;
     }
+
+    private void showDialogNoConnection() {
+        if(dialog != null) return;
+        // Not connected to Internet
+        dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(this.getString(R.string.no_connection))
+                .setMessage(this.getString(R.string.no_connection_message))
+                .setPositiveButton(this.getString(R.string.exit), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(this, R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
+    private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(NetworkUtil.getConnectivityStatus(SignupActivity.this) == NetworkUtil.TYPE_NOT_CONNECTED) {
+                showDialogNoConnection();
+            }
+            else {
+                // Connected
+                if(dialog != null)
+                    dialog.dismiss();
+            }
+        }
+    };
 }

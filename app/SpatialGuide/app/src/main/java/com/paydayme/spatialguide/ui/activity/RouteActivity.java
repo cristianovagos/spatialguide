@@ -64,6 +64,7 @@ import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
  */
 
 public class RouteActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     private static final String TAG = "RouteActivity";
 
@@ -349,16 +350,20 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
                 break;
             case R.id.nav_userpanel:
                 startActivity(new Intent(RouteActivity.this, UserPanelActivity.class));
+                finish();
                 break;
             case R.id.nav_history:
                 startActivity(new Intent(RouteActivity.this, HistoryActivity.class));
+                finish();
                 break;
             case R.id.nav_map:
                 startActivity(new Intent(RouteActivity.this, MapActivity.class)
                         .putExtra("route", routeSelected));
+                finish();
                 break;
             case R.id.nav_favorites:
                 startActivity(new Intent(RouteActivity.this, FavoritesActivity.class));
+                finish();
                 break;
         }
 

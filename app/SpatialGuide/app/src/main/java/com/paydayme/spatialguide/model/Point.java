@@ -45,7 +45,6 @@ public class Point implements Serializable{
     @SerializedName("LastUpdate")
     private long lastUpdate;
 
-    // TODO BACKEND - Needs to be stored if the point has been visited by the user
     private boolean pointVisited;
 
     public Point(String name, double latitude, double longitude) {

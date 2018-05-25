@@ -143,6 +143,14 @@ public final class Constant {
      */
     public static final float DEFAULT_ZOOM_VALUE = 16f;
 
+    /**
+     * Constants for Connectivity Receiver
+     */
+    public static final String CONNECT_TO_WIFI = "WIFI";
+    public static final String CONNECT_TO_MOBILE = "MOBILE";
+    public static final String NOT_CONNECTED = "NOT_CONNECT";
+    public final static String CONNECTIVITY_ACTION = "android.net.conn.CONNECTIVITY_CHANGE";
+
     // Message types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;

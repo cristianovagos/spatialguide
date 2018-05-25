@@ -62,6 +62,7 @@ import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_NA
 import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 
 public class FavoritesActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     private static final String TAG = "FavoritesActivity";
 
@@ -330,15 +331,19 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
             case R.id.nav_map:
                 startActivity(new Intent(FavoritesActivity.this, MapActivity.class)
                         .putExtra("route", routeSelected));
+                finish();
                 break;
             case R.id.nav_route:
                 startActivity(new Intent(FavoritesActivity.this, RouteActivity.class));
+                finish();
                 break;
             case R.id.nav_history:
                 startActivity(new Intent(FavoritesActivity.this, HistoryActivity.class));
+                finish();
                 break;
             case R.id.nav_userpanel:
                 startActivity(new Intent(FavoritesActivity.this, UserPanelActivity.class));
+                finish();
                 break;
         }
 
@@ -375,5 +380,34 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_map).setVisible(true);
         }
         menu.findItem(R.id.nav_favorites).setVisible(false);
+    }
+
+    /**
+     * What to do when the back button is pressed
+     */
+    @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            //Ask the user if they want to quit
+            AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                    .setTitle(getString(R.string.exit))
+                    .setMessage(getString(R.string.exit_prompt))
+                    .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finishAffinity();
+                        }
+
+                    })
+                    .setNegativeButton(getString(android.R.string.no), null)
+                    .setCancelable(false)
+                    .show();
+            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+            Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+            textView.setTypeface(tf);
+        }
     }
 }

@@ -1,8 +1,11 @@
 package com.paydayme.spatialguide.ui.activity;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -10,7 +13,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.view.GravityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatCheckBox;
@@ -18,7 +20,6 @@ import android.support.v7.widget.AppCompatEditText;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,8 +28,7 @@ import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.model.User;
-
-import java.io.IOException;
+import com.paydayme.spatialguide.utils.NetworkUtil;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -41,6 +41,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LOGIN_USERNAME;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_PASSWORD;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_REMEMBER_ME;
@@ -61,6 +62,9 @@ public class LoginActivity extends AppCompatActivity {
     // API interface
     private SGApiClient sgApiClient;
 
+    private IntentFilter intentFilter;
+    private AlertDialog dialog;
+
     // Reference the views
     @BindView(R.id.input_email) AppCompatEditText emailText;
     @BindView(R.id.input_password) AppCompatEditText passwordText;
@@ -75,6 +79,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
 
         // Binding the views defined above
         ButterKnife.bind(this);
@@ -94,6 +100,18 @@ public class LoginActivity extends AppCompatActivity {
         Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
         tilEmail.setTypeface(tf);
         tilPassword.setTypeface(tf);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(networkReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(networkReceiver);
     }
 
     private void checkSharedPreferences() {
@@ -322,4 +340,39 @@ public class LoginActivity extends AppCompatActivity {
 
         return valid;
     }
+
+    private void showDialogNoConnection() {
+        if(dialog != null) return;
+        // Not connected to Internet
+        dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(this.getString(R.string.no_connection))
+                .setMessage(this.getString(R.string.no_connection_message))
+                .setPositiveButton(this.getString(R.string.exit), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(this, R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
+    private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(NetworkUtil.getConnectivityStatus(LoginActivity.this) == NetworkUtil.TYPE_NOT_CONNECTED) {
+                showDialogNoConnection();
+            }
+            else {
+                // Connected
+                if(dialog != null)
+                    dialog.dismiss();
+            }
+        }
+    };
+
+
 }

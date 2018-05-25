@@ -170,6 +170,7 @@ import static com.paydayme.spatialguide.core.Constant.UPDATE_INTERVAL_IN_MILLISE
  */
 public class MapActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     private static final String TAG = MapActivity.class.getSimpleName();
 
@@ -1019,8 +1020,11 @@ public class MapActivity extends AppCompatActivity implements
                 // update last timestamp
                 lastTimestamp = System.currentTimeMillis();
 
+                // TODO FIX THIS, THIS IS WRONG!!
+                /*
+
+                 */
                 if (prefs_auralization && auralizationEngine == null) {
-                    // TODO insert auralization trigger here
                     try {
                         File f = InternalStorage.getFile(this, POINT_STORAGE_SEPARATOR + locationPointPair.second.getPointID() + ".wav");
                         auralizationEngine = new AuralizationEngine(this, f.getAbsolutePath());
@@ -1060,7 +1064,7 @@ public class MapActivity extends AppCompatActivity implements
         });
     }
 
-    // TODO - try again :(
+    // TODO (future work) - try again :(
     private void getOptimizedRoute(Location mCurrentLocation) {
         Gson gson = new Gson();
         List<RouteXLRequest> requestList = new ArrayList<>();

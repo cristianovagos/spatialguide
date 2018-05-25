@@ -194,7 +194,7 @@ public interface SGApiClient {
     @POST("comment/")
     Call<ResponseBody> sendComment(@Header("Authorization") String authKey, @Body HashMap<String, Object> commentBody);
 
-    // TODO
+    // TODO Backend
     @Multipart
     @POST("userimage/")
     Call<ResponseBody> changeUserImage(@Header("Authorization") String authKey, @Part MultipartBody.Part file, @Part("name") RequestBody name);

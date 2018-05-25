@@ -79,6 +79,7 @@ import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_RO
  */
 
 public class RouteDetailsActivity extends AppCompatActivity {
+    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     public static final String TAG = "RouteDetailsActivity";
 
@@ -620,5 +621,6 @@ public class RouteDetailsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         startActivity(new Intent(RouteDetailsActivity.this, RouteActivity.class));
+        finish();
     }
 }
