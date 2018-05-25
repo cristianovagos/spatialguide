@@ -13,6 +13,10 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,6 +29,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.util.Pair;
@@ -51,6 +56,8 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -96,12 +103,14 @@ import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.core.auralizationEngine.AuralizationEngine;
 import com.paydayme.spatialguide.core.bluetooth.SGBluetoothService;
 import com.paydayme.spatialguide.core.storage.InternalStorage;
+import com.paydayme.spatialguide.model.Comment;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.model.routexl.RouteXLRequest;
 import com.paydayme.spatialguide.model.routexl.RouteXLResponse;
 import com.paydayme.spatialguide.ui.adapter.BTDeviceAdapter;
+import com.paydayme.spatialguide.ui.adapter.CommentAdapter;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
@@ -146,6 +155,7 @@ import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_IM
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_NAMES;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_AURALIZATION;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_DIRECTION_LINE_COLOR;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_EXTERNAL_IMU;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_HEATMAP;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_LOCATION_ACCURACY;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MAP_TYPE;
@@ -169,7 +179,7 @@ import static com.paydayme.spatialguide.core.Constant.UPDATE_INTERVAL_IN_MILLISE
  * https://github.com/googlesamples/android-play-location/
  */
 public class MapActivity extends AppCompatActivity implements
-        NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SensorEventListener {
     // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     private static final String TAG = MapActivity.class.getSimpleName();
@@ -236,6 +246,9 @@ public class MapActivity extends AppCompatActivity implements
     private long heatmapTimestamp;
 
     private List<Integer> favoritePoints = new ArrayList<>();
+    private List<Comment> commentList = new ArrayList<>();
+
+    private RecyclerView recyclerView;
 
     // SharedPreferences object
     private SharedPreferences sharedPreferences;
@@ -244,6 +257,7 @@ public class MapActivity extends AppCompatActivity implements
     // Variables that will take impact due to
     // sharedPreferences values from SGPreferenceActivity
     private boolean prefs_auralization;
+    private boolean prefs_external_imu;
     private boolean prefs_heatmap;
     private String prefs_travelmode;
     private String prefs_location_accuracy;
@@ -276,12 +290,20 @@ public class MapActivity extends AppCompatActivity implements
     private static final int REQUEST_CONNECT_DEVICE_INSECURE = 3;
     private static final int REQUEST_ENABLE_BT = 4;
 
-    private float [] rotation = {0f, 0f, 0f};
+    private float[] rotation = new float[3];
     private BluetoothAdapter bluetoothAdapter = null;
     private String connectedDeviceName = null;
     private SGBluetoothService bluetoothService;
     private AuralizationEngine auralizationEngine;
     private Location lastLocation;
+
+    private SensorManager sensorManager;
+    private Sensor magneticSensor;
+    private Sensor accel;
+    private float[] magnetometerReading = new float[3];
+    private float[] accelerometerReading = new float[3];
+    private float[] rotationMatrix = new float[9];
+    private boolean isSensorListenerActivated = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -418,6 +440,13 @@ public class MapActivity extends AppCompatActivity implements
         buildLocationSettingsRequest();
 
         configBluetooth();
+        configSensor();
+    }
+
+    private void configSensor() {
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        magneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
 
     private void configBluetooth() {
@@ -485,6 +514,8 @@ public class MapActivity extends AppCompatActivity implements
                     String writeMessage = new String(writeBuf);
                     break;
                 case Constant.MESSAGE_READ:
+                    if(!prefs_auralization) break;
+
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
@@ -553,6 +584,7 @@ public class MapActivity extends AppCompatActivity implements
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
 
+        prefs_external_imu = sharedPreferences.getBoolean(SHARED_PREFS_EXTERNAL_IMU, true);
         prefs_trigger_area_value = sharedPreferences.getInt(SHARED_PREFS_TRIGGER_AREA_VALUE, TRIGGER_AREA_DISTANCE);
         prefs_heatmap = sharedPreferences.getBoolean(SHARED_PREFS_HEATMAP, false);
         prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
@@ -1013,25 +1045,26 @@ public class MapActivity extends AppCompatActivity implements
 
             // if current time stamp is greater than 5 minutes (300000 ms)
             // then show the info dialog and do auralization
-            if (locationPointPair.second != null && (System.currentTimeMillis() - lastTimestamp > 300000 || !locationPointPair.second.isPointVisited())) {
+            if (locationPointPair.second != null &&
+                    (System.currentTimeMillis() - lastTimestamp > 300000 || !locationPointPair.second.isPointVisited())) {
                 // mark point as visited
                 onPointVisited(locationPointPair.second);
 
                 // update last timestamp
                 lastTimestamp = System.currentTimeMillis();
 
-                // TODO FIX THIS, THIS IS WRONG!!
-                /*
+                try {
+                    File f = InternalStorage.getFile(this, POINT_STORAGE_SEPARATOR + locationPointPair.second.getPointID() + ".wav");
+                    auralizationEngine = new AuralizationEngine(this, f.getAbsolutePath());
+                    auralizationEngine.play();
 
-                 */
-                if (prefs_auralization && auralizationEngine == null) {
-                    try {
-                        File f = InternalStorage.getFile(this, POINT_STORAGE_SEPARATOR + locationPointPair.second.getPointID() + ".wav");
-                        auralizationEngine = new AuralizationEngine(this, f.getAbsolutePath());
-                        auralizationEngine.play();
-                    } catch (Exception e) {
-                        prefs_auralization = false;
+                    if(!prefs_external_imu && prefs_auralization) {
+                        isSensorListenerActivated = true;
+                        sensorManager.registerListener(this, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+                        sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL);
                     }
+                } catch (Exception e) {
+                    prefs_auralization = false;
                 }
 
                 // show the dialog with info of location
@@ -1255,7 +1288,10 @@ public class MapActivity extends AppCompatActivity implements
 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = 900;
+        if(lp.width > 1000)
+            lp.width = 1000;
+        else
+            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
         if(lp.height > 1100)
             lp.height = 1100;
         else
@@ -1332,7 +1368,10 @@ public class MapActivity extends AppCompatActivity implements
 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = 900;
+        if(lp.width > 1000)
+            lp.width = 1000;
+        else
+            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
         if(lp.height > 1100)
             lp.height = 1100;
         else
@@ -1354,6 +1393,15 @@ public class MapActivity extends AppCompatActivity implements
         ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
         AppCompatButton confirmButton = (AppCompatButton) view.findViewById(R.id.confirmInfoBtn);
         AppCompatButton learnMoreButton = (AppCompatButton) view.findViewById(R.id.learnMoreBtn);
+        AppCompatButton commentButton = (AppCompatButton) view.findViewById(R.id.commentButton);
+
+        commentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                showCommentsDialog(point);
+            }
+        });
 
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1489,7 +1537,129 @@ public class MapActivity extends AppCompatActivity implements
 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = 900;
+        if(lp.width > 1000)
+            lp.width = 1000;
+        else
+            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        if(lp.height > 1100)
+            lp.height = 1100;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER;
+        dialog.getWindow().setAttributes(lp);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    }
+
+    private void showCommentsDialog(final Point point) {
+        // Check if the dialog exists and if its showing
+        if(dialog != null && dialog.isShowing()) return;
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_comments, null);
+
+        final AppCompatEditText commentEdit = (AppCompatEditText) view.findViewById(R.id.input_comment);
+        final TextInputLayout tilComment = (TextInputLayout) view.findViewById(R.id.tilComment);
+        ImageButton sendCommentBtn = (ImageButton) view.findViewById(R.id.sendCommentBtn);
+        ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
+        final ScrollView scrollView = (ScrollView) view.findViewById(R.id.commentsScrollView);
+        recyclerView = (RecyclerView) view.findViewById(R.id.commentsRV);
+        final ProgressBar commentsProgress = (ProgressBar) view.findViewById(R.id.commentsProgress);
+        final TextView noCommentsText = (TextView) view.findViewById(R.id.noCommentsText);
+        final TextView commentsError = (TextView) view.findViewById(R.id.commentsError);
+        final LinearLayout sendCommentLayout = (LinearLayout) view.findViewById(R.id.sendCommentLayout);
+
+        Call<List<Comment>> call = sgApiClient.getCommentsByPointID(authenticationHeader, point.getPointID());
+        call.enqueue(new Callback<List<Comment>>() {
+            @Override
+            public void onResponse(Call<List<Comment>> call, Response<List<Comment>> response) {
+                if(response.isSuccessful()){
+                    commentsProgress.setVisibility(View.GONE);
+                    if(response.body().isEmpty()) {
+                        noCommentsText.setVisibility(View.VISIBLE);
+                    } else {
+                        Log.d(TAG, "onResponse: comments: " + response.body());
+                        CommentAdapter commentAdapter = new CommentAdapter(MapActivity.this, response.body(), sgApiClient, authenticationHeader);
+                        recyclerView.setAdapter(commentAdapter);
+                        recyclerView.setLayoutManager(new LinearLayoutManager(MapActivity.this));
+
+                        scrollView.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    commentsProgress.setVisibility(View.GONE);
+                    commentsError.setVisibility(View.VISIBLE);
+                    sendCommentLayout.setVisibility(View.GONE);
+                    Log.e(TAG, "showCommentsDialog - onResponse: some error occurred");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Comment>> call, Throwable t) {
+                commentsProgress.setVisibility(View.GONE);
+                commentsError.setVisibility(View.VISIBLE);
+                sendCommentLayout.setVisibility(View.GONE);
+                Log.e(TAG, "showCommentsDialog - onFailure: some error occurred");
+            }
+        });
+
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        sendCommentBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(commentEdit.getText().toString().isEmpty()){
+                    tilComment.setError("Please insert a comment.");
+                    return;
+                } else {
+                    tilComment.setError(null);
+
+                    HashMap<String, Object> tmpMap = new HashMap(2);
+                    tmpMap.put("point", point.getPointID());
+                    tmpMap.put("comment", commentEdit.getText().toString());
+
+                    Call<ResponseBody> call = sgApiClient.sendComment(authenticationHeader, tmpMap);
+                    call.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            if(response.isSuccessful()) {
+                                Toast.makeText(MapActivity.this, "Comment sent successfully", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            } else {
+                                Log.e(TAG, "comment onResponse: something failed");
+                                Toast.makeText(MapActivity.this, "Failed to send comment", Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            Log.e(TAG, "comment onFailure: " + t.getMessage());
+                            Toast.makeText(MapActivity.this, "Failed to send comment", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        });
+
+        //Ask the user if they want to quit
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setView(view)
+                .setCancelable(false);
+
+        // Creating dialog and adjusting size
+        dialog = builder.create();
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.show();
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        if(lp.width > 1000)
+            lp.width = 1000;
+        else
+            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
         if(lp.height > 1100)
             lp.height = 1100;
         else
@@ -1571,7 +1741,10 @@ public class MapActivity extends AppCompatActivity implements
 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = 900;
+        if(lp.width > 1000)
+            lp.width = 1000;
+        else
+            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
         if(lp.height > 1100)
             lp.height = 1100;
         else
@@ -1615,7 +1788,10 @@ public class MapActivity extends AppCompatActivity implements
 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = 900;
+        if(lp.width > 1000)
+            lp.width = 1000;
+        else
+            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
         if(lp.height > 1100)
             lp.height = 1100;
         else
@@ -1723,10 +1899,10 @@ public class MapActivity extends AppCompatActivity implements
             bluetoothService.stop();
         }
 
-        if(auralizationEngine != null && auralizationEngine.isPlaying()) {
-            auralizationEngine.stopAndUnload();
-            auralizationEngine = null;
-        }
+//        if(auralizationEngine != null && auralizationEngine.isPlaying()) {
+//            auralizationEngine.stopAndUnload();
+//            auralizationEngine = null;
+//        }
     }
 
     /**
@@ -1953,6 +2129,29 @@ public class MapActivity extends AppCompatActivity implements
                     break;
                 case SHARED_PREFS_AURALIZATION:
                     prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
+                    if(!prefs_auralization) {
+                        if(isSensorListenerActivated)
+                            sensorManager.unregisterListener(MapActivity.this);
+
+                        rotation[0] = 0;
+                        rotation[1] = 0;
+                        rotation[2] = 0;
+                    } else {
+                        if(!prefs_external_imu && !isSensorListenerActivated) {
+                            sensorManager.registerListener(MapActivity.this, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+                            sensorManager.registerListener(MapActivity.this, accel, SensorManager.SENSOR_DELAY_NORMAL);
+                        }
+                    }
+                    break;
+                case SHARED_PREFS_EXTERNAL_IMU:
+                    prefs_external_imu = sharedPreferences.getBoolean(SHARED_PREFS_EXTERNAL_IMU, true);
+                    if(prefs_external_imu && bluetoothService != null) {
+                        if(bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
+                            bluetoothService.start();
+                        }
+                    } else if(bluetoothService != null) {
+                        bluetoothService.stop();
+                    }
                     break;
                 case SHARED_PREFS_HEATMAP:
                     prefs_heatmap = sharedPreferences.getBoolean(SHARED_PREFS_HEATMAP, false);
@@ -1991,5 +2190,39 @@ public class MapActivity extends AppCompatActivity implements
         Log.d(TAG, "convertData: float converted 0: " + Math.toDegrees(rotation[0]));
         Log.d(TAG, "convertData: float converted 1: " + Math.toDegrees(rotation[1]));
         Log.d(TAG, "convertData: float converted 2: " + Math.toDegrees(rotation[2]));
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        switch (event.sensor.getType()) {
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                magnetometerReading = event.values;
+                break;
+            case Sensor.TYPE_ACCELEROMETER:
+                accelerometerReading = event.values;
+                break;
+        }
+
+        sensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
+        sensorManager.getOrientation(rotationMatrix, rotation);
+
+        Log.d(TAG, "onSensorChanged: getting values");
+
+        if(auralizationEngine != null && auralizationEngine.isPlaying() && !auralizationEngine.update(lastLocation.getLongitude(),
+                    lastLocation.getLatitude(), mCurrentLocation.getLongitude(),
+                    mCurrentLocation.getLatitude(), rotation[0], rotation[1], rotation[2])) {
+            Log.d(TAG, "onSensorChanged: stopping auralization engine");
+            auralizationEngine.stopAndUnload();
+            auralizationEngine = null;
+            isSensorListenerActivated = false;
+            sensorManager.unregisterListener(this);
+        } else {
+
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        return;
     }
 }

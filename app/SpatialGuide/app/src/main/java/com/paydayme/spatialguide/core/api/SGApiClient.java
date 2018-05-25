@@ -1,5 +1,6 @@
 package com.paydayme.spatialguide.core.api;
 
+import com.paydayme.spatialguide.model.Comment;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
@@ -130,6 +131,16 @@ public interface SGApiClient {
     Call<User> getUserInfo(@Header("Authorization") String authKey);
 
     /**
+     * Get user information (names, username, email, image, etc)
+     *
+     * @param authKey the authorization key
+     * @return the User
+     */
+    @Headers("Content-Type: application/json")
+    @GET("userinfo/{id}/?format=json")
+    Call<User> getUserInfoByID(@Header("Authorization") String authKey, @Path("id") int id);
+
+    /**
      * Recover password
      *
      * @param recoverPasswordBody a map with the fields required for the request
@@ -193,6 +204,18 @@ public interface SGApiClient {
     @Headers("Content-Type: application/json")
     @POST("comment/")
     Call<ResponseBody> sendComment(@Header("Authorization") String authKey, @Body HashMap<String, Object> commentBody);
+
+    /**
+     * Get comments by point ID
+     *
+     * @param authKey the authorization key
+     * @param pointID id of the point
+     * @return HTTP Response of the request made, i.e. list of Comments of the given point
+     */
+    @Headers("Content-Type: application/json")
+    @GET("comment/{id}/?format=json")
+    Call<List<Comment>> getCommentsByPointID(@Header("Authorization") String authKey, @Path("id") int pointID);
+
 
     // TODO Backend
     @Multipart

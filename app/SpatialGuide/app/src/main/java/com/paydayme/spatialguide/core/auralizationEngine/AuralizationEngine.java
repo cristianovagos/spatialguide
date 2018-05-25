@@ -11,6 +11,7 @@ import com.paydayme.spatialguide.utils.Utils;
 import java.math.MathContext;
 
 public class AuralizationEngine {
+    private static final String TAG = "AuralizationEngine";
 
     private GvrAudioEngine gvrAudioEngine; //sound engine
     private volatile int sourceId = GvrAudioEngine.INVALID_ID; //source
@@ -46,6 +47,9 @@ public class AuralizationEngine {
 
     //public function called to update the auralization engine, returns true, if the sound is still playing, otherwise returns false
     public boolean update(double longitude, double latitude, double referenceX, double referenceY, double yaw, double pitch, double roll) {
+        Log.d(TAG, "update: \nyaw: " + yaw + "\npitch: " + pitch + "\nroll: " + roll);
+        Log.d(TAG, "\n\nupdate(degrees): \nyaw: " + Math.toDegrees(yaw) + "\npitch: " + Math.toDegrees(pitch) + "\nroll: " + Math.toDegrees(roll));
+
         if(!gvrAudioEngine.isSoundPlaying(sourceId))
             return false;
 

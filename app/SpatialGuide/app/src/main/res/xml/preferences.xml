@@ -18,7 +18,8 @@ Preferences Screen XML
 
         <CheckBoxPreference
             android:title="Toggle Auralization Engine"
-            android:summary="Turn on/off the spatial audio feature"
+            android:summaryOn="Auralization Engine is enabled"
+            android:summaryOff="Turn on to use Auralization feature"
             android:key="com.paydayme.spatialguide.prefs.auralization_engine"
             android:defaultValue="true"/>
 
@@ -27,6 +28,14 @@ Preferences Screen XML
             android:summary="To track usage statistics (heatmaps)"
             android:key="com.paydayme.spatialguide.prefs.send_location_heatmap"
             android:defaultValue="false"/>
+
+        <CheckBoxPreference
+            android:title="Use external Head Tracking sensor"
+            android:summaryOn="Turn off to use this device as a sensor"
+            android:summaryOff="Turn on to use another device as a sensor"
+            android:key="com.paydayme.spatialguide.prefs.external_imu_device"
+            android:defaultValue="true"
+            />
 
         <ListPreference
             android:title="Travel Mode"

@@ -73,6 +73,15 @@
 
                 </LinearLayout>
 
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/commentButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Comments"
+                    android:layout_marginTop="5dp"
+                    style="@style/Widget.AppCompat.Button.Colored"
+                    android:drawableTop="@drawable/ic_comment" />
+
                 <com.uncopt.android.widget.text.justify.JustifiedTextView
                     android:id="@+id/dialog_text"
                     android:layout_width="wrap_content"

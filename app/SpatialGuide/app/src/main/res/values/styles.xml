@@ -65,6 +65,11 @@
         <item name="colorControlHighlight">@color/monsoon</item>
     </style>
 
+    <style name="error" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@android:color/holo_red_light</item> <!--apply the color you wat here -->
+        <item name="android:textSize">12dp</item>
+    </style>
+
     <style name="CustomDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="colorAccent">@color/primary_dark</item>
         <item name="android:textColor">@color/black</item>

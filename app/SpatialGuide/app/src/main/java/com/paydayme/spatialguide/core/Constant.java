@@ -89,6 +89,7 @@ public final class Constant {
      * keys from the {@link com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity} class
      */
     public static final String SHARED_PREFS_AURALIZATION = "com.paydayme.spatialguide.prefs.auralization_engine";
+    public static final String SHARED_PREFS_EXTERNAL_IMU = "com.paydayme.spatialguide.prefs.external_imu_device";
     public static final String SHARED_PREFS_HEATMAP = "com.paydayme.spatialguide.prefs.send_location_heatmap";
     public static final String SHARED_PREFS_TRAVEL_MODE = "com.paydayme.spatialguide.prefs.travel_mode";
     public static final String SHARED_PREFS_TRIGGER_AREA_VALUE = "com.paydayme.spatialguide.prefs.trigger_area";
