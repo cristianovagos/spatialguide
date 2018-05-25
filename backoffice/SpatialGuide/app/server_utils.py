@@ -120,6 +120,10 @@ def get_Comments():
 
    return (tab_names,comment_list)
 
+def get_UserInfo():
+    user = User_Attributes.objects.all()
+    user = UserAttrSerializer()
+
 ################  Google Drive  ################
 
 def save_media(name,path):

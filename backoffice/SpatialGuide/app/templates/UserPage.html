@@ -1,0 +1,52 @@
+{% extends "navbar.html" %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+        <!-- Breadcrumbs-->
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'show_routes' %}">Routes</a>
+            </li>
+            <li class="breadcrumb-item active">{{ title }}</li>
+
+
+        </ol>
+
+        <br>
+
+        <div class="container-fluid">
+                <div class="col-sm-3" style="padding:10px 10px 10px 40px;">
+                    <div class="row">
+                        <h5  style= "width:100%">{{ user }}</h5>
+                        <br>
+                        <br>
+                        <br>
+                        <h5  style= "width:100%">{{ user.first_name }} {{ user.last_name }}</h5>
+                        <br>
+                        <br>
+                        <h5  style= "width:100%">{{ user.email }}</h5>
+                        <br>
+                        <br>
+                    </div>
+                    <div class="row">
+                        <img src="{{ user.Image }}" style="width: 100%; height: auto;"/>
+                    </div>
+
+                </div>
+        </div>
+
+    </div>
+
+    <div class="container-fluid" style="border-radius: 7px; width: 20%">
+            <form method="post" target="_self">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-block" name="editProfile">Edit Profile</button>
+            </form>
+        </div>
+
+
+    </div>
+
+{% endblock %}

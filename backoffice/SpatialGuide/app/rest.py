@@ -307,6 +307,8 @@ class addPoint(APIView):
         sound_name = str(request.FILES['Sound']).split('.')
         sound_name_type = sound_name[len(sound_name)-1] == 'wav'
 
+
+
         if form.is_valid() and sound_name_type and image_name_type:
             point = form.save()
             point.Image = DRIVE_BASE_URL+request_filesaver(request.FILES['Image'])
@@ -559,7 +561,11 @@ class UserInfo(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
-        user = User.objects.filter(username=str(request.user)).first()
+        if user_id:
+            user = User.objects.filter(pk=user_id).first()
+        else:
+            user = User.objects.filter(username=str(request.user)).first()
+
         if not user:
             return Response({'error':'User doesn\'t Exist!'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -708,7 +714,20 @@ class UserSuggestionsAdminView(APIView):
         return render(request, 'tables.html', tparams)
 
 class UserCommentsView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, point_id=None):
+        if point_id:
+            comments = User_Comments.objects.filter(Point=point_id).all()
+
+            if not comments:
+                raise ValidationError('Point does not exist')
+
+            serializer = UserCommentsSerializer(comments, many=True)
+            return Response(serializer.data)
+
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         data = request.data
@@ -725,10 +744,15 @@ class UserCommentsView(APIView):
         comment = User_Comments(User=user_post, Point=point, Comment=comment)
         comment.save()
 
+        if 'removeComment' in list(data.keys()):
+            comment.delete()
+            return redirect('comments.html')
+
         return Response(status=status.HTTP_200_OK)
 
 class UserCommentsAdminView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
 
     def get(self,request):
         if not request.user.is_staff:
@@ -744,3 +768,18 @@ class UserCommentsAdminView(APIView):
 
         return render(request, 'comments.html', tparams)
 
+
+class UserPageAdminView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
+        user_info = get_UserInfo()
+
+        tparams = {
+            'title': 'User Info',
+            'user_info': user_info,
+        }
+
+        return render(request, 'UserPage.html', tparams)

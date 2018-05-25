@@ -89,6 +89,11 @@
     </ul>
 
       <ul class="navbar-nav ml-auto">
+
+          <li class="nav-item">
+          <a class="nav-link" href="{% url 'userPage' %}">
+            <i class="fa fa-fw fa-user"></i>Hi, {{ user }}</a>
+        </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'logout' %}">
             <i class="fa fa-fw fa-sign-out"></i>Logout</a>

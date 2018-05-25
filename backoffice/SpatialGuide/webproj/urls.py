@@ -47,6 +47,7 @@ urlpatterns = [
     url(r'^logout/$', rest.UserLogoutView.as_view(), name='logout'),
 
     url(r'^userinfo/$', rest.UserInfo.as_view(), name='userinfo'),
+    url(r'^userinfo/((?P<user_id>\d+))/$', rest.UserInfo.as_view()),
     url(r'^useraddfavourite/$', rest.AddFavorite.as_view(), name='useraddfavourite'),
     url(r'^userremovefavourite/$', rest.RemoveFavourite.as_view(), name='userremovefavourite'),
 
@@ -62,7 +63,10 @@ urlpatterns = [
 
 
     url(r'^comment/$', rest.UserCommentsView.as_view()),
+    url(r'^comment/((?P<point_id>\d+))/$', rest.UserCommentsView.as_view()),
     url(r'^comments/$', rest.UserCommentsAdminView.as_view(), name='comments'),
+
+    url(r'^userPage/$', rest.UserPageAdminView.as_view(),name='userPage'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
