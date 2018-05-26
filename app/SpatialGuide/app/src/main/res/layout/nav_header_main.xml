@@ -40,8 +40,8 @@
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/userImageMenu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:src="@mipmap/ic_launcher_round"
         app:civ_border_width="0.5dp"

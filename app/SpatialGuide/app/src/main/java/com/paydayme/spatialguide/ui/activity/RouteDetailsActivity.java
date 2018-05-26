@@ -34,6 +34,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
 import com.paydayme.spatialguide.R;
@@ -226,6 +228,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    Answers.getInstance().logCustom(new CustomEvent("Download Route")
+                                            .putCustomAttribute("Route", route.getRouteName()));
                                     onDownloadRoute();
                                 }
                             })
@@ -241,6 +245,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    Answers.getInstance().logCustom(new CustomEvent("Navigate Route")
+                                            .putCustomAttribute("Route", route.getRouteName()));
                                     onNavigateRoute();
                                 }
                             })
@@ -265,6 +271,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         if(response.isSuccessful()) {
+                            Answers.getInstance().logCustom(new CustomEvent("Route Favorited")
+                                    .putCustomAttribute("Route", route.getRouteName()));
                             Toast.makeText(RouteDetailsActivity.this, R.string.route_favorited_success, Toast.LENGTH_SHORT).show();
                         } else {
                             Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
@@ -293,6 +301,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         if(response.isSuccessful()) {
+                            Answers.getInstance().logCustom(new CustomEvent("Route Unfavorited")
+                                    .putCustomAttribute("Route", route.getRouteName()));
                             Toast.makeText(RouteDetailsActivity.this, R.string.route_unfavourite_success, Toast.LENGTH_SHORT).show();
                         } else {
                             Log.e(TAG, "onFavoriteChanged - onResponse: " + response.errorBody().toString());
@@ -413,7 +423,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
 
     private void onDownloadNoPoints() {
         progressDialog.dismiss();
-        Toast.makeText(RouteDetailsActivity.this, R.string.download_toast_no_points, Toast.LENGTH_SHORT).show();
+        Toast.makeText(RouteDetailsActivity.this, R.string.download_toast_no_points, Toast.LENGTH_LONG).show();
     }
 
     private void onDownloadCompleted() {
@@ -427,7 +437,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private void onDownloadFailed() {
         progressDialog.dismiss();
         InternalStorage.deleteFile(this, ROUTE_STORAGE_SEPARATOR + routeSelected);
-        Toast.makeText(RouteDetailsActivity.this, R.string.download_toast_error, Toast.LENGTH_SHORT).show();
+        Toast.makeText(RouteDetailsActivity.this, R.string.download_toast_error, Toast.LENGTH_LONG).show();
     }
 
     private boolean isOnStorage(int routeID) {
@@ -462,6 +472,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         route = currentRoute;
+                        Answers.getInstance().logCustom(new CustomEvent("Route Updated")
+                                .putCustomAttribute("Route", route.getRouteName()));
                         onDownloadRoute();
                         getUserInfo();
                         updateUI();

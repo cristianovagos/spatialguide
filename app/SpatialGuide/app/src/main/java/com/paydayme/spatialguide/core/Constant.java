@@ -1,5 +1,9 @@
 package com.paydayme.spatialguide.core;
 
+import android.app.Activity;
+import android.media.AudioManager;
+import android.net.ConnectivityManager;
+
 /**
  * Created by cvagos on 20-03-2018.
  */
@@ -131,7 +135,7 @@ public final class Constant {
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 100;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 2000;
 
     /**
      * The fastest rate for active location updates. Exact. Updates will never be more frequent
@@ -156,7 +160,12 @@ public final class Constant {
     public static final String CONNECT_TO_WIFI = "WIFI";
     public static final String CONNECT_TO_MOBILE = "MOBILE";
     public static final String NOT_CONNECTED = "NOT_CONNECT";
-    public final static String CONNECTIVITY_ACTION = "android.net.conn.CONNECTIVITY_CHANGE";
+    public final static String CONNECTIVITY_ACTION = ConnectivityManager.CONNECTIVITY_ACTION;
+
+    /**
+     *
+     */
+    public final static String HEADSET_PLUG_ACTION = AudioManager.ACTION_HEADSET_PLUG;
 
     // Message types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;

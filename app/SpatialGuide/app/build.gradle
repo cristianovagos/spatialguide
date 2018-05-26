@@ -89,6 +89,17 @@ dependencies {
     // Pusher
     implementation 'com.pusher:pusher-java-client:1.5.0'
     implementation 'com.pusher:push-notifications-android:0.10.0'
+
+    // Crashlytics
+    implementation('com.crashlytics.sdk.android:crashlytics:2.9.3@aar') {
+        transitive = true;
+    }
+
+    // Answers
+    implementation('com.crashlytics.sdk.android:answers:1.4.2@aar') {
+        transitive = true;
+    }
 }
 
+apply plugin: 'io.fabric'
 apply plugin: 'com.google.gms.google-services'

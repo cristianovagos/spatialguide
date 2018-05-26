@@ -42,16 +42,6 @@
             android:text="Pause sound"
             android:layout_gravity="center_horizontal"/>
 
-        <android.support.v7.widget.AppCompatButton
-            android:id="@+id/stopSound"
-            android:layout_width="160dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:drawableTop="@drawable/ic_stop_btn"
-            style="@style/Widget.AppCompat.Button.Colored"
-            android:text="Stop sound"
-            android:layout_gravity="center_horizontal"/>
-
     </LinearLayout>
 
     <ImageButton

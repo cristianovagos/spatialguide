@@ -24,6 +24,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.LoginEvent;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
@@ -304,11 +306,19 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginSuccess() {
+        Answers.getInstance().logLogin(new LoginEvent()
+                .putMethod("SpatialGuide Login")
+                .putSuccess(true));
+
         startActivity(new Intent(LoginActivity.this, RouteActivity.class));
         finish();
     }
 
     public void onLoginFailure() {
+        Answers.getInstance().logLogin(new LoginEvent()
+                .putMethod("SpatialGuide Login")
+                .putSuccess(false));
+
         // Present Toast with error
         Toast.makeText(this, getString(R.string.error_login), Toast.LENGTH_LONG).show();
         loginButton.setEnabled(true);

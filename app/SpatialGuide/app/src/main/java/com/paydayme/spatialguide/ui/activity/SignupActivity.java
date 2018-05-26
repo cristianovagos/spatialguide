@@ -22,6 +22,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.SignUpEvent;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.model.User;
@@ -224,6 +226,9 @@ public class SignupActivity extends AppCompatActivity {
     public void onSignupSuccess() {
         Log.d(TAG, "signup success, going back to LoginActivity...");
         signupButton.setEnabled(true);
+        Answers.getInstance().logSignUp(new SignUpEvent()
+                .putMethod("SpatialGuide Signup")
+                .putSuccess(true));
         setResult(RESULT_OK, null);
         finish();
     }
@@ -231,6 +236,9 @@ public class SignupActivity extends AppCompatActivity {
     public void onSignupFailure() {
         Toast.makeText(getBaseContext(), getText(R.string.error_signup), Toast.LENGTH_LONG).show();
         signupButton.setEnabled(true);
+        Answers.getInstance().logSignUp(new SignUpEvent()
+                .putMethod("SpatialGuide Signup")
+                .putSuccess(false));
     }
 
     public boolean isSignupValid() {

@@ -23,50 +23,53 @@
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="300dp">
+            android:layout_height="180dp">
 
-            <LinearLayout
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/routeDragRecyclerview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:scrollbars="vertical"
-                android:scrollbarAlwaysDrawVerticalTrack="true">
-
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/routeDragRecyclerview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="15dp"/>
-
-                <android.support.v7.widget.AppCompatButton
-                    android:id="@+id/confirmOrderBtn"
-                    android:layout_width="150dp"
-                    android:layout_height="wrap_content"
-                    style="@style/Widget.AppCompat.Button.Colored"
-                    android:text="Confirm Order"
-                    android:layout_gravity="center_horizontal"/>
-
-                <android.support.v7.widget.AppCompatButton
-                    android:id="@+id/shortestPathBtn"
-                    android:layout_width="150dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    style="@style/Widget.AppCompat.Button.Colored"
-                    android:text="Shortest Path"
-                    android:layout_gravity="center_horizontal"/>
-
-                <android.support.v7.widget.AppCompatButton
-                    android:id="@+id/adventureModeBtn"
-                    android:layout_width="150dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    style="@style/Widget.AppCompat.Button.Colored"
-                    android:text="Adventure Mode"
-                    android:layout_gravity="center_horizontal"/>
-
-            </LinearLayout>
+                android:layout_margin="15dp"/>
 
         </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:orientation="vertical"
+            android:background="@drawable/white_grey_border_top">
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/confirmOrderBtn"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_marginTop="5dp"
+                android:text="Confirm Order"
+                android:layout_gravity="center_horizontal"/>
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/shortestPathBtn"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:text="Shortest Path"
+                android:layout_gravity="center_horizontal"/>
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/adventureModeBtn"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:text="Adventure Mode"
+                android:layout_gravity="center_horizontal"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 

@@ -277,8 +277,11 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
             @Override
             public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
                 if(response.isSuccessful()) {
+                    Log.d(TAG, "getRoutes - onResponse: ");
                     routeList = response.body();
                     updateUI();
+                } else {
+                    Log.e(TAG, "getRoutes - onResponse: something failed");
                 }
             }
 
@@ -286,6 +289,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
             public void onFailure(Call<List<Route>> call, Throwable t) {
                 Log.d(TAG, "getRoutes - onFailure: " + t.getMessage());
                 avaliableRoutesRV.setVisibility(View.GONE);
+                loadingLayout.setVisibility(View.GONE);
                 noRoutesText.setVisibility(View.VISIBLE);
             }
         });

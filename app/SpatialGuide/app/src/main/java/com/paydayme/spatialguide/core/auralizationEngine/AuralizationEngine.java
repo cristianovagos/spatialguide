@@ -16,6 +16,7 @@ public class AuralizationEngine {
     private GvrAudioEngine gvrAudioEngine; //sound engine
     private volatile int sourceId = GvrAudioEngine.INVALID_ID; //source
     private String soundFile;
+    private Thread soundplayThread;
 
     public AuralizationEngine(Context context, final String soundFile) {
         this.soundFile = soundFile;
@@ -23,11 +24,8 @@ public class AuralizationEngine {
         //Initialize the Google VR Audio Engine
         gvrAudioEngine =
                 new GvrAudioEngine(context, GvrAudioEngine.RenderingMode.BINAURAL_HIGH_QUALITY);
-    }
-
-    public void play() {
-        //load the sound file
-        new Thread(
+        Log.d(TAG, "AuralizationEngine: constructor - creating new thread");
+        this.soundplayThread = new Thread(
                 new Runnable() {
                     @Override
                     public void run() {
@@ -37,8 +35,31 @@ public class AuralizationEngine {
                         gvrAudioEngine.setSoundObjectPosition(sourceId, 0,0,0);
                         gvrAudioEngine.playSound(sourceId, true);
                     }
-                })
-                .start();
+                });
+    }
+
+    public void play() {
+        //load the sound file
+        if(soundplayThread != null && !soundplayThread.isAlive()) {
+            Log.d(TAG, "AuralizationEngine: play - starting thread");
+            try {
+                soundplayThread.start();
+            } catch (Exception e) {
+                Log.e(TAG, "AuralizationEngine: play - exception thrown: " + e.getMessage());
+                soundplayThread = new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                // Preload the sound file
+                                gvrAudioEngine.preloadSoundFile(soundFile);
+                                sourceId = gvrAudioEngine.createSoundObject(soundFile);
+                                gvrAudioEngine.setSoundObjectPosition(sourceId, 0,0,0);
+                                gvrAudioEngine.playSound(sourceId, true);
+                            }
+                        });
+                soundplayThread.start();
+            }
+        }
     }
 
     public boolean isPlaying() {
@@ -47,8 +68,8 @@ public class AuralizationEngine {
 
     //public function called to update the auralization engine, returns true, if the sound is still playing, otherwise returns false
     public boolean update(double longitude, double latitude, double referenceX, double referenceY, double yaw, double pitch, double roll) {
-        Log.d(TAG, "update: \nyaw: " + yaw + "\npitch: " + pitch + "\nroll: " + roll);
-        Log.d(TAG, "\n\nupdate(degrees): \nyaw: " + Math.toDegrees(yaw) + "\npitch: " + Math.toDegrees(pitch) + "\nroll: " + Math.toDegrees(roll));
+//        Log.d(TAG, "update: \nyaw: " + yaw + "\npitch: " + pitch + "\nroll: " + roll);
+//        Log.d(TAG, "\n\nupdate(degrees): \nyaw: " + Math.toDegrees(yaw) + "\npitch: " + Math.toDegrees(pitch) + "\nroll: " + Math.toDegrees(roll));
 
         if(!gvrAudioEngine.isSoundPlaying(sourceId))
             return false;

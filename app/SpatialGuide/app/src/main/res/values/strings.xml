@@ -15,6 +15,7 @@
     <string name="new_password_again">Re-enter New Password</string>
     <string name="new_email">New Email</string>
     <string name="new_email_again">Re-enter New Email</string>
+    <string name="current_password">Current Password</string>
     <string name="password">Password</string>
     <string name="password_again">Re-enter Password</string>
     <string name="login">Sign in</string>
@@ -117,4 +118,6 @@
     <string name="change_user_image">Change image</string>
     <string name="no_connection">No Internet connection</string>
     <string name="no_connection_message">This app requires a Internet connection.\nPlease turn it on.</string>
+    <string name="no_headset_connected">No Headset Connected</string>
+    <string name="no_headset_connected_message">To have a better travelling experience, it\'s recommended to have a headset connected.\nPlease connect a headset.</string>
 </resources>

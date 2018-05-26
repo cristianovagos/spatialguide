@@ -7,7 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -21,6 +23,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -36,6 +39,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -95,8 +99,6 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
 
     private String authenticationHeader;
     private int routeSelected;
-
-    private User currentUser;
 
     private final int PICK_IMAGE_ID = 3421; // a random value, just for checking
 
@@ -273,6 +275,9 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
 
         Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
 
+        ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
+        AppCompatButton confirmChangeButton = (AppCompatButton) view.findViewById(R.id.confirmChangeEmailBtn);
+
         TextInputLayout tilPassword = view.findViewById(R.id.tilPassword);
         TextInputLayout tilEmail = view.findViewById(R.id.tilEmail);
         TextInputLayout tilNewEmail = view.findViewById(R.id.tilNewEmail);
@@ -281,12 +286,6 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         emailEditText = view.findViewById(R.id.input_email);
         newEmailEditText = view.findViewById(R.id.input_newEmail);
         reEnterNewEmailEditText = view.findViewById(R.id.input_reEnterNewEmail);
-
-        builder.setTitle(getString(R.string.change_email))
-                .setPositiveButton(getString(R.string.change_email), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {}
-                });
 
         // Setting custom font to dialog
         tilPassword.setTypeface(tf);
@@ -301,19 +300,17 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         // Creating dialog and adjusting size
         dialog = builder.create();
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = 900;
-        if(lp.height > 1300)
-            lp.height = 1300;
-        else
-            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        lp.gravity = Gravity.CENTER;
-
         dialog.show();
 
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
         // Override the button handler to check if data is valid
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+        confirmChangeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 boolean valid = true;
@@ -364,14 +361,21 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                     passwordEditText.setError(null);
                 }
 
-                if(valid) {
+                if(valid)
                     onChangeEmail(password, email, newEmail, reEnterNewEmail);
-                    dialog.dismiss();
-                }
             }
         });
 
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        if(lp.height > 1300)
+            lp.height = 1300;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER;
         dialog.getWindow().setAttributes(lp);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         TextView textView = (TextView) dialog.findViewById(android.R.id.message);
         textView.setTypeface(tf);
     }
@@ -388,6 +392,9 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                 .setView(view)
                 .setCancelable(true);
 
+        ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
+        AppCompatButton confirmChangeButton = (AppCompatButton) view.findViewById(R.id.confirmChangePasswordBtn);
+
         Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
 
         TextInputLayout tilPassword = view.findViewById(R.id.tilPassword);
@@ -396,12 +403,6 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         passwordEditText = view.findViewById(R.id.input_password);
         newPasswordEditText = view.findViewById(R.id.input_newPassword);
         reEnterNewPasswordEditText = view.findViewById(R.id.input_reEnterNewPassword);
-
-        builder.setTitle(getString(R.string.change_password))
-                .setPositiveButton(getString(R.string.change_password), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {}
-                });
 
         // Setting custom font to dialog
         tilPassword.setTypeface(tf);
@@ -414,19 +415,17 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         // Creating dialog and adjusting size
         dialog = builder.create();
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(dialog.getWindow().getAttributes());
-        lp.width = 900;
-        if(lp.height > 1300)
-            lp.height = 1300;
-        else
-            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        lp.gravity = Gravity.CENTER;
-
         dialog.show();
 
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
         // Override the button handler to check if data is valid
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+        confirmChangeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 boolean valid = true;
@@ -445,13 +444,13 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
 
                 // check password
                 if (newPassword.isEmpty() || newPassword.length() < 4 || newPassword.length() > 10) {
-                    passwordEditText.setError(getString(R.string.error_password));
+                    newPasswordEditText.setError(getString(R.string.error_password));
                     valid = false;
                 } else if(newPassword.equals(password)) {
-                    passwordEditText.setError(getString(R.string.error_password_change_equal));
+                    newPasswordEditText.setError(getString(R.string.error_password_change_equal));
                     valid = false;
                 } else {
-                    passwordEditText.setError(null);
+                    newPasswordEditText.setError(null);
                 }
 
                 // check password
@@ -465,17 +464,24 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                     reEnterNewPasswordEditText.setError(getString(R.string.error_password_match));
                     valid = false;
                 } else {
-                    passwordEditText.setError(null);
+                    reEnterNewPasswordEditText.setError(null);
                 }
 
-                if(valid) {
+                if(valid)
                     onChangePassword(password, newPassword, reEnterNewPassword);
-                    dialog.dismiss();
-                }
             }
         });
 
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = 900;
+        if(lp.height > 1300)
+            lp.height = 1300;
+        else
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER;
         dialog.getWindow().setAttributes(lp);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         TextView textView = (TextView) dialog.findViewById(android.R.id.message);
         textView.setTypeface(tf);
     }
@@ -509,10 +515,12 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                     spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, newEmailText);
                     spEditor.apply();
 
+                    dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Email changed successfully", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.d(TAG, "onChangeEmail - onResponse: failed to send location to API");
                     Log.d(TAG, "onChangeEmail - onResponse: " + response.errorBody().toString());
+                    dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Some error occurred while changing email", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -520,6 +528,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e(TAG, "onChangeEmail - onFailure: failed to change email" + t.getMessage());
+                dialog.dismiss();
                 Toast.makeText(UserPanelActivity.this, "Some error occurred while changing email", Toast.LENGTH_SHORT).show();
             }
         });
@@ -546,10 +555,12 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                         spEditor.apply();
                     }
 
+                    dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Password changed successfully", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.d(TAG, "onChangePassword - onResponse: failed to send location to API");
                     Log.d(TAG, "onChangePassword - onResponse: " + response.errorBody().toString());
+                    dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Some error occurred while changing password", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -557,6 +568,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e(TAG, "onChangePassword - onFailure: failed to change password" + t.getMessage());
+                dialog.dismiss();
                 Toast.makeText(UserPanelActivity.this, "Some error occurred while changing password", Toast.LENGTH_SHORT).show();
             }
         });

@@ -97,6 +97,10 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="92c9d6cca827da5634121e1ef52268a093fb5732" />
+
         <provider
             android:name=".core.image.GenericFileProvider"
             android:authorities="${applicationId}"

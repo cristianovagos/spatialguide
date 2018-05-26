@@ -21,6 +21,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -64,6 +65,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -149,6 +152,8 @@ import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 import static com.paydayme.spatialguide.core.Constant.DEFAULT_ZOOM_VALUE;
 import static com.paydayme.spatialguide.core.Constant.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS;
 import static com.paydayme.spatialguide.core.Constant.GOOGLE_DIRECTIONS_API_KEY;
+import static com.paydayme.spatialguide.core.Constant.HEADSET_PLUG_ACTION;
+import static com.paydayme.spatialguide.core.Constant.MINIMUM_DISPLACEMENT;
 import static com.paydayme.spatialguide.core.Constant.POINT_STORAGE_SEPARATOR;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_CHECK_SETTINGS;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_PERMISSIONS_REQUEST_CODE;
@@ -242,8 +247,14 @@ public class MapActivity extends AppCompatActivity implements
     // Alert dialog to notify user that there's no connectivity
     private AlertDialog connectionDialog;
 
-    // Intent filter to match the CONNECTIVITY_ACTION
-    private IntentFilter intentFilter;
+    // Alert dialog to notify user that headset is not connected
+    private AlertDialog headsetDialog;
+
+    // Intent filter to match the CONNECTIVITY_ACTION intent
+    private IntentFilter connectivityIntentFilter;
+
+    // Intent filter to detect if a headset is connected (HEADSET_PLUG_ACTION)
+    private IntentFilter headsetConnectionIntentFilter;
 
     // Marker that will appear on Google Map when user click
     private Marker markerUserClick;
@@ -259,6 +270,8 @@ public class MapActivity extends AppCompatActivity implements
     private List<Comment> commentList = new ArrayList<>();
 
     private RecyclerView recyclerView;
+
+    private DirectionsResult directionsResult;
 
     // SharedPreferences object
     private SharedPreferences sharedPreferences;
@@ -314,12 +327,12 @@ public class MapActivity extends AppCompatActivity implements
     private float[] accelerometerReading = new float[3];
     private float[] rotationMatrix = new float[9];
     private boolean isSensorListenerActivated = false;
+    private boolean bluetoothActivated = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-        intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
         ButterKnife.bind(this);
 
         init(savedInstanceState);
@@ -364,39 +377,39 @@ public class MapActivity extends AppCompatActivity implements
                         Log.e(TAG, "addMarkers: error on setting the visited marker color");
                         break;
                 }
-            }
-
-            switch (Integer.valueOf(prefs_unvisited_marker_color)) {
-                case 1:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                    break;
-                case 2:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                    break;
-                case 3:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                    break;
-                case 4:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
-                    break;
-                case 5:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-                    break;
-                case 6:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-                    break;
-                case 7:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
-                    break;
-                case 8:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
-                    break;
-                case 9:
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                    break;
-                default:
-                    Log.e(TAG, "addMarkers: error on setting the unvisited marker color");
-                    break;
+            } else {
+                switch (Integer.valueOf(prefs_unvisited_marker_color)) {
+                    case 1:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                        break;
+                    case 2:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                        break;
+                    case 3:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                        break;
+                    case 4:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+                        break;
+                    case 5:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+                        break;
+                    case 6:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+                        break;
+                    case 7:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
+                        break;
+                    case 8:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+                        break;
+                    case 9:
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                        break;
+                    default:
+                        Log.e(TAG, "addMarkers: error on setting the unvisited marker color");
+                        break;
+                }
             }
             Marker marker = mMap.addMarker(options);
             marker.setTag(p);
@@ -405,6 +418,9 @@ public class MapActivity extends AppCompatActivity implements
 
     private void init(Bundle savedInstanceState) {
         initMenuHeaderViews();
+
+        connectivityIntentFilter = new IntentFilter(CONNECTIVITY_ACTION);
+        headsetConnectionIntentFilter = new IntentFilter(HEADSET_PLUG_ACTION);
 
         // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
@@ -426,6 +442,9 @@ public class MapActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         mRouteSelected = intent.getIntExtra("route", -1);
+
+        configBluetooth();
+        configSensor();
 
         // Getting SharedPreferences and their values
         initSharedPreferences();
@@ -449,9 +468,6 @@ public class MapActivity extends AppCompatActivity implements
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingsRequest();
-
-        configBluetooth();
-        configSensor();
     }
 
     private void configSensor() {
@@ -477,12 +493,18 @@ public class MapActivity extends AppCompatActivity implements
     protected void onStart() {
         super.onStart();
 
+//        if(!prefs_auralization) {
+//            bluetoothActivated = false;
+//            return;
+//        }
+
         // If the BT is not ON, request for being enabled
         if(!bluetoothAdapter.isEnabled()) {
             startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BT);
         } else if (bluetoothService == null) {
             setupBluetoothService();
         }
+        bluetoothActivated = true;
     }
 
     private void setupBluetoothService() {
@@ -525,8 +547,9 @@ public class MapActivity extends AppCompatActivity implements
                     String writeMessage = new String(writeBuf);
                     break;
                 case Constant.MESSAGE_READ:
-                    if(!prefs_auralization) break;
-
+//                    if(!prefs_auralization) break;
+                    Log.d(TAG, "handleMessage: received message from bluetooth");
+                    
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
@@ -607,6 +630,9 @@ public class MapActivity extends AppCompatActivity implements
         prefs_direction_line_color = sharedPreferences.getString(SHARED_PREFS_DIRECTION_LINE_COLOR, "1");
 
         authenticationHeader = sharedPreferences.getString(SHARED_PREFERENCES_AUTH_KEY, "");
+
+        onAuralizationSettingsChange();
+        onExternalIMUSettingsChange();
     }
 
     private void initApis() {
@@ -868,8 +894,7 @@ public class MapActivity extends AppCompatActivity implements
         // application will never receive updates faster than this value.
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
 
-        //TODO - setting smallest displacement (DEBUG)
-//        mLocationRequest.setSmallestDisplacement(MINIMUM_DISPLACEMENT);
+        mLocationRequest.setSmallestDisplacement(MINIMUM_DISPLACEMENT);
 
         switch (Integer.valueOf(prefs_location_accuracy)) {
             case 1:
@@ -1031,7 +1056,7 @@ public class MapActivity extends AppCompatActivity implements
             }
         }
 
-        DirectionsResult directionsResult = shortestPath ? getDirectionsDetails(mCurrentLocation, false) :
+        directionsResult = shortestPath ? getDirectionsDetails(mCurrentLocation, false) :
                 getDirectionsDetails(mCurrentLocation, true);
 
         if (directionsResult != null) {
@@ -1096,6 +1121,12 @@ public class MapActivity extends AppCompatActivity implements
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if(response.isSuccessful()) {
                     Log.d(TAG, "onPointVisited - onResponse: point marked as visited in API");
+                    if(mMap != null) {
+                        mMap.clear();
+                        addMarkers();
+                    }
+                    if(directionsResult != null)
+                        addPolyline(directionsResult, mMap);
                 } else {
                     Log.e(TAG, "onPointVisited - onResponse: error while marking point as visited: " + response.errorBody().toString());
                 }
@@ -1235,21 +1266,26 @@ public class MapActivity extends AppCompatActivity implements
         View view = inflater.inflate(R.layout.dialog_sound_options, null);
         AppCompatButton playSound = (AppCompatButton) view.findViewById(R.id.playSound);
         final AppCompatButton pauseSound = (AppCompatButton) view.findViewById(R.id.pauseSound);
-        AppCompatButton stopSound = (AppCompatButton) view.findViewById(R.id.stopSound);
+//        AppCompatButton stopSound = (AppCompatButton) view.findViewById(R.id.stopSound);
         ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
 
         if(auralizationEngine != null) {
             if(auralizationEngine.isPlaying()) {
                 pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_pause_btn, 0,0);
+                pauseSound.setText("Pause sound");
             }
             else {
                 pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_play_btn, 0,0);
+                pauseSound.setText("Play sound");
             }
         }
 
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(auralizationEngine != null && !auralizationEngine.isPlaying()) {
+                    auralizationEngine.stopAndUnload();
+                }
                 dialog.dismiss();
             }
         });
@@ -1271,20 +1307,13 @@ public class MapActivity extends AppCompatActivity implements
                     if(auralizationEngine.isPlaying()) {
                         auralizationEngine.pause();
                         pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_play_btn, 0,0);
+                        pauseSound.setText("Play sound");
                     }
                     else {
                         auralizationEngine.resume();
                         pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_pause_btn, 0,0);
+                        pauseSound.setText("Pause sound");
                     }
-                }
-            }
-        });
-
-        stopSound.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(auralizationEngine != null) {
-                    auralizationEngine.stopAndUnload();
                 }
             }
         });
@@ -1310,13 +1339,6 @@ public class MapActivity extends AppCompatActivity implements
         lp.gravity = Gravity.CENTER;
         dialog.getWindow().setAttributes(lp);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-    }
-
-    private void changeFontAlertDialog() {
-        // Setting custom font to dialog
-        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
-        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
-        textView.setTypeface(tf);
     }
 
     private void showSuggestionDialog(final LatLng latLng) {
@@ -1479,6 +1501,8 @@ public class MapActivity extends AppCompatActivity implements
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             if(response.isSuccessful()) {
+                                Answers.getInstance().logCustom(new CustomEvent("Point Favorited")
+                                        .putCustomAttribute("Point", point.getPointName()));
                                 Toast.makeText(MapActivity.this, R.string.point_favorited_success, Toast.LENGTH_SHORT).show();
                             } else {
                                 Log.e(TAG, "liked - onResponse: " + response.errorBody().toString());
@@ -1507,6 +1531,8 @@ public class MapActivity extends AppCompatActivity implements
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             if(response.isSuccessful()) {
+                                Answers.getInstance().logCustom(new CustomEvent("Point Unfavorited")
+                                        .putCustomAttribute("Point", point.getPointName()));
                                 Toast.makeText(MapActivity.this, R.string.point_unfavourite_success, Toast.LENGTH_SHORT).show();
                             } else {
                                 Log.e(TAG, "unliked - onResponse: " + response.errorBody().toString());
@@ -1570,7 +1596,7 @@ public class MapActivity extends AppCompatActivity implements
 
         final AppCompatEditText commentEdit = (AppCompatEditText) view.findViewById(R.id.input_comment);
         final TextInputLayout tilComment = (TextInputLayout) view.findViewById(R.id.tilComment);
-        ImageButton sendCommentBtn = (ImageButton) view.findViewById(R.id.sendCommentBtn);
+        final ImageButton sendCommentBtn = (ImageButton) view.findViewById(R.id.sendCommentBtn);
         ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
         final ScrollView scrollView = (ScrollView) view.findViewById(R.id.commentsScrollView);
         recyclerView = (RecyclerView) view.findViewById(R.id.commentsRV);
@@ -1626,6 +1652,7 @@ public class MapActivity extends AppCompatActivity implements
                     tilComment.setError("Please insert a comment.");
                     return;
                 } else {
+                    sendCommentBtn.setEnabled(false);
                     tilComment.setError(null);
 
                     HashMap<String, Object> tmpMap = new HashMap(2);
@@ -1637,11 +1664,15 @@ public class MapActivity extends AppCompatActivity implements
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             if(response.isSuccessful()) {
+                                Answers.getInstance().logCustom(new CustomEvent("Comment on Point")
+                                        .putCustomAttribute("Point", point.getPointName()));
                                 Toast.makeText(MapActivity.this, "Comment sent successfully", Toast.LENGTH_SHORT).show();
+                                sendCommentBtn.setEnabled(true);
                                 dialog.dismiss();
                             } else {
                                 Log.e(TAG, "comment onResponse: something failed");
                                 Toast.makeText(MapActivity.this, "Failed to send comment", Toast.LENGTH_LONG).show();
+                                sendCommentBtn.setEnabled(true);
                             }
                         }
 
@@ -1649,6 +1680,7 @@ public class MapActivity extends AppCompatActivity implements
                         public void onFailure(Call<ResponseBody> call, Throwable t) {
                             Log.e(TAG, "comment onFailure: " + t.getMessage());
                             Toast.makeText(MapActivity.this, "Failed to send comment", Toast.LENGTH_LONG).show();
+                            sendCommentBtn.setEnabled(true);
                         }
                     });
                 }
@@ -1718,6 +1750,8 @@ public class MapActivity extends AppCompatActivity implements
         confirmOrderButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Answers.getInstance().logCustom(new CustomEvent("Custom Order Route")
+                        .putCustomAttribute("Route", mRoute.getRouteName()));
                 shortestPath = false;
                 dialog.dismiss();
             }
@@ -1726,6 +1760,8 @@ public class MapActivity extends AppCompatActivity implements
         shortestPathButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Answers.getInstance().logCustom(new CustomEvent("Shortest Path Route")
+                        .putCustomAttribute("Route", mRoute.getRouteName()));
                 shortestPath = true;
                 dialog.dismiss();
             }
@@ -1734,6 +1770,8 @@ public class MapActivity extends AppCompatActivity implements
         adventureModeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Answers.getInstance().logCustom(new CustomEvent("Adventure Mode Route")
+                        .putCustomAttribute("Route", mRoute.getRouteName()));
                 Collections.shuffle(mRoute.getRoutePoints());
                 shortestPath = false;
                 dialog.dismiss();
@@ -1877,7 +1915,10 @@ public class MapActivity extends AppCompatActivity implements
         super.onResume();
 
         // Register connectivity change receiver
-        registerReceiver(networkReceiver, intentFilter);
+        registerReceiver(networkReceiver, connectivityIntentFilter);
+
+        // Register headset change receiver
+        registerReceiver(headsetPlugReceiver, headsetConnectionIntentFilter);
 
         // Register sharedPreferences onChange listener
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferencesListener);
@@ -1903,6 +1944,9 @@ public class MapActivity extends AppCompatActivity implements
 
         // Unregister connectivity change receiver
         unregisterReceiver(networkReceiver);
+
+        // Unregister headset change receiver
+        unregisterReceiver(headsetPlugReceiver);
 
         // Remove location updates to save battery.
         stopLocationUpdates();
@@ -2049,6 +2093,9 @@ public class MapActivity extends AppCompatActivity implements
                     .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            if(auralizationEngine != null) {
+                                auralizationEngine.stopAndUnload();
+                            }
                             finish();
                         }
                     })
@@ -2145,30 +2192,14 @@ public class MapActivity extends AppCompatActivity implements
                     prefs_trigger_area_value = sharedPreferences.getInt(SHARED_PREFS_TRIGGER_AREA_VALUE, TRIGGER_AREA_DISTANCE);
                     break;
                 case SHARED_PREFS_AURALIZATION:
+                    Log.d(TAG, "onSharedPreferenceChanged: toggled auralization option");
                     prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
-                    if(!prefs_auralization) {
-                        if(isSensorListenerActivated)
-                            sensorManager.unregisterListener(MapActivity.this);
-
-                        rotation[0] = 0;
-                        rotation[1] = 0;
-                        rotation[2] = 0;
-                    } else {
-                        if(!prefs_external_imu && !isSensorListenerActivated) {
-                            sensorManager.registerListener(MapActivity.this, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
-                            sensorManager.registerListener(MapActivity.this, accel, SensorManager.SENSOR_DELAY_NORMAL);
-                        }
-                    }
+                    onAuralizationSettingsChange();
                     break;
                 case SHARED_PREFS_EXTERNAL_IMU:
+                    Log.d(TAG, "onSharedPreferenceChanged: toggled external IMU option");
                     prefs_external_imu = sharedPreferences.getBoolean(SHARED_PREFS_EXTERNAL_IMU, true);
-                    if(prefs_external_imu && bluetoothService != null) {
-                        if(bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
-                            bluetoothService.start();
-                        }
-                    } else if(bluetoothService != null) {
-                        bluetoothService.stop();
-                    }
+                    onExternalIMUSettingsChange();
                     break;
                 case SHARED_PREFS_HEATMAP:
                     prefs_heatmap = sharedPreferences.getBoolean(SHARED_PREFS_HEATMAP, false);
@@ -2198,6 +2229,72 @@ public class MapActivity extends AppCompatActivity implements
         }
     };
 
+    private void onExternalIMUSettingsChange() {
+        if(prefs_external_imu) {
+            Log.d(TAG, "onSharedPreferenceChanged: USING EXTERNAL IMU");
+            // IMU EXTERNAL
+            if(isSensorListenerActivated) {
+                isSensorListenerActivated = false;
+                sensorManager.unregisterListener(MapActivity.this);
+            }
+            if(bluetoothService != null && bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
+                bluetoothService.start();
+            }
+        } else {
+            // INTERNAL SENSORS
+            if(bluetoothService != null) {
+                bluetoothService.stop();
+            }
+            if(!isSensorListenerActivated) {
+                isSensorListenerActivated = true;
+                sensorManager.registerListener(MapActivity.this, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+                sensorManager.registerListener(MapActivity.this, accel, SensorManager.SENSOR_DELAY_NORMAL);
+            }
+        }
+    }
+
+    private void onAuralizationSettingsChange() {
+        if(!prefs_auralization) {
+            Log.d(TAG, "onAuralizationSettingsChange: auralization OFF");
+            if(isSensorListenerActivated) {
+                Log.d(TAG, "onAuralizationSettingsChange: unregistering sensors from this device");
+                sensorManager.unregisterListener(MapActivity.this);
+                isSensorListenerActivated = false;
+            }
+
+            Log.d(TAG, "onAuralizationSettingsChange: setting rotations to ZERO");
+            rotation[0] = 0;
+            rotation[1] = 0;
+            rotation[2] = 0;
+
+            if(auralizationEngine != null && auralizationEngine.isPlaying() && !auralizationEngine.update(lastLocation.getLongitude(),
+                    lastLocation.getLatitude(), mCurrentLocation.getLongitude(),
+                    mCurrentLocation.getLatitude(), rotation[0], rotation[1], rotation[2])) {
+                Log.e(TAG, "onAuralizationSettingsChange: something failed updating the auralization engine");
+            } else {
+                Log.d(TAG, "onAuralizationSettingsChange: auralization engine position reset SUCCESS");
+            }
+        } else {
+            Log.d(TAG, "onAuralizationSettingsChange: auralization ON");
+            if(!prefs_external_imu && !isSensorListenerActivated) {
+                Log.d(TAG, "onAuralizationSettingsChange: using INTERNAL SENSORS");
+                Log.d(TAG, "onAuralizationSettingsChange: registering sensors from this device");
+                sensorManager.registerListener(MapActivity.this, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+                sensorManager.registerListener(MapActivity.this, accel, SensorManager.SENSOR_DELAY_NORMAL);
+                isSensorListenerActivated = true;
+            } else if(prefs_external_imu) {
+                Log.d(TAG, "onAuralizationSettingsChange: using EXTERNAL IMU");
+                if(isSensorListenerActivated) {
+                    isSensorListenerActivated = false;
+                    sensorManager.unregisterListener(MapActivity.this);
+                }
+                if(bluetoothService != null && bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
+                    bluetoothService.start();
+                }
+            }
+        }
+    }
+
     //Convert the Data Received to Float
     private void convertData(String data) throws Exception {
         String [] tmp = data.split("/");
@@ -2223,7 +2320,7 @@ public class MapActivity extends AppCompatActivity implements
         sensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
         sensorManager.getOrientation(rotationMatrix, rotation);
 
-        Log.d(TAG, "onSensorChanged: getting values");
+//        Log.d(TAG, "onSensorChanged: getting values");
 
         if(auralizationEngine != null && auralizationEngine.isPlaying() && !auralizationEngine.update(lastLocation.getLongitude(),
                     lastLocation.getLatitude(), mCurrentLocation.getLongitude(),
@@ -2233,8 +2330,6 @@ public class MapActivity extends AppCompatActivity implements
             auralizationEngine = null;
             isSensorListenerActivated = false;
             sensorManager.unregisterListener(this);
-        } else {
-
         }
     }
 
@@ -2262,6 +2357,24 @@ public class MapActivity extends AppCompatActivity implements
         textView.setTypeface(tf);
     }
 
+    private void showDialogConnectHeadset() {
+        if(headsetDialog != null && headsetDialog.isShowing()) return;
+        headsetDialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(this.getString(R.string.no_headset_connected))
+                .setMessage(this.getString(R.string.no_headset_connected_message))
+                .setPositiveButton(this.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        headsetDialog.dismiss();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        TextView textView = (TextView) headsetDialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(this, R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
     private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -2272,6 +2385,18 @@ public class MapActivity extends AppCompatActivity implements
                 // Connected
                 if(connectionDialog != null)
                     connectionDialog.dismiss();
+            }
+        }
+    };
+
+    private BroadcastReceiver headsetPlugReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "headsetPlugReceiver onReceive: ");
+            int headsetConnectedInt = intent.getIntExtra("state", 1);
+            Log.d(TAG, "headsetPlugReceiver onReceive - headsetConnectedInt: " + headsetConnectedInt);
+            if(headsetConnectedInt == 0 && prefs_auralization){
+                showDialogConnectHeadset();
             }
         }
     };
