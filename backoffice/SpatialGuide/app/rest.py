@@ -571,6 +571,8 @@ class UserLoginView(APIView):
 
             if user:
                 user = authenticate(username=user.username, password=password)
+                if not user:
+                    return render(request, 'login.html', {'error': 'Credencials are Invalid!'})
             if user:
                 login(request,user)
                 if request.user_agent.is_mobile:
