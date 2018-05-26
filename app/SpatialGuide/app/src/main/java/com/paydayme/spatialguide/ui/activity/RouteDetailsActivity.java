@@ -46,6 +46,7 @@ import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.model.download.Download;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
+import com.paydayme.spatialguide.utils.NetworkUtil;
 import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
@@ -70,6 +71,7 @@ import static com.paydayme.spatialguide.core.Constant.BROADCAST_DOWNLOAD_COMPLET
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_ERROR_DOWNLOAD;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_MESSAGE_PROGRESS;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_NO_POINTS;
+import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 import static com.paydayme.spatialguide.core.Constant.FILES_BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_STORAGE_SEPARATOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
@@ -79,7 +81,6 @@ import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_RO
  */
 
 public class RouteDetailsActivity extends AppCompatActivity {
-    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     public static final String TAG = "RouteDetailsActivity";
 
@@ -95,6 +96,9 @@ public class RouteDetailsActivity extends AppCompatActivity {
 
     private ProgressDialog progressDialog;
     private AlertDialog alertDialog;
+    private AlertDialog connectionDialog;
+
+    private IntentFilter intentFilter;
 
     private int routeSelected;
     private PointAdapter pointAdapter;
@@ -127,6 +131,8 @@ public class RouteDetailsActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route_details);
+
+        intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
 
         ButterKnife.bind(this);
 
@@ -623,4 +629,49 @@ public class RouteDetailsActivity extends AppCompatActivity {
         startActivity(new Intent(RouteDetailsActivity.this, RouteActivity.class));
         finish();
     }
+
+    private void showDialogNoConnection() {
+        if(connectionDialog != null) return;
+        // Not connected to Internet
+        connectionDialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(this.getString(R.string.no_connection))
+                .setMessage(this.getString(R.string.no_connection_message))
+                .setPositiveButton(this.getString(R.string.exit), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        TextView textView = (TextView) connectionDialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(this, R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(networkReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(networkReceiver);
+    }
+
+    private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(NetworkUtil.getConnectivityStatus(RouteDetailsActivity.this) == NetworkUtil.TYPE_NOT_CONNECTED) {
+                showDialogNoConnection();
+            }
+            else {
+                // Connected
+                if(connectionDialog != null)
+                    connectionDialog.dismiss();
+            }
+        }
+    };
 }

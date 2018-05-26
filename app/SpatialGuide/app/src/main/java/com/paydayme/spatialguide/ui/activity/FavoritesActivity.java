@@ -1,7 +1,10 @@
 package com.paydayme.spatialguide.ui.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -37,6 +40,7 @@ import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.ui.adapter.HistoryFavoritesAdapter;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
+import com.paydayme.spatialguide.utils.NetworkUtil;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -53,6 +57,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USERNAME;
@@ -62,7 +67,6 @@ import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_NA
 import static com.paydayme.spatialguide.core.Constant.SPATIALGUIDE_WEBSITE;
 
 public class FavoritesActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     private static final String TAG = "FavoritesActivity";
 
@@ -70,6 +74,9 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
     private SGApiClient sgApiClient;
     private List<Object> favoritesList = new ArrayList<>();
     private List<Integer> favoriteRoutes, favoritePoints;
+
+    private AlertDialog connectionDialog;
+    private IntentFilter intentFilter;
 
     // SharedPreferences initialization
     private SharedPreferences sharedPreferences;
@@ -96,6 +103,8 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
+
+        intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
 
         ButterKnife.bind(this);
 
@@ -410,4 +419,49 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
             textView.setTypeface(tf);
         }
     }
+
+    private void showDialogNoConnection() {
+        if(connectionDialog != null) return;
+        // Not connected to Internet
+        connectionDialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(this.getString(R.string.no_connection))
+                .setMessage(this.getString(R.string.no_connection_message))
+                .setPositiveButton(this.getString(R.string.exit), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        TextView textView = (TextView) connectionDialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(this, R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(networkReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(networkReceiver);
+    }
+
+    private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(NetworkUtil.getConnectivityStatus(FavoritesActivity.this) == NetworkUtil.TYPE_NOT_CONNECTED) {
+                showDialogNoConnection();
+            }
+            else {
+                // Connected
+                if(connectionDialog != null)
+                    connectionDialog.dismiss();
+            }
+        }
+    };
 }

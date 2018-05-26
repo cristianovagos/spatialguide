@@ -71,6 +71,12 @@ public final class Constant {
     public static final String POINT_STORAGE_SEPARATOR = "point-";
 
     /**
+     * IDs for push notifications
+     */
+    public static final String NOTIFICATION_CHANNEL_ID = "com.paydayme.spatialguide.notification_id";
+    public static final String PUSHER_INSTANCE_ID = "1be0bfa7-2af5-4fe7-9e84-e78d07244959";
+
+    /**
      * SharedPreferences keys
      * (auth key, remember me checkbox state, login username and password)
      */

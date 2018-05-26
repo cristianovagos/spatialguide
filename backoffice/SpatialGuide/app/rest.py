@@ -15,11 +15,16 @@ from django.core.files.base import ContentFile
 from rest_framework import status
 
 from .server_utils import *
-
+from pusher_push_notifications import PushNotifications
 
 import json
 
 DRIVE_BASE_URL='http://drive.google.com/uc?export=view&id='
+
+pn_client = PushNotifications(
+    instance_id='1be0bfa7-2af5-4fe7-9e84-e78d07244959',
+    secret_key='9BEC72D2C157102FD2493D3D4521F72',
+)
 
 class ShowPoints(APIView):
     permission_classes = [AllowAny]
@@ -61,6 +66,7 @@ class ShowPoints(APIView):
                 for route in routes:
                     route.Route.LastUpdate = int(round(time.time() * 1000))
                     route.Route.save()
+
 
         elif 'edit' in list(data.keys()):
             point_id = data.get('edit', None)
@@ -121,6 +127,7 @@ class ShowRoutes(APIView):
                     route.Image = DRIVE_BASE_URL + request_filesaver(request.FILES['Image'])
                 route.LastUpdate = int(round(time.time() * 1000))
                 route.save()
+
 
         elif 'edit' in list(data.keys()):
             route_id = data.get('edit', None)
@@ -268,6 +275,25 @@ class addRoute(APIView):
             route = form.save()
             route.Image = DRIVE_BASE_URL+request_filesaver(request.FILES['Image'])
             route.save()
+
+            try:
+                response = pn_client.publish(
+                    interests=['spatialguide'],
+                    publish_body={
+                        'fcm': {
+                            'notification': {
+                                'title': 'New Route created!',
+                                'body': 'Hey, the route "' + route.Name + '" has just been created!\nDownload it now!',
+                                'tag': 'route',
+                                'color': '#2196F3',
+                                'click_action': 'OPEN_APP'
+                            },
+                        },
+                    },
+                )
+            except:
+                print('Failed to send notification of route created.')
+
             return redirect('show_routes')
 
         tparams = {

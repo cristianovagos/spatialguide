@@ -20,6 +20,7 @@ pip3 install djangorestframework
 pip3 install --upgrade google-api-python-client
 pip3 install pyyaml ua-parser user-agents
 pip3 install django-user-agents
+pip3 install pusher_push_notifications
 
 
 python3 manage.py makemigrations

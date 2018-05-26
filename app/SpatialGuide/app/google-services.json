@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "303888429905",
+    "firebase_url": "https://spatialguide-1521034339747.firebaseio.com",
+    "project_id": "spatialguide-1521034339747",
+    "storage_bucket": "spatialguide-1521034339747.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303888429905:android:f5e7cb76b6fd6f13",
+        "android_client_info": {
+          "package_name": "com.paydayme.spatialguide"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "303888429905-gpntca4g9f7jlanuv1drl9entvngvcmv.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "303888429905-gpntca4g9f7jlanuv1drl9entvngvcmv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKl6TtXUEZIREQXyFKqg28VsVH32Fx11s"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

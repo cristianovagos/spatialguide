@@ -5,8 +5,11 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -114,6 +117,7 @@ import com.paydayme.spatialguide.ui.adapter.CommentAdapter;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
+import com.paydayme.spatialguide.utils.NetworkUtil;
 import com.squareup.picasso.Picasso;
 import com.uncopt.android.widget.text.justify.JustifiedTextView;
 
@@ -141,6 +145,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 import static com.paydayme.spatialguide.core.Constant.DEFAULT_ZOOM_VALUE;
 import static com.paydayme.spatialguide.core.Constant.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS;
 import static com.paydayme.spatialguide.core.Constant.GOOGLE_DIRECTIONS_API_KEY;
@@ -180,7 +185,6 @@ import static com.paydayme.spatialguide.core.Constant.UPDATE_INTERVAL_IN_MILLISE
  */
 public class MapActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SensorEventListener {
-    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     private static final String TAG = MapActivity.class.getSimpleName();
 
@@ -234,6 +238,12 @@ public class MapActivity extends AppCompatActivity implements
 
     // Alert dialog for user prompts (exit, on trigger area showing point info)
     private AlertDialog dialog;
+
+    // Alert dialog to notify user that there's no connectivity
+    private AlertDialog connectionDialog;
+
+    // Intent filter to match the CONNECTIVITY_ACTION
+    private IntentFilter intentFilter;
 
     // Marker that will appear on Google Map when user click
     private Marker markerUserClick;
@@ -309,6 +319,7 @@ public class MapActivity extends AppCompatActivity implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+        intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
         ButterKnife.bind(this);
 
         init(savedInstanceState);
@@ -1865,6 +1876,9 @@ public class MapActivity extends AppCompatActivity implements
     public void onResume() {
         super.onResume();
 
+        // Register connectivity change receiver
+        registerReceiver(networkReceiver, intentFilter);
+
         // Register sharedPreferences onChange listener
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferencesListener);
 
@@ -1886,6 +1900,9 @@ public class MapActivity extends AppCompatActivity implements
     @Override
     protected void onPause() {
         super.onPause();
+
+        // Unregister connectivity change receiver
+        unregisterReceiver(networkReceiver);
 
         // Remove location updates to save battery.
         stopLocationUpdates();
@@ -2225,4 +2242,37 @@ public class MapActivity extends AppCompatActivity implements
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         return;
     }
+
+    private void showDialogNoConnection() {
+        if(connectionDialog != null) return;
+        // Not connected to Internet
+        connectionDialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(this.getString(R.string.no_connection))
+                .setMessage(this.getString(R.string.no_connection_message))
+                .setPositiveButton(this.getString(R.string.exit), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        TextView textView = (TextView) connectionDialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(this, R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
+    private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(NetworkUtil.getConnectivityStatus(MapActivity.this) == NetworkUtil.TYPE_NOT_CONNECTED) {
+                showDialogNoConnection();
+            }
+            else {
+                // Connected
+                if(connectionDialog != null)
+                    connectionDialog.dismiss();
+            }
+        }
+    };
 }

@@ -1,8 +1,11 @@
 package com.paydayme.spatialguide.ui.activity;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,6 +22,7 @@ import android.widget.Toast;
 
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.api.SGApiClient;
+import com.paydayme.spatialguide.utils.NetworkUtil;
 
 import java.util.HashMap;
 
@@ -32,14 +36,17 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.paydayme.spatialguide.core.Constant.BASE_URL;
+import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
-    // TODO - add BroadcastReceiver to listen to internet connection, see LoginActivity and SignupActivity
 
     private static final String TAG = "ForgotPasswordActivity";
 
     // API interface
     private SGApiClient sgApiClient;
+
+    private AlertDialog connectionDialog;
+    private IntentFilter intentFilter;
 
     @BindView(R.id.input_email) AppCompatEditText emailUsernameText;
     @BindView(R.id.input_password) AppCompatEditText passwordText;
@@ -54,6 +61,8 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
+
+        intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
 
         // Binding the views defined above
         ButterKnife.bind(this);
@@ -219,4 +228,49 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
         return valid;
     }
+
+    private void showDialogNoConnection() {
+        if(connectionDialog != null) return;
+        // Not connected to Internet
+        connectionDialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(this.getString(R.string.no_connection))
+                .setMessage(this.getString(R.string.no_connection_message))
+                .setPositiveButton(this.getString(R.string.exit), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        TextView textView = (TextView) connectionDialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(this, R.font.catamaran);
+        textView.setTypeface(tf);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(networkReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(networkReceiver);
+    }
+
+    private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(NetworkUtil.getConnectivityStatus(ForgotPasswordActivity.this) == NetworkUtil.TYPE_NOT_CONNECTED) {
+                showDialogNoConnection();
+            }
+            else {
+                // Connected
+                if(connectionDialog != null)
+                    connectionDialog.dismiss();
+            }
+        }
+    };
 }
