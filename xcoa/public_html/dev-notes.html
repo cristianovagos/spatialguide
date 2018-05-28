@@ -309,7 +309,37 @@
 
       <h3 id="backend">Backend Development</h3>
 			<p style="text-align: justify;">
-        Coming soon...
+        As previously refered the Backend has a very important job on our system. It is the one responsible for the communication between the Database and the Android app. It also provides 
+      a friendly interface to the Administrators, allowing them to easily manage the features required by the Android app.
+      <br><br>
+      The option for <a href="https://developers.google.com/drive/api/v3/about-sdk" target="_blank">Django</a>, as our web framework, was taken considering not only the familiarity of some 
+      team members with it, but also it's versatile features. Hence, and foccusing on its security characteristics, Django provides security when handling user information. This way we can 
+      give our users a safe environment.
+      <br><br>
+      MySQL was our choice for the main Database due to its good performance in case the product goes to production. MySQL stores all of our data, e.g.
+      routes, points and user information. Our media is stored in Google Drive, using <a href="https://developers.google.com/drive/api/v3/about-sdk" target="_blank">Google Drive API</a>,
+      however the links and identifiers, responsible for accessing the images and sounds, are still kept on the Database. 
+      <br><br>
+      The communication between the Android app and the Backend is made through a <a href="http://www.django-rest-framework.org/" target="_blank">Django REST API</a>, based 
+      on GET and POST requests, sending the data in JSON format. This way we can assure a good service to our clients. 
+      <br><br>
+      As for the Administrators web interface, we used the html templates based on <a href="https://getbootstrap.com/" target="_blank">Bootstrap</a> to create our html views. 
+      After the Administrator login, he can find a navbar that provides several options:</p>
+      <ul>
+        <li><p>Routes: on this option, the Administrator is presented with a list of all the Routes available in the Database with some basic information. It's also available 
+        the option of edit each Route attributes or navigate to the Route page with all the it's information. There is also a button that redirects the Administrator to the add Route page.</p></li>
+        <li><p>Add Routes: here it's presented to the Administrator a page with a form where he can insert the information about the new Route he is about to create.</p></li>
+        <li><p>Points: displays a list of all the Points in the Database and some basic information about them. On this page there are three buttons that allow the user to create, edit or remove Points.
+        </p></li>
+        <li><p>Add Point: shows a form and a world map. Here it's possible to create a new Point typing all its atributes and also choosing the Point's coordinates by clicking on the desired location
+        </p></li>
+        <li><p>Heat Map: displays a map where its possible to observe throught heat points the most frequented zones by the users while using the Android app.</p></li>
+        <li><p>User Suggestions: here is shown to the Administrator the locations and comments left by the users who would like to add a Point to the app.</p></li>
+        <li><p>User Comments: exibits a list of comments left by the users at a specific Point.</p></li>
+        <li><p>Register new User: Allows for the register of a new Administrator account.</p></li>
+      </ul>
+      <p>
+      Finally, on the top right corner, the Administrator can observe the username of its current session and a logout button. 	
       </p>
       <br><br>
 
