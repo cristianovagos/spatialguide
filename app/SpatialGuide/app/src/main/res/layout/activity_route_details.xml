@@ -17,8 +17,8 @@
             android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="300dp"
+            app:contentScrim="@color/primary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:contentScrim="?attr/colorPrimary"
             app:title=""
             android:fitsSystemWindows="true"
             android:visibility="gone">
@@ -39,7 +39,7 @@
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="?android:attr/actionBarSize"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                 app:layout_collapseMode="pin"/>
 
@@ -79,7 +79,8 @@
                     android:layout_height="150dp"
                     android:indeterminateTint="@color/primary"
                     android:layout_centerHorizontal="true"
-                    android:layout_centerVertical="true"/>
+                    android:layout_centerVertical="true"
+                    tools:targetApi="lollipop" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -164,7 +165,8 @@
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/catamaran"
                                 android:textSize="14sp"
-                                android:textColor="@color/monsoon"/>
+                                android:textColor="@color/monsoon"
+                                tools:ignore="SelectableText" />
 
                             <ImageView
                                 android:layout_width="0dp"
@@ -182,7 +184,8 @@
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/catamaran"
                                 android:textSize="14sp"
-                                android:textColor="@color/monsoon"/>
+                                android:textColor="@color/monsoon"
+                                tools:ignore="SelectableText" />
 
                         </LinearLayout>
 
@@ -237,7 +240,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/monsoon"
-                            android:fontFamily="@font/catamaran" />
+                            android:fontFamily="@font/catamaran"
+                            tools:ignore="SelectableText" />
 
                     </LinearLayout>
 
@@ -249,8 +253,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     app:cardElevation="5dp"
-                    app:cardUseCompatPadding="true"
-                    android:visibility="gone">
+                    app:cardUseCompatPadding="true">
 
                     <LinearLayout
                         android:background="@color/white"
@@ -326,7 +329,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="150dp"
                             android:layout_gravity="center"
-                            android:indeterminateTint="@color/primary" />
+                            android:indeterminateTint="@color/primary"
+                            tools:targetApi="lollipop" />
 
                         <ImageView
                             android:id="@+id/mapImage"

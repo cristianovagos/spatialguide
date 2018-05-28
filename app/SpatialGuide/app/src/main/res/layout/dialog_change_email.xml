@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -30,7 +31,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_margin="20dp"
                 android:orientation="vertical"
                 android:scrollbars="vertical"
@@ -47,7 +48,6 @@
                     android:theme="@style/TextAppearance.App.TextInputLayout">
                     <android.support.v7.widget.AppCompatEditText
                         android:id="@+id/input_password"
-                        android:drawableLeft="@drawable/ic_password"
                         android:drawableStart="@drawable/ic_password"
                         android:drawableTint="@color/monsoon"
                         android:textColor="@color/monsoon"
@@ -55,7 +55,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
-                        android:hint="@string/password"/>
+                        android:hint="@string/password"
+                        tools:targetApi="m" />
                 </android.support.design.widget.TextInputLayout>
 
                 <!-- email Label -->
@@ -69,7 +70,6 @@
                     android:theme="@style/TextAppearance.App.TextInputLayout">
                     <android.support.v7.widget.AppCompatEditText
                         android:id="@+id/input_email"
-                        android:drawableLeft="@drawable/ic_email"
                         android:drawableStart="@drawable/ic_email"
                         android:drawableTint="@color/monsoon"
                         android:textColor="@color/monsoon"
@@ -77,7 +77,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-                        android:hint="@string/email"/>
+                        android:hint="@string/email"
+                        tools:targetApi="m" />
                 </android.support.design.widget.TextInputLayout>
 
                 <!-- email Label -->
@@ -91,7 +92,6 @@
                     android:theme="@style/TextAppearance.App.TextInputLayout">
                     <android.support.v7.widget.AppCompatEditText
                         android:id="@+id/input_newEmail"
-                        android:drawableLeft="@drawable/ic_email"
                         android:drawableStart="@drawable/ic_email"
                         android:drawableTint="@color/monsoon"
                         android:textColor="@color/monsoon"
@@ -99,7 +99,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-                        android:hint="@string/new_email"/>
+                        android:hint="@string/new_email"
+                        tools:targetApi="m" />
                 </android.support.design.widget.TextInputLayout>
 
                 <!-- email Re-enter Label -->
@@ -113,7 +114,6 @@
                     android:theme="@style/TextAppearance.App.TextInputLayout">
                     <android.support.v7.widget.AppCompatEditText
                         android:id="@+id/input_reEnterNewEmail"
-                        android:drawableLeft="@drawable/ic_email"
                         android:drawableStart="@drawable/ic_email"
                         android:drawableTint="@color/monsoon"
                         android:textColor="@color/monsoon"
@@ -121,7 +121,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-                        android:hint="@string/new_email_again"/>
+                        android:hint="@string/new_email_again"
+                        tools:targetApi="m" />
                 </android.support.design.widget.TextInputLayout>
 
             </LinearLayout>
@@ -153,7 +154,7 @@
         android:id="@+id/closeDialogButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|right"
+        android:layout_gravity="top|end"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:background="@drawable/close_button"/>
 </FrameLayout>

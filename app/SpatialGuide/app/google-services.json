@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "303888429905-mnh6i3t3eig0v5jlobih5hgd47en0c3m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.paydayme.spatialguide",
+            "certificate_hash": "8688ee72c059979d4d020a418b639488feeed96d"
+          }
+        },
+        {
           "client_id": "303888429905-gpntca4g9f7jlanuv1drl9entvngvcmv.apps.googleusercontent.com",
           "client_type": 3
         },
@@ -33,8 +41,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "303888429905-gpntca4g9f7jlanuv1drl9entvngvcmv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

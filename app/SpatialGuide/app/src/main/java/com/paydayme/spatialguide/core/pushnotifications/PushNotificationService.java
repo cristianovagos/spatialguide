@@ -6,6 +6,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -18,6 +19,7 @@ public class PushNotificationService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.d(TAG, "onMessageReceived: getting remote message (PUSH NOTIFICATIONS)");
         if(remoteMessage.getNotification() != null) {
             String title = remoteMessage.getNotification().getTitle();
             String body = remoteMessage.getNotification().getBody();
@@ -27,6 +29,7 @@ public class PushNotificationService extends FirebaseMessagingService {
     }
 
     private void sendNotification(String title, String body, String clickAction) {
+        Log.d(TAG, "sendNotification: SENDING PUSH NOTIFICATION TO DEVICE");
         Intent intent = new Intent(clickAction);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 

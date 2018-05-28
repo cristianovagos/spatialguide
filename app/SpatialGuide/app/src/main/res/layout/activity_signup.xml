@@ -47,7 +47,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_username"
-                android:drawableLeft="@drawable/ic_user"
                 android:drawableStart="@drawable/ic_user"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -64,7 +63,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_firstname"
-                android:drawableLeft="@drawable/ic_user"
                 android:drawableStart="@drawable/ic_user"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -81,7 +79,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_lastname"
-                android:drawableLeft="@drawable/ic_user"
                 android:drawableStart="@drawable/ic_user"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -98,7 +95,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_email"
-                android:drawableLeft="@drawable/ic_email"
                 android:drawableStart="@drawable/ic_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -115,7 +111,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_reEnterEmail"
-                android:drawableLeft="@drawable/ic_email"
                 android:drawableStart="@drawable/ic_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -132,7 +127,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_password"
-                android:drawableLeft="@drawable/ic_password"
                 android:drawableStart="@drawable/ic_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -149,7 +143,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_reEnterPassword"
-                android:drawableLeft="@drawable/ic_password"
                 android:drawableStart="@drawable/ic_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

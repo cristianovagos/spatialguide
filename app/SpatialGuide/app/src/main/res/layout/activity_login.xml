@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/splash_layer"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:background="@drawable/splash_layer">
 
     <LinearLayout
         android:orientation="vertical"
@@ -51,7 +49,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_email"
-                android:drawableLeft="@drawable/ic_user"
                 android:drawableStart="@drawable/ic_user"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -68,7 +65,6 @@
             android:layout_marginBottom="8dp">
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/input_password"
-                android:drawableLeft="@drawable/ic_password"
                 android:drawableStart="@drawable/ic_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -84,7 +80,7 @@
 
             <android.support.v7.widget.AppCompatCheckBox
                 android:id="@+id/checkbox_login"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="@string/remember_me"
                 android:textSize="16sp"

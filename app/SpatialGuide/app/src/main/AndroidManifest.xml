@@ -54,6 +54,7 @@
         <activity
             android:name=".ui.activity.MapActivity"
             android:theme="@style/AppTheme.Dark"
+            tools:replace="android:theme"
             android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.activity.UserPanelActivity"

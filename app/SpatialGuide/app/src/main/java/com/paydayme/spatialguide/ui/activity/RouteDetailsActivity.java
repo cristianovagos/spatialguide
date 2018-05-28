@@ -15,8 +15,6 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
@@ -24,9 +22,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -46,21 +42,19 @@ import com.paydayme.spatialguide.core.storage.InternalStorage;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
+import com.paydayme.spatialguide.model.VisitedPoint;
 import com.paydayme.spatialguide.model.download.Download;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.utils.NetworkUtil;
-import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -74,7 +68,6 @@ import static com.paydayme.spatialguide.core.Constant.BROADCAST_ERROR_DOWNLOAD;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_MESSAGE_PROGRESS;
 import static com.paydayme.spatialguide.core.Constant.BROADCAST_NO_POINTS;
 import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
-import static com.paydayme.spatialguide.core.Constant.FILES_BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_STORAGE_SEPARATOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
 
@@ -104,11 +97,10 @@ public class RouteDetailsActivity extends AppCompatActivity {
 
     private int routeSelected;
     private PointAdapter pointAdapter;
-    private List<Point> pointList = new ArrayList<>();
     private boolean routeOnStorage = false;
-    private long currentRouteLastUpdate = 0;
     private Route currentRoute;
     private boolean hasUpdate = false;
+    private List<Point> visitedPointsList = new ArrayList<>();
 
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.routeList) RecyclerView recyclerView;
@@ -124,7 +116,6 @@ public class RouteDetailsActivity extends AppCompatActivity {
     @BindView(R.id.mapCard) CardView mapCard;
     @BindView(R.id.favoriteButton) LikeButton favoriteButton;
     @BindView(R.id.cardDetails) CardView cardDetails;
-    @BindView(R.id.cardPoints) CardView cardPoints;
     @BindView(R.id.loadingLayout) RelativeLayout loadingLayout;
     @BindView(R.id.mainLayout) LinearLayout mainLayout;
     @BindView(R.id.progressMap) ProgressBar progressMap;
@@ -233,7 +224,12 @@ public class RouteDetailsActivity extends AppCompatActivity {
                                     onDownloadRoute();
                                 }
                             })
-                            .setNegativeButton(getString(android.R.string.no), null)
+                            .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    alertDialog.dismiss();
+                                }
+                            })
                             .setCancelable(false)
                             .show();
                     changeFontAlertDialog();
@@ -250,7 +246,12 @@ public class RouteDetailsActivity extends AppCompatActivity {
                                     onNavigateRoute();
                                 }
                             })
-                            .setNegativeButton(getString(android.R.string.no), null)
+                            .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    alertDialog.dismiss();
+                                }
+                            })
                             .setCancelable(false)
                             .show();
                     changeFontAlertDialog();
@@ -336,11 +337,20 @@ public class RouteDetailsActivity extends AppCompatActivity {
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                if(response.isSuccessful()) {
-                    User currentUser = response.body();
-                    for(Integer favRoutes : currentUser.getFavoriteRoutes()) {
-                        if (favRoutes.equals(route.getRouteID())) {
+                if(response.isSuccessful() && response.body() != null) {
+                    // verificar as rotas favoritas para saber se a rota atual é favorita
+                    for(int favRoutes : response.body().getFavoriteRoutes()) {
+                        if (favRoutes == route.getRouteID()) {
+                            // marcar o botao de favorito como liked
                             favoriteButton.setLiked(true);
+                        }
+                    }
+                    // verificar os pontos ja visitados
+                    for(VisitedPoint visitedPoint : response.body().getVisitedPoints()) {
+                        for(Point p : route.getRoutePoints()) {
+                            if(p.getPointID() == visitedPoint.getId()) {
+                                visitedPointsList.add(p);
+                            }
                         }
                     }
                 } else {
@@ -492,8 +502,6 @@ public class RouteDetailsActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        Log.d(TAG, "route: "+ route);
-
         // Route Image - displayed on the top: CollapsingToolbar
         if(!route.getRouteImage().isEmpty()) {
             Picasso.get()
@@ -531,7 +539,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
         }
 
         // Route Map Image - Static map from Google Maps API
-        if(!route.getRouteMapImage().isEmpty()) {
+        if (!route.getRouteMapImage().isEmpty()) {
             Picasso.get()
                     .load(route.getRouteMapImage())
                     .placeholder(R.drawable.progress_animation)
@@ -547,7 +555,13 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             mapCard.setVisibility(View.GONE);
                         }
                     });
+        } else {
+            mapCard.setVisibility(View.GONE);
         }
+        // Setting the point adapter and the recyclerview to receive route points
+        pointAdapter = new PointAdapter(this, route.getRoutePoints(), false);
+        recyclerView.setAdapter(pointAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // Setting the remaining texts (Route name, description, etc)
         routeDescription.setText(route.getRouteDescription());
@@ -556,19 +570,6 @@ public class RouteDetailsActivity extends AppCompatActivity {
         routeDownloads.setText(downloadStr);
         routeDate.setText(route.getRouteDate());
         cardDetails.setVisibility(View.VISIBLE);
-
-        // Setting the point adapter and the recyclerview to receive route points
-        pointList = route.getRoutePoints();
-        pointAdapter = new PointAdapter(this, pointList, false);
-        recyclerView.setAdapter(pointAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        if(pointList.isEmpty())
-            noPointsText.setVisibility(View.VISIBLE);
-        else
-            noPointsText.setVisibility(View.GONE);
-
-        cardPoints.setVisibility(View.VISIBLE);
     }
 
     private void getRouteDetailsAPI(int routeID) {
@@ -577,16 +578,18 @@ public class RouteDetailsActivity extends AppCompatActivity {
         call.enqueue(new Callback<Route>() {
             @Override
             public void onResponse(Call<Route> call, Response<Route> response) {
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
                     route = response.body();
                     getUserInfo();
                     updateUI();
+                } else {
+                    Log.e(TAG, "getRouteDetailsAPI - onResponse: something has failed");
                 }
             }
 
             @Override
             public void onFailure(Call<Route> call, Throwable t) {
-                Log.e(TAG, "getRouteDetails - onFailure: " + t.getMessage());
+                Log.e(TAG, "getRouteDetailsAPI - onFailure: " + t.getMessage());
             }
         });
     }
@@ -597,23 +600,24 @@ public class RouteDetailsActivity extends AppCompatActivity {
         call.enqueue(new Callback<Route>() {
             @Override
             public void onResponse(Call<Route> call, Response<Route> response) {
-                if(response.isSuccessful()) {
-                    currentRoute = response.body();
-                    currentRouteLastUpdate = currentRoute.getLastUpdate();
-
+                if(response.isSuccessful() && response.body() != null) {
                     if(isOnStorage(routeSelected)) {
+                        currentRoute = response.body();
                         routeOnStorage = true;
 
-                        // Verificar se existe update na rota / pontos
-                        if(currentRouteLastUpdate > route.getLastUpdate())
+                        // Verificar se existe update na rota
+                        if(response.body().getLastUpdate() > route.getLastUpdate())
                             hasUpdate = true;
-                        for(Point point : route.getRoutePoints())
-                            for(Point currentPoint : currentRoute.getRoutePoints())
-                                if(point.getPointID() == currentPoint.getPointID() && currentPoint.getLastUpdate() > point.getLastUpdate())
-                                    hasUpdate = true;
+                        else {
+                            // Verificar se existe update nos pontos
+                            for (Point point : route.getRoutePoints())
+                                for (Point currentPoint : response.body().getRoutePoints())
+                                    if (point.getPointID() == currentPoint.getPointID() && currentPoint.getLastUpdate() > point.getLastUpdate())
+                                        hasUpdate = true;
+                        }
 
                         // se houver update na rota/pontos perguntar ao utilizador se quer atualizar
-                        // caso contrario mantem-se com os dados que tem ate agora pois estao no dispositivo
+                        // caso contrario mantem-se os dados que tem ate agora pois estao no dispositivo
                         if(hasUpdate) {
                             showUpdateRouteDialog();
                         } else {

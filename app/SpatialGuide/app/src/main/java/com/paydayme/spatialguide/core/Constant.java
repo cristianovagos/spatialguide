@@ -1,7 +1,5 @@
 package com.paydayme.spatialguide.core;
 
-import android.app.Activity;
-import android.media.AudioManager;
 import android.net.ConnectivityManager;
 
 /**
@@ -147,7 +145,7 @@ public final class Constant {
     /**
      * The minimum displacement (distance in meters) that location updates must occur.
      */
-    public static final long MINIMUM_DISPLACEMENT = 5;
+    public static final long MINIMUM_DISPLACEMENT = 3;
 
     /**
      * The default zoom value for the Google Maps camera.
@@ -165,7 +163,7 @@ public final class Constant {
     /**
      *
      */
-    public final static String HEADSET_PLUG_ACTION = AudioManager.ACTION_HEADSET_PLUG;
+    public final static String HEADSET_PLUG_ACTION = "android.intent.action.HEADSET_PLUG";
 
     // Message types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;

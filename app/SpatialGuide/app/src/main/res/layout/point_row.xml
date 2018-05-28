@@ -24,7 +24,7 @@
         android:textSize="15sp"
         android:textColor="@color/monsoon"
         android:fontFamily="@font/catamaran"
-        tools:ignore="RtlHardcoded" />
+        tools:ignore="RtlHardcoded,SelectableText" />
 
     <ImageView
         android:id="@+id/pointDrag"

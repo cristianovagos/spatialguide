@@ -21,7 +21,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -82,6 +81,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -91,7 +91,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.gson.Gson;
 import com.google.maps.DirectionsApi;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
@@ -104,7 +103,6 @@ import com.like.OnLikeListener;
 import com.paydayme.spatialguide.BuildConfig;
 import com.paydayme.spatialguide.R;
 import com.paydayme.spatialguide.core.Constant;
-import com.paydayme.spatialguide.core.api.RouteXLApiClient;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.core.auralizationEngine.AuralizationEngine;
 import com.paydayme.spatialguide.core.bluetooth.SGBluetoothService;
@@ -113,8 +111,7 @@ import com.paydayme.spatialguide.model.Comment;
 import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
-import com.paydayme.spatialguide.model.routexl.RouteXLRequest;
-import com.paydayme.spatialguide.model.routexl.RouteXLResponse;
+import com.paydayme.spatialguide.model.VisitedPoint;
 import com.paydayme.spatialguide.ui.adapter.BTDeviceAdapter;
 import com.paydayme.spatialguide.ui.adapter.CommentAdapter;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
@@ -139,8 +136,6 @@ import java.util.concurrent.TimeUnit;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -157,8 +152,6 @@ import static com.paydayme.spatialguide.core.Constant.MINIMUM_DISPLACEMENT;
 import static com.paydayme.spatialguide.core.Constant.POINT_STORAGE_SEPARATOR;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_CHECK_SETTINGS;
 import static com.paydayme.spatialguide.core.Constant.REQUEST_PERMISSIONS_REQUEST_CODE;
-import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_AUTH_KEY;
-import static com.paydayme.spatialguide.core.Constant.ROUTE_XL_BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_EMAIL;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_IMAGE;
@@ -191,6 +184,8 @@ import static com.paydayme.spatialguide.core.Constant.UPDATE_INTERVAL_IN_MILLISE
 public class MapActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SensorEventListener {
 
+    // TODO let user clear history i.e. use the whole route again
+
     private static final String TAG = MapActivity.class.getSimpleName();
 
     // Keys for storing activity state in the Bundle.
@@ -221,10 +216,10 @@ public class MapActivity extends AppCompatActivity implements
     private GoogleMap mMap;
 
     // Represents if the Maps camera has moved
-    private Boolean mCameraMoved;
+    private boolean mCameraMoved = false;
 
     // The RouteID selected on {@link RouteDetailsActivity}
-    private Integer mRouteSelected;
+    private int mRouteSelected;
 
     // The Route instance
     private Route mRoute;
@@ -232,8 +227,15 @@ public class MapActivity extends AppCompatActivity implements
     // Flag to represent if the shortestPath is activated
     private boolean shortestPath = false;
 
-    // Instance of the interface responsible for connecting with RouteXL API
-    private RouteXLApiClient routeXLApiClient;
+    // GoogleMap type
+    private int mapType;
+
+    // The icons for visited/unvisited markers on the map
+    private BitmapDescriptor visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+    private BitmapDescriptor unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+
+    // Color for the direction line displayed in map
+    private int directionLineColor = Color.BLUE;
 
     // Instance of the interface responsible for connecting with SpatialGuide API
     private SGApiClient sgApiClient;
@@ -259,15 +261,11 @@ public class MapActivity extends AppCompatActivity implements
     // Marker that will appear on Google Map when user click
     private Marker markerUserClick;
 
-    // For getting User info
-    private User currentUser;
-
     // Variable to store last time a point was visited
     private long lastTimestamp;
     private long heatmapTimestamp;
 
     private List<Integer> favoritePoints = new ArrayList<>();
-    private List<Comment> commentList = new ArrayList<>();
 
     private RecyclerView recyclerView;
 
@@ -309,13 +307,12 @@ public class MapActivity extends AppCompatActivity implements
     // Bluetooth and IMU Stuff
 
     // Intent request codes
-    private static final int REQUEST_CONNECT_DEVICE_SECURE = 2;
-    private static final int REQUEST_CONNECT_DEVICE_INSECURE = 3;
+//    private static final int REQUEST_CONNECT_DEVICE_SECURE = 2;
+//    private static final int REQUEST_CONNECT_DEVICE_INSECURE = 3;
     private static final int REQUEST_ENABLE_BT = 4;
 
     private float[] rotation = new float[3];
     private BluetoothAdapter bluetoothAdapter = null;
-    private String connectedDeviceName = null;
     private SGBluetoothService bluetoothService;
     private AuralizationEngine auralizationEngine;
     private Location lastLocation;
@@ -327,7 +324,6 @@ public class MapActivity extends AppCompatActivity implements
     private float[] accelerometerReading = new float[3];
     private float[] rotationMatrix = new float[9];
     private boolean isSensorListenerActivated = false;
-    private boolean bluetoothActivated = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -344,73 +340,10 @@ public class MapActivity extends AppCompatActivity implements
             MarkerOptions options = new MarkerOptions()
                     .position(new LatLng(p.getPointLatitude(), p.getPointLongitude()))
                     .title(p.getPointName());
-            if(p.isPointVisited()) {
-                switch (Integer.valueOf(prefs_visited_marker_color)) {
-                    case 1:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                        break;
-                    case 2:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                        break;
-                    case 3:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
-                        break;
-                    case 4:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-                        break;
-                    case 5:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-                        break;
-                    case 6:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                        break;
-                    case 7:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
-                        break;
-                    case 8:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
-                        break;
-                    case 9:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                        break;
-                    default:
-                        Log.e(TAG, "addMarkers: error on setting the visited marker color");
-                        break;
-                }
-            } else {
-                switch (Integer.valueOf(prefs_unvisited_marker_color)) {
-                    case 1:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                        break;
-                    case 2:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                        break;
-                    case 3:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                        break;
-                    case 4:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
-                        break;
-                    case 5:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-                        break;
-                    case 6:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-                        break;
-                    case 7:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
-                        break;
-                    case 8:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
-                        break;
-                    case 9:
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                        break;
-                    default:
-                        Log.e(TAG, "addMarkers: error on setting the unvisited marker color");
-                        break;
-                }
-            }
+            if(p.isPointVisited())
+                options.icon(visitedIcon);
+            else
+                options.icon(unvisitedIcon);
             Marker marker = mMap.addMarker(options);
             marker.setTag(p);
         }
@@ -421,6 +354,13 @@ public class MapActivity extends AppCompatActivity implements
 
         connectivityIntentFilter = new IntentFilter(CONNECTIVITY_ACTION);
         headsetConnectionIntentFilter = new IntentFilter(HEADSET_PLUG_ACTION);
+
+        Retrofit retrofitSGApi = new Retrofit.Builder()
+                .baseUrl(Constant.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        sgApiClient = retrofitSGApi.create(SGApiClient.class);
 
         // Setting action bar to the toolbar, removing text
         setSupportActionBar(toolbar);
@@ -452,13 +392,11 @@ public class MapActivity extends AppCompatActivity implements
         // Update values using data stored in the Bundle.
         updateValuesFromBundle(savedInstanceState);
 
-        initApis();
-
         getUserInfo();
 
         mRoute = getRoute();
 
-        toolbarRoutename.setText(mRoute.getRouteName());
+        toolbarRoutename.setText(mRoute != null ? mRoute.getRouteName() : "");
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mSettingsClient = LocationServices.getSettingsClient(this);
@@ -472,8 +410,10 @@ public class MapActivity extends AppCompatActivity implements
 
     private void configSensor() {
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        magneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (sensorManager != null) {
+            magneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+            accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        }
     }
 
     private void configBluetooth() {
@@ -483,6 +423,7 @@ public class MapActivity extends AppCompatActivity implements
             spEditor.putBoolean(SHARED_PREFS_AURALIZATION, false);
             spEditor.apply();
             prefs_auralization = false;
+            onAuralizationSettingsChange();
             Log.e(TAG, "configBluetooth: bluetooth is not available on this device");
         }
 
@@ -493,18 +434,12 @@ public class MapActivity extends AppCompatActivity implements
     protected void onStart() {
         super.onStart();
 
-//        if(!prefs_auralization) {
-//            bluetoothActivated = false;
-//            return;
-//        }
-
         // If the BT is not ON, request for being enabled
         if(!bluetoothAdapter.isEnabled()) {
             startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BT);
         } else if (bluetoothService == null) {
             setupBluetoothService();
         }
-        bluetoothActivated = true;
     }
 
     private void setupBluetoothService() {
@@ -547,7 +482,7 @@ public class MapActivity extends AppCompatActivity implements
                     String writeMessage = new String(writeBuf);
                     break;
                 case Constant.MESSAGE_READ:
-//                    if(!prefs_auralization) break;
+                    if(!prefs_auralization) break;
                     Log.d(TAG, "handleMessage: received message from bluetooth");
                     
                     byte[] readBuf = (byte[]) msg.obj;
@@ -575,7 +510,7 @@ public class MapActivity extends AppCompatActivity implements
                     break;
                 case Constant.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
-                    connectedDeviceName = msg.getData().getString(Constant.DEVICE_NAME);
+                    String connectedDeviceName = msg.getData().getString(Constant.DEVICE_NAME);
                     break;
                 case Constant.MESSAGE_TOAST:
                     Toast.makeText(MapActivity.this, msg.getData().getString(Constant.TOAST),
@@ -614,6 +549,7 @@ public class MapActivity extends AppCompatActivity implements
         menuErrorLayout = (LinearLayout) header.findViewById(R.id.menuErrorLayout);
     }
 
+    @SuppressLint("CommitPrefEdits")
     private void initSharedPreferences() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
@@ -633,23 +569,138 @@ public class MapActivity extends AppCompatActivity implements
 
         onAuralizationSettingsChange();
         onExternalIMUSettingsChange();
+        onMapVisitedMarkerChange();
+        onMapUnvisitedMarkerChange();
+        onMapDirectionLineChange();
+        onMapTypeChange();
     }
 
-    private void initApis() {
-        // Initialization of Retrofit object for handling the RouteXL API requests
-        Retrofit retrofitRouteXL = new Retrofit.Builder()
-                .baseUrl(ROUTE_XL_BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    private void onMapTypeChange() {
+        if(prefs_map_type == null) {
+            mapType = GoogleMap.MAP_TYPE_HYBRID;
+            mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        } else {
+            switch (Integer.valueOf(prefs_map_type)) {
+                case 2:
+                    mapType = GoogleMap.MAP_TYPE_NORMAL;
+                    mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                    break;
+                case 3:
+                    mapType = GoogleMap.MAP_TYPE_SATELLITE;
+                    mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                    break;
+                case 4:
+                    mapType = GoogleMap.MAP_TYPE_TERRAIN;
+                    mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                    break;
+                default:
+                    mapType = GoogleMap.MAP_TYPE_HYBRID;
+                    mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                    break;
+            }
+        }
+    }
 
-        routeXLApiClient = retrofitRouteXL.create(RouteXLApiClient.class);
+    private void onMapDirectionLineChange() {
+        if(prefs_direction_line_color == null)
+            directionLineColor = Color.BLUE;
+        else {
+            switch (Integer.valueOf(prefs_direction_line_color)) {
+                case 2:
+                    directionLineColor = Color.RED;
+                    break;
+                case 3:
+                    directionLineColor = Color.GREEN;
+                    break;
+                case 4:
+                    directionLineColor = Color.YELLOW;
+                    break;
+                case 5:
+                    directionLineColor = Color.BLACK;
+                    break;
+                case 6:
+                    directionLineColor = Color.CYAN;
+                    break;
+                case 7:
+                    directionLineColor = Color.MAGENTA;
+                    break;
+                default:
+                    directionLineColor = Color.BLUE;
+                    break;
+            }
+        }
+    }
 
-        Retrofit retrofitSGApi = new Retrofit.Builder()
-                .baseUrl(Constant.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    private void onMapVisitedMarkerChange() {
+        if(prefs_visited_marker_color == null)
+            visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+        else {
+            switch (Integer.valueOf(prefs_visited_marker_color)) {
+                case 2:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
+                    break;
+                case 3:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN);
+                    break;
+                case 4:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
+                    break;
+                case 5:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+                    break;
+                case 6:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+                    break;
+                case 7:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE);
+                    break;
+                case 8:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+                    break;
+                case 9:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+                    break;
+                default:
+                    visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+                    break;
+            }
+        }
+    }
 
-        sgApiClient = retrofitSGApi.create(SGApiClient.class);
+    private void onMapUnvisitedMarkerChange() {
+        if (prefs_unvisited_marker_color == null)
+            unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+        else {
+            switch (Integer.valueOf(prefs_unvisited_marker_color)) {
+                case 2:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+                    break;
+                case 3:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
+                    break;
+                case 4:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN);
+                    break;
+                case 5:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
+                    break;
+                case 6:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+                    break;
+                case 7:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE);
+                    break;
+                case 8:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+                    break;
+                case 9:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+                    break;
+                default:
+                    unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+                    break;
+            }
+        }
     }
 
     private void getUserInfo() {
@@ -658,15 +709,18 @@ public class MapActivity extends AppCompatActivity implements
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                if(response.isSuccessful()) {
-                    currentUser = response.body();
+                if(response.isSuccessful() && response.body() != null) {
+                    favoritePoints = response.body().getFavoritePoints();
 
-                    favoritePoints = currentUser.getFavoritePoints();
+                    for(VisitedPoint visitedPoint : response.body().getVisitedPoints())
+                        for(Point point : mRoute.getRoutePoints())
+                            if(visitedPoint.getId() == point.getPointID())
+                                point.setPointVisited(true);
 
-                    String userNames = currentUser.getFirst_name() + " " + currentUser.getLast_name();
+                    String userNames = response.body().getFirst_name() + " " + response.body().getLast_name();
                     spEditor.putString(SHARED_PREFERENCES_USER_NAMES, userNames);
-                    spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, currentUser.getEmail());
-                    spEditor.putString(SHARED_PREFERENCES_USER_IMAGE, currentUser.getUserImage());
+                    spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, response.body().getEmail());
+                    spEditor.putString(SHARED_PREFERENCES_USER_IMAGE, response.body().getUserImage());
 
                     onUpdateUserInfo();
                 } else {
@@ -744,22 +798,8 @@ public class MapActivity extends AppCompatActivity implements
         mUiSettings.setZoomControlsEnabled(true);
         mUiSettings.setMapToolbarEnabled(false);
 
-        switch (Integer.valueOf(prefs_map_type)) {
-            case 1:
-                mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-                break;
-            case 2:
-                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                break;
-            case 3:
-                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                break;
-            case 4:
-                mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-                break;
-            default:
-                Log.e(TAG, "onMapReady: failed to set map type");
-                break;
+        if(prefs_map_type != null) {
+            mMap.setMapType(mapType);
         }
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -922,7 +962,7 @@ public class MapActivity extends AppCompatActivity implements
 
                 mCurrentLocation = locationResult.getLastLocation();
                 mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-                updateLocationUI();
+                updateUI();
             }
         };
     }
@@ -963,6 +1003,7 @@ public class MapActivity extends AppCompatActivity implements
                     // User did not enable Bluetooth or an error occurred
                     Log.d(TAG, "BT not enabled");
                     prefs_auralization = false;
+                    onAuralizationSettingsChange();
                 }
         }
     }
@@ -1025,13 +1066,6 @@ public class MapActivity extends AppCompatActivity implements
      * Updates all UI fields.
      */
     private void updateUI() {
-        updateLocationUI();
-    }
-
-    /**
-     * Sets the value of the UI fields for the location latitude, longitude and last update time.
-     */
-    private void updateLocationUI() {
         if (mCurrentLocation == null)
             return;
 
@@ -1101,6 +1135,7 @@ public class MapActivity extends AppCompatActivity implements
                     }
                 } catch (Exception e) {
                     prefs_auralization = false;
+                    onAuralizationSettingsChange();
                 }
 
                 // show the dialog with info of location
@@ -1125,7 +1160,7 @@ public class MapActivity extends AppCompatActivity implements
                         mMap.clear();
                         addMarkers();
                     }
-                    if(directionsResult != null)
+                    if(directionsResult != null && mMap != null)
                         addPolyline(directionsResult, mMap);
                 } else {
                     Log.e(TAG, "onPointVisited - onResponse: error while marking point as visited: " + response.errorBody().toString());
@@ -1139,40 +1174,40 @@ public class MapActivity extends AppCompatActivity implements
         });
     }
 
-    // TODO (future work) - try again :(
-    private void getOptimizedRoute(Location mCurrentLocation) {
-        Gson gson = new Gson();
-        List<RouteXLRequest> requestList = new ArrayList<>();
-        requestList.add(new RouteXLRequest("current", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
-
-        int i = 0;
-        for(Point p : mRoute.getRoutePoints()) {
-            requestList.add(new RouteXLRequest(String.valueOf(i), p.getPointLatitude(), p.getPointLongitude()));
-            i++;
-        }
-
-        Log.d(TAG, "getOptimizedRoute: " + gson.toJson(requestList));
-        RequestBody body = RequestBody.create(MediaType.parse("text/plain"), gson.toJson(requestList));
-
-        retrofit2.Call<RouteXLResponse> call = routeXLApiClient.getOptimizedRoute(body, ROUTE_XL_AUTH_KEY);
-        call.enqueue(new retrofit2.Callback<RouteXLResponse>() {
-            @Override
-            public void onResponse(retrofit2.Call<RouteXLResponse> call, retrofit2.Response<RouteXLResponse> response) {
-                if(response.isSuccessful()) {
-                    Log.d(TAG, "getOptimizedRoute - onResponse: " + response.body().toString());
-                } else {
-                    Log.e(TAG, "getOptimizedRoute - onResponse: " + response.errorBody());
-                }
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<RouteXLResponse> call, Throwable t) {
-                Log.e(TAG, "getOptimizedRoute - onFailure call: " + call.toString());
-                Log.e(TAG, "getOptimizedRoute - onFailure: " + t.getMessage());
-            }
-        });
-
-    }
+//    // TODO (future work) - try again :(
+//    private void getOptimizedRoute(Location mCurrentLocation) {
+//        Gson gson = new Gson();
+//        List<RouteXLRequest> requestList = new ArrayList<>();
+//        requestList.add(new RouteXLRequest("current", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+//
+//        int i = 0;
+//        for(Point p : mRoute.getRoutePoints()) {
+//            requestList.add(new RouteXLRequest(String.valueOf(i), p.getPointLatitude(), p.getPointLongitude()));
+//            i++;
+//        }
+//
+//        Log.d(TAG, "getOptimizedRoute: " + gson.toJson(requestList));
+//        RequestBody body = RequestBody.create(MediaType.parse("text/plain"), gson.toJson(requestList));
+//
+//        retrofit2.Call<RouteXLResponse> call = routeXLApiClient.getOptimizedRoute(body, ROUTE_XL_AUTH_KEY);
+//        call.enqueue(new retrofit2.Callback<RouteXLResponse>() {
+//            @Override
+//            public void onResponse(retrofit2.Call<RouteXLResponse> call, retrofit2.Response<RouteXLResponse> response) {
+//                if(response.isSuccessful()) {
+//                    Log.d(TAG, "getOptimizedRoute - onResponse: " + response.body().toString());
+//                } else {
+//                    Log.e(TAG, "getOptimizedRoute - onResponse: " + response.errorBody());
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(retrofit2.Call<RouteXLResponse> call, Throwable t) {
+//                Log.e(TAG, "getOptimizedRoute - onFailure call: " + call.toString());
+//                Log.e(TAG, "getOptimizedRoute - onFailure: " + t.getMessage());
+//            }
+//        });
+//
+//    }
 
     private DirectionsResult getDirectionsDetails(Location currentLocation, boolean optimized) {
         DateTime now = new DateTime();
@@ -1218,35 +1253,7 @@ public class MapActivity extends AppCompatActivity implements
     private void addPolyline(DirectionsResult results, GoogleMap mMap) {
         List<LatLng> decodedPath = PolyUtil.decode(results.routes[0].overviewPolyline.getEncodedPath());
         PolylineOptions options = new PolylineOptions().addAll(decodedPath);
-
-        switch (Integer.valueOf(prefs_direction_line_color)) {
-            case 1:
-                options.color(Color.BLUE);
-                break;
-            case 2:
-                options.color(Color.RED);
-                break;
-            case 3:
-                options.color(Color.GREEN);
-                break;
-            case 4:
-                options.color(Color.YELLOW);
-                break;
-            case 5:
-                options.color(Color.BLACK);
-                break;
-            case 6:
-                options.color(Color.CYAN);
-                break;
-            case 7:
-                options.color(Color.MAGENTA);
-                break;
-            default:
-                Log.e(TAG, "addPolyline: error setting color to the polyline");
-                break;
-        }
-
-        mMap.addPolyline(options);
+        mMap.addPolyline(options.color(directionLineColor));
     }
 
     private GeoApiContext getGeoContext() {
@@ -1266,17 +1273,16 @@ public class MapActivity extends AppCompatActivity implements
         View view = inflater.inflate(R.layout.dialog_sound_options, null);
         AppCompatButton playSound = (AppCompatButton) view.findViewById(R.id.playSound);
         final AppCompatButton pauseSound = (AppCompatButton) view.findViewById(R.id.pauseSound);
-//        AppCompatButton stopSound = (AppCompatButton) view.findViewById(R.id.stopSound);
         ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
 
         if(auralizationEngine != null) {
             if(auralizationEngine.isPlaying()) {
                 pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_pause_btn, 0,0);
-                pauseSound.setText("Pause sound");
+                pauseSound.setText(getString(R.string.pause_sound));
             }
             else {
                 pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_play_btn, 0,0);
-                pauseSound.setText("Play sound");
+                pauseSound.setText(getString(R.string.play_sound));
             }
         }
 
@@ -1307,12 +1313,12 @@ public class MapActivity extends AppCompatActivity implements
                     if(auralizationEngine.isPlaying()) {
                         auralizationEngine.pause();
                         pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_play_btn, 0,0);
-                        pauseSound.setText("Play sound");
+                        pauseSound.setText(getString(R.string.play_sound));
                     }
                     else {
                         auralizationEngine.resume();
                         pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_pause_btn, 0,0);
-                        pauseSound.setText("Pause sound");
+                        pauseSound.setText(getString(R.string.pause_sound));
                     }
                 }
             }
@@ -1609,7 +1615,7 @@ public class MapActivity extends AppCompatActivity implements
         call.enqueue(new Callback<List<Comment>>() {
             @Override
             public void onResponse(Call<List<Comment>> call, Response<List<Comment>> response) {
-                if(response.isSuccessful()){
+                if(response.isSuccessful() && response.body() != null){
                     commentsProgress.setVisibility(View.GONE);
                     if(response.body().isEmpty()) {
                         noCommentsText.setVisibility(View.VISIBLE);
@@ -1881,7 +1887,7 @@ public class MapActivity extends AppCompatActivity implements
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-                if(response.isSuccessful()) {} else {
+                if (!response.isSuccessful()) {
                     Log.e(TAG, "sendLocationHeatmap - onResponse: failed to send location to API");
                     Log.e(TAG, "sendLocationHeatmap - onResponse: " + response.errorBody().toString());
                 }
@@ -1960,10 +1966,9 @@ public class MapActivity extends AppCompatActivity implements
             bluetoothService.stop();
         }
 
-//        if(auralizationEngine != null && auralizationEngine.isPlaying()) {
-//            auralizationEngine.stopAndUnload();
-//            auralizationEngine = null;
-//        }
+        if(auralizationEngine != null && auralizationEngine.isPlaying()) {
+            auralizationEngine.stopAndUnload();
+        }
     }
 
     /**
@@ -2212,15 +2217,19 @@ public class MapActivity extends AppCompatActivity implements
                     break;
                 case SHARED_PREFS_MARKER_UNVISITED_COLOR:
                     prefs_unvisited_marker_color = sharedPreferences.getString(SHARED_PREFS_MARKER_UNVISITED_COLOR, "1");
+                    onMapUnvisitedMarkerChange();
                     break;
                 case SHARED_PREFS_MARKER_VISITED_COLOR:
                     prefs_visited_marker_color = sharedPreferences.getString(SHARED_PREFS_MARKER_VISITED_COLOR, "1");
+                    onMapVisitedMarkerChange();
                     break;
                 case SHARED_PREFS_DIRECTION_LINE_COLOR:
                     prefs_direction_line_color = sharedPreferences.getString(SHARED_PREFS_DIRECTION_LINE_COLOR, "1");
+                    onMapDirectionLineChange();
                     break;
                 case SHARED_PREFS_MAP_TYPE:
                     prefs_map_type = sharedPreferences.getString(SHARED_PREFS_MAP_TYPE, "1");
+                    onMapTypeChange();
                     break;
                 default:
                     Log.e(TAG, "onSharedPreferenceChanged: some error occurred");
@@ -2231,21 +2240,25 @@ public class MapActivity extends AppCompatActivity implements
 
     private void onExternalIMUSettingsChange() {
         if(prefs_external_imu) {
-            Log.d(TAG, "onSharedPreferenceChanged: USING EXTERNAL IMU");
+            Log.d(TAG, "onExternalIMUSettingsChange: USING EXTERNAL IMU");
             // IMU EXTERNAL
             if(isSensorListenerActivated) {
+                Log.d(TAG, "onExternalIMUSettingsChange: deactivating device sensors");
                 isSensorListenerActivated = false;
                 sensorManager.unregisterListener(MapActivity.this);
             }
             if(bluetoothService != null && bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
+                Log.d(TAG, "onExternalIMUSettingsChange: starting bluetooth service");
                 bluetoothService.start();
             }
         } else {
-            // INTERNAL SENSORS
+            Log.d(TAG, "onExternalIMUSettingsChange: USING INTERNAL SENSORS");
             if(bluetoothService != null) {
+                Log.d(TAG, "onExternalIMUSettingsChange: stopping bluetooth service");
                 bluetoothService.stop();
             }
             if(!isSensorListenerActivated) {
+                Log.d(TAG, "onExternalIMUSettingsChange: activating device sensors");
                 isSensorListenerActivated = true;
                 sensorManager.registerListener(MapActivity.this, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
                 sensorManager.registerListener(MapActivity.this, accel, SensorManager.SENSOR_DELAY_NORMAL);
@@ -2317,8 +2330,8 @@ public class MapActivity extends AppCompatActivity implements
                 break;
         }
 
-        sensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
-        sensorManager.getOrientation(rotationMatrix, rotation);
+        SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
+        SensorManager.getOrientation(rotationMatrix, rotation);
 
 //        Log.d(TAG, "onSensorChanged: getting values");
 
@@ -2335,7 +2348,6 @@ public class MapActivity extends AppCompatActivity implements
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        return;
     }
 
     private void showDialogNoConnection() {

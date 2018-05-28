@@ -17,7 +17,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sound Options"
+            android:text="@string/sound_options"
             android:layout_margin="15dp"
             android:textSize="19sp"
             android:textColor="@color/black"
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:drawableTop="@drawable/ic_replay_btn"
             style="@style/Widget.AppCompat.Button.Colored"
-            android:text="Play sound again"
+            android:text="@string/play_sound_again"
             android:layout_gravity="center_horizontal"/>
 
         <android.support.v7.widget.AppCompatButton
@@ -39,7 +39,7 @@
             android:layout_marginTop="5dp"
             android:drawableTop="@drawable/ic_pause_btn"
             style="@style/Widget.AppCompat.Button.Colored"
-            android:text="Pause sound"
+            android:text="@string/pause_sound"
             android:layout_gravity="center_horizontal"/>
 
     </LinearLayout>
@@ -48,7 +48,7 @@
         android:id="@+id/closeDialogButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|right"
+        android:layout_gravity="top|end"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:background="@drawable/close_button"/>
 </FrameLayout>

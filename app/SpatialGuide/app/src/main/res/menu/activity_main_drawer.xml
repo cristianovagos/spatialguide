@@ -8,40 +8,40 @@
             android:id="@+id/nav_map"
             android:icon="@drawable/ic_map"
             android:visible="false"
-            android:title="Map"/>
+            android:title="@string/map"/>
         <item
             android:id="@+id/nav_userpanel"
             android:icon="@drawable/ic_user_panel"
-            android:title="User Panel" />
+            android:title="@string/user_panel" />
         <item
             android:id="@+id/nav_route"
             android:icon="@drawable/ic_marker"
-            android:title="Routes" />
+            android:title="@string/routes" />
         <item
             android:id="@+id/nav_history"
             android:icon="@drawable/ic_history"
-            android:title="History" />
+            android:title="@string/history" />
         <item
             android:id="@+id/nav_favorites"
             android:icon="@drawable/ic_favorite"
-            android:title="Favorites" />
+            android:title="@string/favorites" />
     </group>
 
-    <item android:title="Contact us">
+    <item android:title="@string/contact_us">
         <menu>
             <item
                 android:id="@+id/nav_website"
                 android:icon="@drawable/ic_menu_share"
-                android:title="Website" />
+                android:title="@string/website" />
         </menu>
     </item>
 
-    <item android:title="Exit">
+    <item android:title="@string/exit">
         <menu>
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@drawable/ic_power"
-                android:title="Sign out" />
+                android:title="@string/sign_out" />
         </menu>
     </item>
 </menu>

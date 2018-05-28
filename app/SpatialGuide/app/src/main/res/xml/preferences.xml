@@ -60,7 +60,7 @@ Preferences Screen XML
             custom:min="1"
             android:key="com.paydayme.spatialguide.prefs.trigger_area"
             android:title="Trigger Area Distance"
-            android:summary="The maximum distance (in km) from current location towards a point of interest that we consider you are at."/>
+            android:summary="The maximum distance (in meters) from current location towards a point of interest that we consider you are at."/>
 
     </PreferenceCategory>
 

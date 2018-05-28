@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Change Route Order"
+            android:text="@string/change_route_order"
             android:layout_margin="15dp"
             android:textSize="19sp"
             android:textColor="@color/black"
@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 style="@style/Widget.AppCompat.Button.Colored"
                 android:layout_marginTop="5dp"
-                android:text="Confirm Order"
+                android:text="@string/confirm_order"
                 android:layout_gravity="center_horizontal"/>
 
             <android.support.v7.widget.AppCompatButton
@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 style="@style/Widget.AppCompat.Button.Colored"
-                android:text="Shortest Path"
+                android:text="@string/shortest_path"
                 android:layout_gravity="center_horizontal"/>
 
             <android.support.v7.widget.AppCompatButton
@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 style="@style/Widget.AppCompat.Button.Colored"
-                android:text="Adventure Mode"
+                android:text="@string/adventure_mode"
                 android:layout_gravity="center_horizontal"/>
 
         </LinearLayout>
@@ -77,7 +77,7 @@
         android:id="@+id/closeDialogButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|right"
+        android:layout_gravity="top|end"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:background="@drawable/close_button"/>
 </FrameLayout>

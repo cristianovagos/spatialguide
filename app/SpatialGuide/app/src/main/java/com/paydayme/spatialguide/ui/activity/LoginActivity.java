@@ -315,15 +315,26 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void onLoginFailure() {
-        Answers.getInstance().logLogin(new LoginEvent()
-                .putMethod("SpatialGuide Login")
-                .putSuccess(false));
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(R.string.error_login_failed)
+                .setMessage(getString(R.string.error_login))
+                .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .show();
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
 
-        // Present Toast with error
-        Toast.makeText(this, getString(R.string.error_login), Toast.LENGTH_LONG).show();
         loginButton.setEnabled(true);
         forgotPasswordLink.setClickable(true);
         signupLink.setClickable(true);
+
+        Answers.getInstance().logLogin(new LoginEvent()
+                .putMethod("SpatialGuide Login")
+                .putSuccess(false));
     }
 
     public boolean isLoginValid() {

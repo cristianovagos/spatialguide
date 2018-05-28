@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -15,7 +16,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Suggest this location"
+            android:text="@string/suggest_this_location"
             android:layout_margin="15dp"
             android:textSize="19sp"
             android:textColor="@color/black"
@@ -65,7 +66,8 @@
                         android:maxLines="10"
                         android:gravity="top|start"
                         android:scrollbars="vertical"
-                        android:hint="@string/suggestion_hint_dialog"/>
+                        android:hint="@string/suggestion_hint_dialog"
+                        tools:targetApi="m" />
                 </android.support.design.widget.TextInputLayout>
 
             </LinearLayout>
@@ -77,7 +79,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/Widget.AppCompat.Button.Colored"
-            android:text="OK"
+            android:text="@string/send_suggestion"
             android:layout_gravity="center"/>
 
     </LinearLayout>
@@ -86,7 +88,7 @@
         android:id="@+id/closeDialogButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|right"
+        android:layout_gravity="top|end"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:background="@drawable/close_button"/>
 </FrameLayout>
