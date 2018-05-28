@@ -53,7 +53,7 @@ public class SignupActivity extends AppCompatActivity {
     private SGApiClient sgApiClient;
 
     private IntentFilter intentFilter;
-    private AlertDialog dialog;
+    private AlertDialog connectionDialog;
 
     // Reference the views
     @BindView(R.id.input_username) AppCompatEditText usernameText;
@@ -234,7 +234,19 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     public void onSignupFailure() {
-        Toast.makeText(getBaseContext(), getText(R.string.error_signup), Toast.LENGTH_LONG).show();
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(R.string.error_signup_failed)
+                .setMessage(getString(R.string.error_signup))
+                .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .show();
+        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
+
         signupButton.setEnabled(true);
         Answers.getInstance().logSignUp(new SignUpEvent()
                 .putMethod("SpatialGuide Signup")
@@ -256,8 +268,7 @@ public class SignupActivity extends AppCompatActivity {
         if(username.isEmpty() || username.length() < 3) {
             usernameText.setError(getString(R.string.error_name));
 
-            // check if username exists via API
-
+            // todo future work - check if username exists via API
 
             valid = false;
         } else {
@@ -316,9 +327,9 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void showDialogNoConnection() {
-        if(dialog != null) return;
+        if(connectionDialog != null && connectionDialog.isShowing()) return;
         // Not connected to Internet
-        dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+        connectionDialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
                 .setTitle(this.getString(R.string.no_connection))
                 .setMessage(this.getString(R.string.no_connection_message))
                 .setPositiveButton(this.getString(R.string.exit), new DialogInterface.OnClickListener() {
@@ -329,7 +340,7 @@ public class SignupActivity extends AppCompatActivity {
                 })
                 .setCancelable(false)
                 .show();
-        TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+        TextView textView = (TextView) connectionDialog.findViewById(android.R.id.message);
         Typeface tf = ResourcesCompat.getFont(this, R.font.catamaran);
         textView.setTypeface(tf);
     }
@@ -342,8 +353,8 @@ public class SignupActivity extends AppCompatActivity {
             }
             else {
                 // Connected
-                if(dialog != null)
-                    dialog.dismiss();
+                if(connectionDialog != null)
+                    connectionDialog.dismiss();
             }
         }
     };
