@@ -66,6 +66,8 @@ urlpatterns = [
     url(r'^comment/((?P<point_id>\d+))/$', rest.UserCommentsView.as_view()),
     url(r'^comments/$', rest.UserCommentsAdminView.as_view(), name='comments'),
 
+    url(r'^pushnotification/$', rest.pushNotification.as_view(), name='pushnotification'),
+
     url(r'^userPage/$', rest.UserPageAdminView.as_view(),name='userPage'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL)

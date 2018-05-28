@@ -1,5 +1,5 @@
 from django.db import models
-from django.forms import ModelForm
+from django.forms import ModelForm, Form
 from django import forms
 from django.contrib.auth.models import User
 import time
@@ -118,3 +118,7 @@ class HeatPointForm(ModelForm):
     class Meta:
         model = Heat_Point
         fields = '__all__'
+
+class NotificationForm(Form):
+    Title = forms.CharField(max_length=100,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}))
+    Message = forms.CharField(max_length=250,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}))

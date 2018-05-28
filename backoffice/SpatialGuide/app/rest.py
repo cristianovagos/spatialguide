@@ -26,6 +26,49 @@ pn_client = PushNotifications(
     secret_key='9BEC72D2C157102FD2493D3D4521F72',
 )
 
+class pushNotification(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
+        pass
+
+    def post(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
+
+        data = request.data
+
+        form = NotificationForm(data)
+
+        if form.is_valid():
+            notification = form.data
+
+            title = notification['Title']
+            message = notification['Message']
+
+            try:
+                response = pn_client.publish(
+                    interests=['spatialguide'],
+                    publish_body={
+                        'fcm': {
+                            'notification': {
+                                'title': title,
+                                'body': message,
+                                'tag': 'route',
+                                'color': '#2196F3',
+                                'click_action': 'OPEN_APP'
+                            },
+                        },
+                    },
+                )
+            except:
+                print('Failed to send notification of route created.')
+
+            return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
 class ShowPoints(APIView):
     permission_classes = [AllowAny]
 
