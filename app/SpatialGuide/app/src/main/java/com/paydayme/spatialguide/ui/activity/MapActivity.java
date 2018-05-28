@@ -78,6 +78,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
@@ -231,8 +232,8 @@ public class MapActivity extends AppCompatActivity implements
     private int mapType;
 
     // The icons for visited/unvisited markers on the map
-    private BitmapDescriptor visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
-    private BitmapDescriptor unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+    private BitmapDescriptor visitedIcon;
+    private BitmapDescriptor unvisitedIcon;
 
     // Color for the direction line displayed in map
     private int directionLineColor = Color.BLUE;
@@ -290,6 +291,7 @@ public class MapActivity extends AppCompatActivity implements
 
     // Variables from SharedPreferences
     private String authenticationHeader;
+    private boolean resetVisitedPoints = false;
 
     // UI Widgets.
     @BindView(R.id.toolbar) Toolbar toolbar;
@@ -352,6 +354,10 @@ public class MapActivity extends AppCompatActivity implements
     private void init(Bundle savedInstanceState) {
         initMenuHeaderViews();
 
+        MapsInitializer.initialize(getApplicationContext());
+        visitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+        unvisitedIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+
         connectivityIntentFilter = new IntentFilter(CONNECTIVITY_ACTION);
         headsetConnectionIntentFilter = new IntentFilter(HEADSET_PLUG_ACTION);
 
@@ -382,12 +388,13 @@ public class MapActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         mRouteSelected = intent.getIntExtra("route", -1);
-
-        configBluetooth();
-        configSensor();
+        resetVisitedPoints = intent.getBooleanExtra("reset_points", false);
 
         // Getting SharedPreferences and their values
         initSharedPreferences();
+
+        configBluetooth();
+        configSensor();
 
         // Update values using data stored in the Bundle.
         updateValuesFromBundle(savedInstanceState);
@@ -425,6 +432,7 @@ public class MapActivity extends AppCompatActivity implements
             prefs_auralization = false;
             onAuralizationSettingsChange();
             Log.e(TAG, "configBluetooth: bluetooth is not available on this device");
+            return;
         }
 
         ensureDiscoverable();
@@ -435,10 +443,12 @@ public class MapActivity extends AppCompatActivity implements
         super.onStart();
 
         // If the BT is not ON, request for being enabled
-        if(!bluetoothAdapter.isEnabled()) {
-            startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BT);
-        } else if (bluetoothService == null) {
-            setupBluetoothService();
+        if(bluetoothAdapter != null) {
+            if (!bluetoothAdapter.isEnabled()) {
+                startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BT);
+            } else if (bluetoothService == null) {
+                setupBluetoothService();
+            }
         }
     }
 
@@ -572,7 +582,6 @@ public class MapActivity extends AppCompatActivity implements
         onMapVisitedMarkerChange();
         onMapUnvisitedMarkerChange();
         onMapDirectionLineChange();
-        onMapTypeChange();
     }
 
     private void onMapTypeChange() {
@@ -712,10 +721,11 @@ public class MapActivity extends AppCompatActivity implements
                 if(response.isSuccessful() && response.body() != null) {
                     favoritePoints = response.body().getFavoritePoints();
 
-                    for(VisitedPoint visitedPoint : response.body().getVisitedPoints())
-                        for(Point point : mRoute.getRoutePoints())
-                            if(visitedPoint.getId() == point.getPointID())
-                                point.setPointVisited(true);
+                    if(!resetVisitedPoints)
+                        for(VisitedPoint visitedPoint : response.body().getVisitedPoints())
+                            for(Point point : mRoute.getRoutePoints())
+                                if(visitedPoint.getId() == point.getPointID())
+                                    point.setPointVisited(true);
 
                     String userNames = response.body().getFirst_name() + " " + response.body().getLast_name();
                     spEditor.putString(SHARED_PREFERENCES_USER_NAMES, userNames);
@@ -858,6 +868,7 @@ public class MapActivity extends AppCompatActivity implements
         }
         mMap.setMyLocationEnabled(true);
 
+        onMapTypeChange();
         addMarkers();
     }
 
@@ -1174,45 +1185,11 @@ public class MapActivity extends AppCompatActivity implements
         });
     }
 
-//    // TODO (future work) - try again :(
-//    private void getOptimizedRoute(Location mCurrentLocation) {
-//        Gson gson = new Gson();
-//        List<RouteXLRequest> requestList = new ArrayList<>();
-//        requestList.add(new RouteXLRequest("current", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
-//
-//        int i = 0;
-//        for(Point p : mRoute.getRoutePoints()) {
-//            requestList.add(new RouteXLRequest(String.valueOf(i), p.getPointLatitude(), p.getPointLongitude()));
-//            i++;
-//        }
-//
-//        Log.d(TAG, "getOptimizedRoute: " + gson.toJson(requestList));
-//        RequestBody body = RequestBody.create(MediaType.parse("text/plain"), gson.toJson(requestList));
-//
-//        retrofit2.Call<RouteXLResponse> call = routeXLApiClient.getOptimizedRoute(body, ROUTE_XL_AUTH_KEY);
-//        call.enqueue(new retrofit2.Callback<RouteXLResponse>() {
-//            @Override
-//            public void onResponse(retrofit2.Call<RouteXLResponse> call, retrofit2.Response<RouteXLResponse> response) {
-//                if(response.isSuccessful()) {
-//                    Log.d(TAG, "getOptimizedRoute - onResponse: " + response.body().toString());
-//                } else {
-//                    Log.e(TAG, "getOptimizedRoute - onResponse: " + response.errorBody());
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(retrofit2.Call<RouteXLResponse> call, Throwable t) {
-//                Log.e(TAG, "getOptimizedRoute - onFailure call: " + call.toString());
-//                Log.e(TAG, "getOptimizedRoute - onFailure: " + t.getMessage());
-//            }
-//        });
-//
-//    }
-
     private DirectionsResult getDirectionsDetails(Location currentLocation, boolean optimized) {
         DateTime now = new DateTime();
         List<com.google.maps.model.LatLng> waypoints = new ArrayList<>();
         Point destination = mRoute.getRoutePoints().get(mRoute.getRoutePoints().size()-1);
+        if(destination.isPointVisited()) return null;
 
         for (Point p : mRoute.getRoutePoints()) {
             if(p.equals(destination))
@@ -1251,9 +1228,13 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private void addPolyline(DirectionsResult results, GoogleMap mMap) {
-        List<LatLng> decodedPath = PolyUtil.decode(results.routes[0].overviewPolyline.getEncodedPath());
-        PolylineOptions options = new PolylineOptions().addAll(decodedPath);
-        mMap.addPolyline(options.color(directionLineColor));
+        try {
+            List<LatLng> decodedPath = PolyUtil.decode(results.routes[0].overviewPolyline.getEncodedPath());
+            PolylineOptions options = new PolylineOptions().addAll(decodedPath);
+            mMap.addPolyline(options.color(directionLineColor));
+        } catch (Exception e) {
+            Log.e(TAG, "addPolyline: " + e.getMessage());
+        }
     }
 
     private GeoApiContext getGeoContext() {

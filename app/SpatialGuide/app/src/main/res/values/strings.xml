@@ -147,4 +147,8 @@
     <string name="play_sound">Play sound</string>
     <string name="error_signup_failed">Signup failed</string>
     <string name="error_login_failed">Login failed</string>
+    <string name="download_failed_message">The download of the route has failed. Try again please.</string>
+    <string name="download_failed_title">Download failed</string>
+    <string name="error_route_title">Error fetching Route</string>
+    <string name="error_route_message">There was an error fetching route details. Try again please.</string>
 </resources>

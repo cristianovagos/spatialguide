@@ -96,11 +96,11 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private IntentFilter intentFilter;
 
     private int routeSelected;
-    private PointAdapter pointAdapter;
     private boolean routeOnStorage = false;
     private Route currentRoute;
     private boolean hasUpdate = false;
     private List<Point> visitedPointsList = new ArrayList<>();
+    private boolean noPoints = false;
 
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.routeList) RecyclerView recyclerView;
@@ -234,27 +234,51 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             .show();
                     changeFontAlertDialog();
                 } else {
-                    //Ask the user if wants to navigate in this route
-                    alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
-                            .setTitle(getString(R.string.navigate_route))
-                            .setMessage(getString(R.string.navigate_route_prompt))
-                            .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Answers.getInstance().logCustom(new CustomEvent("Navigate Route")
-                                            .putCustomAttribute("Route", route.getRouteName()));
-                                    onNavigateRoute();
-                                }
-                            })
-                            .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    alertDialog.dismiss();
-                                }
-                            })
-                            .setCancelable(false)
-                            .show();
-                    changeFontAlertDialog();
+                    if(visitedPointsList.size() == route.getRoutePoints().size()) {
+                        // todos os pontos foram visitados
+                        alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                                .setTitle("Reset this Route")
+                                .setMessage("Looks like you've already visited all points of this route. You want to start it all again or continue?")
+                                .setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // continue, normal behavior
+                                        onNavigateRoute(false);
+                                    }
+                                })
+                                .setNegativeButton("Reset Route", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        onNavigateRoute(true);
+                                    }
+                                })
+                                .setCancelable(false)
+                                .show();
+                        changeFontAlertDialog();
+                    } else if(!visitedPointsList.isEmpty()) {
+                        // perguntar se quer continuar a rota ou começar do inicio
+                        alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                                .setTitle("Reset this Route")
+                                .setMessage("Looks like you've already visited some points of this route. You want to start it all again or continue travelling?")
+                                .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // continue, normal behavior
+                                        onNavigateRoute(false);
+                                    }
+                                })
+                                .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        onNavigateRoute(true);
+                                    }
+                                })
+                                .setCancelable(false)
+                                .show();
+                        changeFontAlertDialog();
+                    } else {
+                        showNavigateDialog();
+                    }
                 }
                 fabButton.setEnabled(true);
             }
@@ -322,8 +346,81 @@ public class RouteDetailsActivity extends AppCompatActivity {
             }
         });
 
-        getRouteLastUpdateAPI(routeSelected);
+        getRouteAPI(routeSelected);
         registerReceiver();
+    }
+
+    private void showNavigateDialog() {
+        //Ask the user if wants to navigate in this route
+        alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                .setTitle(getString(R.string.navigate_route))
+                .setMessage(getString(R.string.navigate_route_prompt))
+                .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        onNavigateRoute(false);
+                    }
+                })
+                .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        alertDialog.dismiss();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+        changeFontAlertDialog();
+    }
+
+    private void getRouteAPI(int routeID) {
+        Call<Route> call = sgApiClient.getRoute(authenticationHeader, routeID);
+        call.enqueue(new Callback<Route>() {
+            @Override
+            public void onResponse(Call<Route> call, Response<Route> response) {
+                if(response.isSuccessful() && response.body() != null) {
+                    if(isOnStorage(routeSelected)) {
+                        Log.d(TAG, "getRouteAPI - onResponse: route on storage");
+                        currentRoute = response.body();
+                        routeOnStorage = true;
+
+                        // Verificar se existe update na rota
+                        if(response.body().getLastUpdate() > route.getLastUpdate())
+                            hasUpdate = true;
+                        else {
+                            // Verificar se existe update nos pontos
+                            for (Point point : route.getRoutePoints())
+                                for (Point currentPoint : response.body().getRoutePoints())
+                                    if (point.getPointID() == currentPoint.getPointID() && currentPoint.getLastUpdate() > point.getLastUpdate()) {
+                                        hasUpdate = true;
+                                        break;
+                                    }
+                        }
+
+                        // se houver update na rota/pontos perguntar ao utilizador se quer atualizar
+                        // caso contrario mantem-se os dados que tem ate agora pois estao no dispositivo
+                        if(hasUpdate) {
+                            Log.d(TAG, "getRouteAPI - onResponse: route has update");
+                            showUpdateRouteDialog();
+                            return;
+                        }
+                        getUserInfo();
+                        return;
+                    }
+                    Log.d(TAG, "getRouteAPI - onResponse: route not on storage");
+                    route = response.body();
+                    getUserInfo();
+                } else {
+                    Log.e(TAG, "getRouteAPI - onResponse: some error occurred");
+                    updateUI();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Route> call, Throwable t) {
+                Log.e(TAG, "getRouteAPI - onFailure: obtaining route: " + t.getMessage());
+                updateUI();
+            }
+        });
     }
 
     private void changeFontAlertDialog() {
@@ -343,6 +440,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                         if (favRoutes == route.getRouteID()) {
                             // marcar o botao de favorito como liked
                             favoriteButton.setLiked(true);
+                            break;
                         }
                     }
                     // verificar os pontos ja visitados
@@ -353,24 +451,35 @@ public class RouteDetailsActivity extends AppCompatActivity {
                             }
                         }
                     }
+                    updateUI();
                 } else {
                     Log.e(TAG, "getUserInfo - onResponse: some error occurred: " + response.errorBody().toString());
+                    updateUI();
                 }
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
                 Log.e(TAG, "getUserInfo - onFailure: some error occurred: " + t.getMessage());
+                updateUI();
             }
         });
     }
 
-    private void onNavigateRoute() {
+    private void onNavigateRoute(boolean reset) {
+        Answers.getInstance().logCustom(new CustomEvent("Navigate Route")
+                .putCustomAttribute("Route", route.getRouteName()));
+
         spEditor.putInt(SHARED_PREFERENCES_LAST_ROUTE, routeSelected);
         spEditor.apply();
 
         Intent intent = new Intent(RouteDetailsActivity.this, MapActivity.class);
         Bundle bundle = new Bundle();
+
+        if(reset)
+            bundle.putBoolean("reset_points", true);
+        else
+            bundle.putBoolean("reset_points", false);
 
         bundle.putInt("route", routeSelected);
         intent.putExtras(bundle);
@@ -379,6 +488,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     }
 
     private void onDownloadRoute() {
+        routeOnStorage = false;
         progressDialog = new ProgressDialog(RouteDetailsActivity.this, R.style.CustomDialogTheme);
         progressDialog.setIndeterminate(true);
         progressDialog.setCancelable(false);
@@ -414,7 +524,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
                 Integer index = intent.getIntExtra("index", -1);
                 Integer total = intent.getIntExtra("total", -1);
 
-                if(download.getProgress() == 100) {
+                if(download.getProgress() == 100 && progressDialog != null) {
                     if(index != null && total != null && total > 1)
                         progressDialog.setMessage("Downloading files...\n" + index + "/" + total + " completed");
                 }
@@ -447,7 +557,19 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private void onDownloadFailed() {
         progressDialog.dismiss();
         InternalStorage.deleteFile(this, ROUTE_STORAGE_SEPARATOR + routeSelected);
-        Toast.makeText(RouteDetailsActivity.this, R.string.download_toast_error, Toast.LENGTH_LONG).show();
+
+        AlertDialog downloadFailedDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                .setTitle(getString(R.string.download_failed_title))
+                .setMessage(getString(R.string.download_failed_message))
+                .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .show();
+        TextView textView = (TextView) downloadFailedDialog.findViewById(android.R.id.message);
+        Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
+        textView.setTypeface(tf);
     }
 
     private boolean isOnStorage(int routeID) {
@@ -485,15 +607,6 @@ public class RouteDetailsActivity extends AppCompatActivity {
                         Answers.getInstance().logCustom(new CustomEvent("Route Updated")
                                 .putCustomAttribute("Route", route.getRouteName()));
                         onDownloadRoute();
-                        getUserInfo();
-                        updateUI();
-                    }
-                })
-                .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        getUserInfo();
-                        updateUI();
                     }
                 })
                 .setCancelable(false)
@@ -502,142 +615,97 @@ public class RouteDetailsActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        // Route Image - displayed on the top: CollapsingToolbar
-        if(!route.getRouteImage().isEmpty()) {
-            Picasso.get()
-                    .load(route.getRouteImage())
-                    .placeholder(R.drawable.progress_animation)
-                    .error(R.drawable.not_available)
-                    .into(routeImage, new com.squareup.picasso.Callback() {
-                        @Override
-                        public void onSuccess() {
-                            collapsingToolbarLayout.setVisibility(View.VISIBLE);
-                            loadingLayout.setVisibility(View.GONE);
-                            mainLayout.setVisibility(View.VISIBLE);
-                            fabButton.setVisibility(View.VISIBLE);
+        if(route != null) {
+            // Route Image - displayed on the top: CollapsingToolbar
+            if (!route.getRouteImage().isEmpty()) {
+                Picasso.get()
+                        .load(route.getRouteImage())
+                        .placeholder(R.drawable.progress_animation)
+                        .error(R.drawable.not_available)
+                        .into(routeImage, new com.squareup.picasso.Callback() {
+                            @Override
+                            public void onSuccess() {
+                                collapsingToolbarLayout.setVisibility(View.VISIBLE);
+                                loadingLayout.setVisibility(View.GONE);
+                                mainLayout.setVisibility(View.VISIBLE);
+                                if(!noPoints)
+                                    fabButton.setVisibility(View.VISIBLE);
+                            }
 
-                            if(routeOnStorage)
-                                fabText.setVisibility(View.VISIBLE);
-                            else
-                                fabButton.setImageResource(R.drawable.ic_download2);
-                        }
+                            @Override
+                            public void onError(Exception e) {
+                                collapsingToolbarLayout.setVisibility(View.VISIBLE);
+                                loadingLayout.setVisibility(View.GONE);
+                                mainLayout.setVisibility(View.VISIBLE);
+                                if(!noPoints)
+                                    fabButton.setVisibility(View.VISIBLE);
+                                Log.e(TAG, "updateUI - onError: error fetching image: " + e.getMessage());
+                            }
+                        });
+            }
 
-                        @Override
-                        public void onError(Exception e) {
-                            collapsingToolbarLayout.setVisibility(View.VISIBLE);
-                            loadingLayout.setVisibility(View.GONE);
-                            mainLayout.setVisibility(View.VISIBLE);
-                            fabButton.setVisibility(View.VISIBLE);
 
-                            if(routeOnStorage)
-                                fabText.setVisibility(View.VISIBLE);
-                            else
-                                fabButton.setImageResource(R.drawable.ic_download2);
-                            Log.e(TAG, "updateUI - onError: error fetching image: " + e.getMessage());
-                        }
-                    });
-        }
+            if (!route.getRoutePoints().isEmpty()) {
+                // Route Map Image - Static map from Google Maps API
+                if (!route.getRouteMapImage().isEmpty()) {
+                    Picasso.get()
+                            .load(route.getRouteMapImage())
+                            .placeholder(R.drawable.progress_animation)
+                            .error(R.drawable.not_available)
+                            .into(routeMapImage, new com.squareup.picasso.Callback() {
+                                @Override
+                                public void onSuccess() {
+                                    progressMap.setVisibility(View.GONE);
+                                }
 
-        // Route Map Image - Static map from Google Maps API
-        if (!route.getRouteMapImage().isEmpty()) {
-            Picasso.get()
-                    .load(route.getRouteMapImage())
-                    .placeholder(R.drawable.progress_animation)
-                    .error(R.drawable.not_available)
-                    .into(routeMapImage, new com.squareup.picasso.Callback() {
-                        @Override
-                        public void onSuccess() {
-                            progressMap.setVisibility(View.GONE);
-                        }
-
-                        @Override
-                        public void onError(Exception e) {
-                            mapCard.setVisibility(View.GONE);
-                        }
-                    });
-        } else {
-            mapCard.setVisibility(View.GONE);
-        }
-        // Setting the point adapter and the recyclerview to receive route points
-        pointAdapter = new PointAdapter(this, route.getRoutePoints(), false);
-        recyclerView.setAdapter(pointAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // Setting the remaining texts (Route name, description, etc)
-        routeDescription.setText(route.getRouteDescription());
-        collapsingToolbarLayout.setTitle(route.getRouteName());
-        String downloadStr = route.getRouteDownloads() + " " + getString(R.string.downloads);
-        routeDownloads.setText(downloadStr);
-        routeDate.setText(route.getRouteDate());
-        cardDetails.setVisibility(View.VISIBLE);
-    }
-
-    private void getRouteDetailsAPI(int routeID) {
-        Call<Route> call = sgApiClient.getRoute(authenticationHeader, routeID);
-
-        call.enqueue(new Callback<Route>() {
-            @Override
-            public void onResponse(Call<Route> call, Response<Route> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    route = response.body();
-                    getUserInfo();
-                    updateUI();
+                                @Override
+                                public void onError(Exception e) {
+                                    mapCard.setVisibility(View.GONE);
+                                }
+                            });
                 } else {
-                    Log.e(TAG, "getRouteDetailsAPI - onResponse: something has failed");
+                    mapCard.setVisibility(View.GONE);
                 }
+                // Setting the point adapter and the recyclerview to receive route points
+                recyclerView.setAdapter(new PointAdapter(this, route.getRoutePoints(), false));
+                recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                noPoints = false;
+            } else {
+                fabButton.setVisibility(View.GONE);
+                mapCard.setVisibility(View.GONE);
+                noPointsText.setVisibility(View.VISIBLE);
+                noPoints = true;
             }
 
-            @Override
-            public void onFailure(Call<Route> call, Throwable t) {
-                Log.e(TAG, "getRouteDetailsAPI - onFailure: " + t.getMessage());
-            }
-        });
-    }
-
-    private void getRouteLastUpdateAPI(int routeID) {
-        Call<Route> call = sgApiClient.getRoute(authenticationHeader, routeID);
-
-        call.enqueue(new Callback<Route>() {
-            @Override
-            public void onResponse(Call<Route> call, Response<Route> response) {
-                if(response.isSuccessful() && response.body() != null) {
-                    if(isOnStorage(routeSelected)) {
-                        currentRoute = response.body();
-                        routeOnStorage = true;
-
-                        // Verificar se existe update na rota
-                        if(response.body().getLastUpdate() > route.getLastUpdate())
-                            hasUpdate = true;
-                        else {
-                            // Verificar se existe update nos pontos
-                            for (Point point : route.getRoutePoints())
-                                for (Point currentPoint : response.body().getRoutePoints())
-                                    if (point.getPointID() == currentPoint.getPointID() && currentPoint.getLastUpdate() > point.getLastUpdate())
-                                        hasUpdate = true;
+            // Setting the remaining texts (Route name, description, etc)
+            routeDescription.setText(route.getRouteDescription());
+            collapsingToolbarLayout.setTitle(route.getRouteName());
+            String downloadStr = route.getRouteDownloads() + " " + getString(R.string.downloads);
+            routeDownloads.setText(downloadStr);
+            routeDate.setText(route.getRouteDate());
+            cardDetails.setVisibility(View.VISIBLE);
+        } else {
+            // a rota nao existe, ou houve erro
+            alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
+                    .setTitle(getString(R.string.error_route_title))
+                    .setMessage(getString(R.string.error_route_message))
+                    .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(RouteDetailsActivity.this, RouteActivity.class));
+                            finish();
                         }
+                    })
+                    .setCancelable(false)
+                    .show();
+            changeFontAlertDialog();
+            fabButton.setVisibility(View.GONE);
+        }
 
-                        // se houver update na rota/pontos perguntar ao utilizador se quer atualizar
-                        // caso contrario mantem-se os dados que tem ate agora pois estao no dispositivo
-                        if(hasUpdate) {
-                            showUpdateRouteDialog();
-                        } else {
-                            getUserInfo();
-                            updateUI();
-                        }
-                    } else {
-                        // a rota nao existe no dispositivo, vamos buscar os dados à API
-                        getRouteDetailsAPI(routeSelected);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Route> call, Throwable t) {
-                Log.e(TAG, "onFailure: obtaining route last update " + t.getMessage());
-                getUserInfo();
-                updateUI();
-            }
-        });
+        if (routeOnStorage)
+            fabText.setVisibility(View.VISIBLE);
+        else
+            fabButton.setImageResource(R.drawable.ic_download2);
     }
 
     @Override
