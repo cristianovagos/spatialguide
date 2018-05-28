@@ -81,7 +81,6 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
     private SharedPreferences.Editor spEditor;
     private int routeSelected;
     private String authenticationHeader;
-    private User currentUser;
 
     private AlertDialog connectionDialog;
     private IntentFilter intentFilter;
@@ -106,9 +105,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         setContentView(R.layout.activity_route);
 
         intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
-
         ButterKnife.bind(this);
-
         init();
     }
 
@@ -126,7 +123,6 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         }));
 
         swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.primary));
-//        swipeRefreshLayout.setProgressViewOffset(false, 120, 155);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -190,26 +186,26 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                if(response.isSuccessful()) {
-                    currentUser = response.body();
-
-                    String userNames = currentUser.getFirst_name() + " " + currentUser.getLast_name();
+                if(response.isSuccessful() && response.body() != null) {
+                    String userNames = response.body().getFirst_name() + " " + response.body().getLast_name();
                     spEditor.putString(SHARED_PREFERENCES_USER_NAMES, userNames);
-                    spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, currentUser.getEmail());
-                    spEditor.putString(SHARED_PREFERENCES_USER_IMAGE, currentUser.getUserImage());
-                    spEditor.putString(SHARED_PREFERENCES_USERNAME, currentUser.getUsername());
+                    spEditor.putString(SHARED_PREFERENCES_USER_EMAIL, response.body().getEmail());
+                    spEditor.putString(SHARED_PREFERENCES_USER_IMAGE, response.body().getUserImage());
+                    spEditor.putString(SHARED_PREFERENCES_USERNAME, response.body().getUsername());
                     spEditor.apply();
 
                     // Get user info to be displayed on the header menu
                     getUserInfoSharedPreferences();
                 } else {
                     Log.e(TAG, "getUserInfo - onResponse: some error occurred: " + response.errorBody().toString());
+                    menuErrorLayout.setVisibility(View.VISIBLE);
                 }
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
                 Log.e(TAG, "getUserInfo - onFailure: some error occurred: " + t.getMessage());
+                menuErrorLayout.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -231,20 +227,19 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
                     .load(userImage)
                     .placeholder(R.drawable.progress_animation)
                     .error(R.mipmap.ic_launcher_round)
-                    .into(userImageMenu);
+                    .into(userImageMenu, new com.squareup.picasso.Callback() {
+                        @Override
+                        public void onSuccess() {}
+
+                        @Override
+                        public void onError(Exception e) {
+                            menuErrorLayout.setVisibility(View.VISIBLE);
+                        }
+                    });
         }
     }
 
     private void updateUI() {
-        if(swipeRefreshLayout.isRefreshing())
-            swipeRefreshLayout.setRefreshing(false);
-
-        if(routeList.isEmpty()) {
-            noRoutesText.setVisibility(View.VISIBLE);
-        } else {
-            noRoutesText.setVisibility(View.GONE);
-        }
-
         // Setting the point adapter and the recyclerview to receive route points
         RouteAdapter routeAdapter = new RouteAdapter(this, routeList, new RouteAdapter.OnItemClickListener() {
             @Override
@@ -272,28 +267,36 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 
     private void getRoutesAPI() {
         Call<List<Route>> call = sgApiClient.getRoutes(authenticationHeader);
-
         call.enqueue(new Callback<List<Route>>() {
             @Override
             public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
-                if(response.isSuccessful()) {
-                    Log.d(TAG, "getRoutes - onResponse: ");
+                if(response.isSuccessful() && response.body() != null) {
                     routeList = response.body();
+                    if(swipeRefreshLayout.isRefreshing())
+                        swipeRefreshLayout.setRefreshing(false);
                     updateUI();
                 } else {
                     Log.e(TAG, "getRoutes - onResponse: something failed");
+                    onRouteFetchError();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Route>> call, Throwable t) {
                 Log.d(TAG, "getRoutes - onFailure: " + t.getMessage());
-                avaliableRoutesRV.setVisibility(View.GONE);
-                loadingLayout.setVisibility(View.GONE);
-                noRoutesText.setVisibility(View.VISIBLE);
+                onRouteFetchError();
             }
         });
     }
+
+    private void onRouteFetchError() {
+        if(swipeRefreshLayout.isRefreshing())
+            swipeRefreshLayout.setRefreshing(false);
+        avaliableRoutesRV.setVisibility(View.GONE);
+        loadingLayout.setVisibility(View.GONE);
+        noRoutesText.setVisibility(View.VISIBLE);
+    }
+
 
     /**
      * What to do when the back button is pressed
