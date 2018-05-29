@@ -51,7 +51,7 @@
                                     <td >
                                         <form method="post" target="_self" style="width: 100%">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="removeComment">Remove Comment</button>
+                                            <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="removeComment" value="{{ comment.id }}">Remove Comment</button>
                                         </form>
                                     </td>
                                 {% endif %}

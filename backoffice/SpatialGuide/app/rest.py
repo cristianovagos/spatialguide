@@ -834,16 +834,12 @@ class UserCommentsView(APIView):
                     tmp['Image'] = user_att.Image
                     response.append(tmp)
 
+
                 return Response(response)
 
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-# {
-#     "point": "1",
-#     "comment": "LALALALAL"
-# }
 
     def post(self, request):
         data = request.data
@@ -859,10 +855,6 @@ class UserCommentsView(APIView):
 
         comment = User_Comments(User=user_post, Point=point, Comment=comment)
         comment.save()
-
-        if 'removeComment' in list(data.keys()):
-            comment.delete()
-            return redirect('comments.html')
 
         return Response(status=status.HTTP_200_OK)
 
@@ -883,6 +875,22 @@ class UserCommentsAdminView(APIView):
 
         return render(request, 'comments.html', tparams)
 
+    def post(self,request):
+        if not request.user.is_staff:
+            return redirect('login')
+
+        data = request.data
+        print(data)
+
+        if 'removeComment' in list(data.keys()):
+            comment_id = data['removeComment']
+
+            comment = User_Comments.objects.get(pk=comment_id)
+
+            if comment:
+                comment.delete()
+
+        return self.get(request)
 
 class UserPageAdminView(APIView):
     permission_classes = [AllowAny]
