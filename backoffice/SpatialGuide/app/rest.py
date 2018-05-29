@@ -813,21 +813,42 @@ class UserSuggestionsAdminView(APIView):
 
         return render(request, 'tables.html', tparams)
 
+# comment/
 class UserCommentsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, point_id=None):
-        point = Point.objects.get(pk=point_id)
+        if point_id:
+            point = Point.objects.get(pk=point_id)
 
-        if point:
-            comments = User_Comments.objects.filter(Point__id=point_id).all()
+            if point:
+                comments = User_Comments.objects.filter(Point__id=point_id).all()
 
 
-            serializer = UserCommentsSerializer(comments, many=True)
-            return Response(serializer.data)
+                serializer = UserCommentsSerializer(comments, many=True)
 
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+                response = []
+                for data in serializer.data:
+                    tmp = dict(data)
+
+                    user = User.objects.filter(pk=tmp['User']).first()
+                    user_att = User_Attributes.objects.get(pk=user.id)
+
+                    tmp['User'] = user.username
+                    tmp['Image'] = user_att.Image
+                    response.append(tmp)
+
+
+                return Response(response)
+
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+# {
+#     "point": "1",
+#     "comment": "LALALALAL"
+# }
 
     def post(self, request):
         data = request.data

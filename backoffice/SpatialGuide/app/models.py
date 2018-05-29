@@ -120,5 +120,5 @@ class HeatPointForm(ModelForm):
         fields = '__all__'
 
 class NotificationForm(Form):
-    Title = forms.CharField(max_length=100,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}))
-    Message = forms.CharField(max_length=250,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}))
+    Title = forms.CharField(max_length=100,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Title'}))
+    Message = forms.CharField(max_length=250,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Message'}))
