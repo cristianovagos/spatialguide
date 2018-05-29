@@ -20,15 +20,13 @@
 
 {% block content %}
 
-    <div class="container-fluid">
+    <div class="container-fluid" >
         <!-- Breadcrumbs-->
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{% url 'show_routes' %}">Routes</a>
             </li>
             <li class="breadcrumb-item active">{{ route.Name }}</li>
-
-
         </ol>
 
         <br>
@@ -46,9 +44,11 @@
                         <br>
                         <br>
                     </div>
+
                     <div class="row">
-                     <img src="{{ route.Image }}" style="width: 100%; height: auto;"/>
+                     <img src="{{ route.Image }}" style="width: 100%; height: 100%;"/>
                     </div>
+
                     <div class="row">
                         <div class="card text-white bg-primary o-hidden h-100"  style= "margin-top: 20px; width:80%">
                             <div class="card-body">
@@ -68,7 +68,7 @@
                                 {% endfor %}
                             </select>
                         <br>
-                            <button type="submit" style="border-radius: 7px; width: 100%">Remove Point</button>
+                        <button type="submit" style="border-radius: 7px; width: 100%">Remove Point</button>
                         </form>
                         </div>
 
@@ -95,22 +95,25 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="col-sm-9">
                     <div class="container-fluid" id="map" style="height:600px; float:right"></div>
                 </div>
+
+                <div class="container-fluid" style="border-radius: 7px; width: 20%">
+                    <form method="post" target="_self">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="removeRoute">Remove Route</button>
+                    </form>
+                </div>
+
             </div>
 
-        <br>
-        <br>
-
-        <div class="container-fluid" style="border-radius: 7px; width: 20%">
-            <form method="post" target="_self">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary btn-block" style="background-color: #f44336;" name="removeRoute">Remove Route</button>
-            </form>
-        </div>
+            <br>
+            <br>
 
         </div>
+    </div>
 
 {% endblock %}
 
