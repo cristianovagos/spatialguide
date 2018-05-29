@@ -55,6 +55,7 @@ urlpatterns = [
 
     url(r'^changepass/$', rest.ChangePassword.as_view(), name='changepass'),
     url(r'^changeemail/$', rest.ChangeEmail.as_view(), name='changeemail'),
+    url(r'^changeimage/$', rest.ChangeUserImage.as_view(), name='changeimage'),
     url(r'^recoverpass/$', rest.RecoverPassword.as_view(), name='recoverpass'),
 
 
