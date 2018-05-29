@@ -14,16 +14,11 @@ def get_allRoutes():
     serializer = RouteTableSerializer(routes, many=True)
     tmp_list = serializer.data
 
-    tab_names=[]
-    if len(tmp_list) > 0:
-        if len(list(tmp_list[0].keys())) > 0:
-            tab_names = list(tmp_list[0].keys())
-
     route_list = []
     for route in tmp_list:
         route_list.append(dict(route))
 
-    return (tab_names,route_list)
+    return route_list
 
 def generate_mapImage(route_id):
     points = get_route_points(route_id)
@@ -65,15 +60,11 @@ def get_allPoints():
     serializer = PointTableSerializer(points, many=True)
     tmp_list = serializer.data
 
-    tab_names = []
-    if len(tmp_list) > 0:
-        tab_names = list(tmp_list[0].keys())
-
     point_list = []
     for point in tmp_list:
         point_list.append(dict(point))
 
-    return (tab_names,point_list)
+    return point_list
 
 def get_heatPoints():
     heat_points = Heat_Point.objects.all()
@@ -95,30 +86,22 @@ def get_Suggestions():
    suggestion = User_Suggestions.objects.all()
    suggestion = UserSuggestionsSerializer(suggestion,many=True).data
 
-   tab_names = []
-   if len(tab_names) > 0:
-       tab_names= list(suggestion[0].keys())
-
    suggestion_list=[]
    for s in suggestion:
        suggestion_list.append(dict(s))
 
-   return (tab_names,suggestion_list)
+   return suggestion_list
 
 def get_Comments():
    comment = User_Comments.objects.all()
    comment = UserCommentsSerializer(comment,many=True)
    tmp_list = comment.data
 
-   tab_names = []
-   if len(tmp_list) > 0:
-       tab_names= list(tmp_list[0].keys())
-
    comment_list=[]
    for s in tmp_list:
        comment_list.append(dict(s))
 
-   return (tab_names,comment_list)
+   return comment_list
 
 def get_UserInfo():
     user = User_Attributes.objects.all()

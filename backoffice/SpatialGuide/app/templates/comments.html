@@ -25,7 +25,7 @@
 
                         <thead style="background-color:#e9ecef">
                         <tr>
-                            {% for key in tab_names %}
+                            {% for key,value in comment_list.0.items %}
                                 <th>{{ key }}</th>
                             {% endfor %}
                             <th></th>
@@ -33,7 +33,7 @@
                         </thead>
                         <tfoot style="background-color:#e9ecef">
                         <tr>
-                            {% for key in tab_names %}
+                            {% for key,value in comment_list.0.items %}
                                 <th>{{ key }}</th>
                             {% endfor %}
                             <th></th>

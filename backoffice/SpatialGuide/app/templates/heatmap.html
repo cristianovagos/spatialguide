@@ -29,6 +29,7 @@
             <li class="breadcrumb-item active">{{ title }}</li>
         </ol>
         <div class="row">
+            <input id="pac-input" class="controls" type="text" style="width: 25%;height: 5%" placeholder="Search Box">
             <div class="container-fluid" id="map" style="width: 100%; height: 750px;"></div>
         </div>
     </div>
@@ -45,7 +46,7 @@
     <script src="{% static "js/heatMap.js" %}"></script>
 
     <script async defer
-            src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization&key=AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o&callback=initMap">
+            src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization&libraries=visualization,places&key=AIzaSyCcO0WW_LHs_WEt8fVicVgZCyUOlFyb69o&callback=initMap">
     </script>
 
 

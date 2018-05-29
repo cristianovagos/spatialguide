@@ -31,7 +31,7 @@
 
                             <thead style="background-color:#e9ecef">
                             <tr>
-                                {% for key in tab_names %}
+                                {% for key,value in route_list.0.items %}
                                     <th>{{ key }}</th>
                                 {% endfor %}
                                 <th></th>
@@ -39,7 +39,7 @@
                             </thead>
                             <tfoot style="background-color:#e9ecef">
                             <tr>
-                                {% for key in tab_names %}
+                                {% for key,value in route_list.0.items %}
                                     <th>{{ key }}</th>
                                 {% endfor %}
                                 <th></th>
@@ -84,9 +84,9 @@
                         </table>
                     </div>
                     </div>
-                {% else %}
+                {% elif add_btn %}
                     <h5>There are no {{ title }}s! Please add your {{ title }} </h5>
-                    <a type="submit" class="btn btn-primary btn-block" name="Add" href="{% url add_btn %}" style="width: 20%">Add {{ title }}</a>
+                    <button type="submit" class="btn btn-primary btn-block" name="Add" href="{% url add_btn %}" style="width: 20%">Add {{ title }}</button>
                 {% endif %}
         </div>
     </div>

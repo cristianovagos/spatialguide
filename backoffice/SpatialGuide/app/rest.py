@@ -75,11 +75,10 @@ class ShowPoints(APIView):
     def get(self,request):
         if not request.user.is_staff:
             return redirect('login')
-        tab_names, point_list = get_allPoints()
+        point_list = get_allPoints()
 
         tparams = {
             'title': 'Point',
-            'tab_names': tab_names,
             'route_list': point_list,
             'add_btn': 'add_point'
 
@@ -141,11 +140,11 @@ class ShowRoutes(APIView):
         if not request.user.is_staff:
             return redirect('login')
 
-        tab_names, route_list = get_allRoutes()
+        route_list = get_allRoutes()
+
 
         tparams = {
             'title': 'Route',
-            'tab_names': tab_names,
             'route_list': route_list,
             'add_btn': 'add_route'
 
@@ -351,7 +350,7 @@ class addPoint(APIView):
     def get(self,request):
         if not request.user.is_staff:
             return redirect('login')
-        tab_names, point_list = get_allPoints()
+        point_list = get_allPoints()
 
         tparams = {
             'title': 'Point',
@@ -384,7 +383,7 @@ class addPoint(APIView):
             point.Sound = request_filesaver(request.FILES['Sound'])
             point.save()
 
-        tab_names, point_list = get_allPoints()
+        point_list = get_allPoints()
 
         tparams = {
             'title': 'Point',
@@ -801,14 +800,11 @@ class UserSuggestionsAdminView(APIView):
     def get(self,request):
         if not request.user.is_staff:
             return redirect('login')
-        tab_names, user_suggestion = get_Suggestions()
+        user_suggestion = get_Suggestions()
 
         tparams = {
             'title': 'User Suggestion',
-            'tab_names': tab_names,
-            'route_list': user_suggestion,
-            'add_btn': 'add_point'
-
+            'route_list': user_suggestion
         }
 
         return render(request, 'tables.html', tparams)
@@ -877,11 +873,10 @@ class UserCommentsAdminView(APIView):
     def get(self,request):
         if not request.user.is_staff:
             return redirect('login')
-        tab_names, user_comments = get_Comments()
+        user_comments = get_Comments()
 
         tparams = {
             'title': 'User Comments',
-            'tab_names': tab_names,
             'comment_list': user_comments,
 
         }
