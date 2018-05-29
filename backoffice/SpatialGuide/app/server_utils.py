@@ -16,7 +16,7 @@ def get_allRoutes():
 
     route_list = []
     for route in tmp_list:
-        route_list.append(dict(route))
+        route_list.append(route)
 
     return route_list
 
@@ -88,7 +88,7 @@ def get_Suggestions():
 
    suggestion_list=[]
    for s in suggestion:
-       suggestion_list.append(dict(s))
+       suggestion_list.append(s)
 
    return suggestion_list
 
@@ -99,7 +99,7 @@ def get_Comments():
 
    comment_list=[]
    for s in tmp_list:
-       comment_list.append(dict(s))
+       comment_list.append(s)
 
    return comment_list
 
