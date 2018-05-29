@@ -228,9 +228,6 @@ public class MapActivity extends AppCompatActivity implements
     // Flag to represent if the shortestPath is activated
     private boolean shortestPath = false;
 
-    // GoogleMap type
-    private int mapType;
-
     // The icons for visited/unvisited markers on the map
     private BitmapDescriptor visitedIcon;
     private BitmapDescriptor unvisitedIcon;
@@ -309,8 +306,8 @@ public class MapActivity extends AppCompatActivity implements
     // Bluetooth and IMU Stuff
 
     // Intent request codes
-//    private static final int REQUEST_CONNECT_DEVICE_SECURE = 2;
-//    private static final int REQUEST_CONNECT_DEVICE_INSECURE = 3;
+    private static final int REQUEST_CONNECT_DEVICE_SECURE = 2;
+    private static final int REQUEST_CONNECT_DEVICE_INSECURE = 3;
     private static final int REQUEST_ENABLE_BT = 4;
 
     private float[] rotation = new float[3];
@@ -587,24 +584,19 @@ public class MapActivity extends AppCompatActivity implements
 
     private void onMapTypeChange() {
         if(prefs_map_type == null) {
-            mapType = GoogleMap.MAP_TYPE_HYBRID;
             mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         } else {
             switch (Integer.valueOf(prefs_map_type)) {
                 case 2:
-                    mapType = GoogleMap.MAP_TYPE_NORMAL;
                     mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
                     break;
                 case 3:
-                    mapType = GoogleMap.MAP_TYPE_SATELLITE;
                     mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
                     break;
                 case 4:
-                    mapType = GoogleMap.MAP_TYPE_TERRAIN;
                     mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
                     break;
                 default:
-                    mapType = GoogleMap.MAP_TYPE_HYBRID;
                     mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
                     break;
             }
@@ -820,7 +812,9 @@ public class MapActivity extends AppCompatActivity implements
         mUiSettings.setMapToolbarEnabled(false);
 
         if(prefs_map_type != null) {
-            mMap.setMapType(mapType);
+            mMap.setMapType(Integer.valueOf(prefs_map_type));
+        } else {
+            mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         }
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -1617,7 +1611,7 @@ public class MapActivity extends AppCompatActivity implements
                         noCommentsText.setVisibility(View.VISIBLE);
                     } else {
                         Log.d(TAG, "onResponse: comments: " + response.body());
-                        CommentAdapter commentAdapter = new CommentAdapter(MapActivity.this, response.body(), sgApiClient, authenticationHeader);
+                        CommentAdapter commentAdapter = new CommentAdapter(response.body());
                         recyclerView.setAdapter(commentAdapter);
                         recyclerView.setLayoutManager(new LinearLayoutManager(MapActivity.this));
 

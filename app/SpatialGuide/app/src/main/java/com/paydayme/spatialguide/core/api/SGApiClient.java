@@ -216,9 +216,14 @@ public interface SGApiClient {
     @GET("comment/{id}/?format=json")
     Call<List<Comment>> getCommentsByPointID(@Header("Authorization") String authKey, @Path("id") int pointID);
 
-
-    // TODO Backend
+    /**
+     * Change user image
+     *
+     * @param authKey the authorization key
+     * @param imageFile the file of the image to send
+     * @return HTTP Response of the request made
+     */
     @Multipart
-    @POST("userimage/")
-    Call<ResponseBody> changeUserImage(@Header("Authorization") String authKey, @Part MultipartBody.Part file, @Part("name") RequestBody name);
+    @POST("changeimage/")
+    Call<ResponseBody> changeUserImage(@Header("Authorization") String authKey, @Part MultipartBody.Part imageFile);
 }

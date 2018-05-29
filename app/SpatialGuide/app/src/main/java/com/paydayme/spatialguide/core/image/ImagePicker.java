@@ -32,7 +32,7 @@ public class ImagePicker {
 
     private static final int DEFAULT_MIN_WIDTH_QUALITY = 200;        // min pixels
     private static final String TAG = "ImagePicker";
-    private static final String TEMP_IMAGE_NAME = "tempImage";
+    private static final String TEMP_IMAGE_NAME = "tempImage.jpg";
 
     public static int minWidthQuality = DEFAULT_MIN_WIDTH_QUALITY;
 
@@ -100,8 +100,7 @@ public class ImagePicker {
         return bm;
     }
 
-
-    private static File getTempFile(Context context) {
+    public static File getTempFile(Context context) {
         File imageFile = new File(context.getExternalCacheDir(), TEMP_IMAGE_NAME);
         imageFile.getParentFile().mkdirs();
         return imageFile;

@@ -41,6 +41,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,12 +57,17 @@ import com.paydayme.spatialguide.utils.NetworkUtil;
 import com.paydayme.spatialguide.utils.Utils;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -123,6 +129,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
     @BindView(R.id.changepassword) Button btn_changepassword;
     @BindView(R.id.changeemail) Button btn_changeemail;
     @BindView(R.id.changeimage) Button btn_changeimage;
+    @BindView(R.id.userimageLoading) ProgressBar userImageProgress;
 
     private TextView userNameMenu;
     private CircleImageView userImageMenu;
@@ -251,23 +258,21 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         }
 
         if(!userImage.isEmpty()) {
-            if(!userImage.isEmpty()) {
-                Picasso.get()
-                        .load(userImage)
-                        .placeholder(R.drawable.progress_animation)
-                        .error(R.mipmap.ic_launcher_round)
-                        .into(userImageMenu, new com.squareup.picasso.Callback() {
-                            @Override
-                            public void onSuccess() {
-                                userImageMenu.setVisibility(View.VISIBLE);
-                            }
+            Picasso.get()
+                    .load(userImage)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.mipmap.ic_launcher_round)
+                    .into(userImageMenu, new com.squareup.picasso.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            userImageMenu.setVisibility(View.VISIBLE);
+                        }
 
-                            @Override
-                            public void onError(Exception e) {
-                                menuErrorLayout.setVisibility(View.VISIBLE);
-                            }
-                        });
-            }
+                        @Override
+                        public void onError(Exception e) {
+                            menuErrorLayout.setVisibility(View.VISIBLE);
+                        }
+                    });
 
             Picasso.get()
                     .load(userImage)
@@ -603,11 +608,42 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case PICK_IMAGE_ID:
-                Bitmap bitmap = ImagePicker.getImageFromResult(this, resultCode, data);
+                final Bitmap bitmap = ImagePicker.getImageFromResult(this, resultCode, data);
                 if(bitmap != null) {
-                    // todo send image to API, update user image on drawer
-                    userimage.setImageBitmap(bitmap);
-                    userImageMenu.setImageBitmap(bitmap);
+                    try {
+                        File file = ImagePicker.getTempFile(this);
+                        RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"),
+                                file);
+                        MultipartBody.Part body = MultipartBody.Part.createFormData("Image", file.getName(), requestFile);
+                        userImageProgress.setVisibility(View.VISIBLE);
+
+                        Call<ResponseBody> call = sgApiClient.changeUserImage(authenticationHeader, body);
+                        call.enqueue(new Callback<ResponseBody>() {
+                            @Override
+                            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                if(response.isSuccessful()) {
+                                    userimage.setImageBitmap(bitmap);
+                                    userImageMenu.setVisibility(View.VISIBLE);
+                                    userImageMenu.setImageBitmap(bitmap);
+                                } else {
+                                    try {
+                                        Log.e(TAG, "onActivityResult - onResponse: some error occurred " + response.errorBody().string());
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                userImageProgress.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                Log.e(TAG, "onActivityResult - onFailure: " + t.getMessage());
+                                userImageProgress.setVisibility(View.GONE);
+                            }
+                        });
+                    } catch (Exception e) {
+                        Log.e(TAG, "onActivityResult: " + e.getMessage());
+                    }
                 }
                 break;
             default:

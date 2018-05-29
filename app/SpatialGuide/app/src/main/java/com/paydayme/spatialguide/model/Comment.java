@@ -13,7 +13,10 @@ public class Comment {
     private int pointID;
 
     @SerializedName("User")
-    private int userID;
+    private String username;
+
+    @SerializedName("Image")
+    private String userimage;
 
     @SerializedName("Comment")
     private String comment;

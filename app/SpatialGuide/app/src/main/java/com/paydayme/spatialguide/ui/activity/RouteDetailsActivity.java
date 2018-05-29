@@ -492,7 +492,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
 
     private void onDownloadRoute() {
         routeOnStorage = false;
-        progressDialog = new ProgressDialog(RouteDetailsActivity.this, R.style.CustomDialogTheme);
+        progressDialog = new ProgressDialog(this, R.style.CustomDialogTheme);
         progressDialog.setIndeterminate(true);
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);

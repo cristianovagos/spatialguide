@@ -14,17 +14,33 @@
         android:layout_height="wrap_content"
         android:background="@drawable/splash_layer">
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/userimage"
-            android:layout_width="140dp"
-            android:layout_height="140dp"
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="20dp"
-            android:elevation="5dp"
-            app:civ_border_width="1dp"
-            app:civ_border_color="#FF000000"
-            android:src="@mipmap/ic_launcher_round"
-            tools:targetApi="lollipop" />
+            android:layout_marginTop="20dp">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/userimage"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_gravity="center"
+                app:civ_border_width="1dp"
+                app:civ_border_color="#FF000000"
+                android:src="@mipmap/ic_launcher_round"
+                tools:targetApi="lollipop"
+                android:layout_centerHorizontal="true"/>
+
+            <ProgressBar
+                android:id="@+id/userimageLoading"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:indeterminateTint="@color/white"
+                android:background="@drawable/loading_circle"
+                android:layout_centerHorizontal="true"
+                android:visibility="gone"/>
+
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/username_first_last"
@@ -94,41 +110,6 @@
             </LinearLayout>
 
         </LinearLayout>
-
-        <!--<LinearLayout-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_marginBottom="10dp">-->
-
-            <!--<ImageView-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="25dp"-->
-                <!--android:src="@drawable/ic_calendar"-->
-                <!--android:tint="@color/monsoon"/>-->
-
-            <!--<LinearLayout-->
-                <!--android:orientation="vertical"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_marginLeft="5dp">-->
-
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:text="Member since"-->
-                    <!--android:textColor="@color/monsoon"-->
-                    <!--android:textStyle="bold"/>-->
-
-                <!--<TextView-->
-                    <!--android:id="@+id/datemember"-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_marginTop="-4dp"-->
-                    <!--android:textColor="@color/monsoon" />-->
-
-            <!--</LinearLayout>-->
-
-        <!--</LinearLayout>-->
 
         <LinearLayout
             android:layout_width="match_parent"
