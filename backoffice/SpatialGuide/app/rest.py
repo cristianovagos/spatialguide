@@ -397,7 +397,6 @@ class addPoint(APIView):
 def test_imageType(image_type):
     return image_type == 'png' or image_type == 'jpg' or image_type == 'jpeg'
 
-
 def request_filesaver(data):
     path = default_storage.save(str(data), ContentFile(data.read()))
     tmp_file_path = os.path.join(settings.MEDIA_ROOT, path)
@@ -715,6 +714,35 @@ class ChangeEmail(APIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_304_NOT_MODIFIED)
+
+# changeimage/
+class ChangeUserImage(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        files = request.FILES
+        data = request.data
+
+        user = User.objects.filter(username=str(request.user)).first()
+
+        if user:
+            image_name = str(request.FILES['Image']).split('.')
+            image_name_type = image_name[len(image_name) - 1]
+
+            image_name_type = test_imageType(image_name_type)
+
+            if image_name_type:
+                user_att = User_Attributes.objects.get(User_id=user)
+
+                if user_att:
+                    user_att.Image =  DRIVE_BASE_URL+request_filesaver(files['Image'])
+                    user_att.save()
+
+                    return Response(status=status.HTTP_200_OK)
+            else:
+                return Response({'Image': "Image Format is not Valid."}, status = status.HTTP_400_BAD_REQUEST)
+
+        return Response({'User': "User Doesn't Exist."}, status=status.HTTP_400_BAD_REQUEST)
 
 # recoverpass/
 class RecoverPassword(APIView):
