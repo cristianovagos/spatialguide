@@ -29,6 +29,7 @@ public class SplashActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
         spEditor.remove(Constant.SHARED_PREFERENCES_LAST_ROUTE);
+        spEditor.remove(Constant.SHARED_PREFERENCES_RESET_ROUTE);
         spEditor.apply();
 
         if(Utils.isServicesOK(this, TAG)) {
