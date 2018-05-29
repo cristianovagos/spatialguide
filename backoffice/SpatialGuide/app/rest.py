@@ -832,12 +832,11 @@ class UserCommentsView(APIView):
                     tmp = dict(data)
 
                     user = User.objects.filter(pk=tmp['User']).first()
-                    user_att = User_Attributes.objects.get(pk=user.id)
+                    user_att = User_Attributes.objects.filter(User_id=user).first()
 
                     tmp['User'] = user.username
                     tmp['Image'] = user_att.Image
                     response.append(tmp)
-
 
                 return Response(response)
 
