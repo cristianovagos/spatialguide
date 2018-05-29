@@ -41,6 +41,7 @@ import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.ui.adapter.HistoryFavoritesAdapter;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 import com.paydayme.spatialguide.utils.NetworkUtil;
+import com.paydayme.spatialguide.utils.Utils;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -202,7 +203,17 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
                     .load(userImage)
                     .placeholder(R.drawable.progress_animation)
                     .error(R.mipmap.ic_launcher_round)
-                    .into(userImageMenu);
+                    .into(userImageMenu, new com.squareup.picasso.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            userImageMenu.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            menuErrorLayout.setVisibility(View.VISIBLE);
+                        }
+                    });
         }
     }
 
@@ -369,17 +380,19 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if(response.isSuccessful()) {
-                    spEditor.putString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
-                    spEditor.apply();
-                    startActivity(new Intent(FavoritesActivity.this, LoginActivity.class));
-                    finish();
-                }
+                Utils.deleteAllSharedPreferences(FavoritesActivity.this);
+                startActivity(new Intent(FavoritesActivity.this, LoginActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                finish();
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e(TAG, "onFailure: failed to logout" + t.getMessage());
+                Utils.deleteAllSharedPreferences(FavoritesActivity.this);
+                startActivity(new Intent(FavoritesActivity.this, LoginActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                finish();
             }
         });
     }

@@ -53,6 +53,7 @@ import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 import com.paydayme.spatialguide.utils.NetworkUtil;
+import com.paydayme.spatialguide.utils.Utils;
 import com.squareup.picasso.Picasso;
 
 import java.util.Collections;
@@ -235,7 +236,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
     private void getUserInfoSharedPreferences() {
         String userNames = sharedPreferences.getString(SHARED_PREFERENCES_USER_NAMES, "");
         String userEmail = sharedPreferences.getString(SHARED_PREFERENCES_USER_EMAIL, "");
-        String userImage = sharedPreferences.getString(SHARED_PREFERENCES_USER_IMAGE, "");
+        final String userImage = sharedPreferences.getString(SHARED_PREFERENCES_USER_IMAGE, "");
         String userName = sharedPreferences.getString(SHARED_PREFERENCES_USERNAME, "");
 
         if(userNames.isEmpty() || userEmail.isEmpty() || userName.isEmpty()) {
@@ -250,17 +251,38 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         }
 
         if(!userImage.isEmpty()) {
-            Picasso.get()
-                    .load(userImage)
-                    .placeholder(R.drawable.progress_animation)
-                    .error(R.mipmap.ic_launcher_round)
-                    .into(userImageMenu);
+            if(!userImage.isEmpty()) {
+                Picasso.get()
+                        .load(userImage)
+                        .placeholder(R.drawable.progress_animation)
+                        .error(R.mipmap.ic_launcher_round)
+                        .into(userImageMenu, new com.squareup.picasso.Callback() {
+                            @Override
+                            public void onSuccess() {
+                                userImageMenu.setVisibility(View.VISIBLE);
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                menuErrorLayout.setVisibility(View.VISIBLE);
+                            }
+                        });
+            }
 
             Picasso.get()
                     .load(userImage)
                     .placeholder(R.drawable.progress_animation)
                     .error(R.mipmap.ic_launcher_round)
-                    .into(userimage);
+                    .into(userimage, new com.squareup.picasso.Callback() {
+                        @Override
+                        public void onSuccess() {
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            userimage.setVisibility(View.GONE);
+                        }
+                    });
         }
     }
 
@@ -653,17 +675,19 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if(response.isSuccessful()) {
-                    spEditor.putString(Constant.SHARED_PREFERENCES_AUTH_KEY, "");
-                    spEditor.apply();
-                    startActivity(new Intent(UserPanelActivity.this, LoginActivity.class));
-                    finish();
-                }
+                Utils.deleteAllSharedPreferences(UserPanelActivity.this);
+                startActivity(new Intent(UserPanelActivity.this, LoginActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                finish();
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e(TAG, "onFailure: failed to logout" + t.getMessage());
+                Utils.deleteAllSharedPreferences(UserPanelActivity.this);
+                startActivity(new Intent(UserPanelActivity.this, LoginActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                finish();
             }
         });
     }

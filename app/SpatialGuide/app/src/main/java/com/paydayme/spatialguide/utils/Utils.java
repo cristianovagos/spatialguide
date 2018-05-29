@@ -3,6 +3,8 @@ package com.paydayme.spatialguide.utils;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
@@ -29,6 +31,18 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.paydayme.spatialguide.core.Constant.ERROR_DIALOG_REQUEST;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_AURALIZATION;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_DIRECTION_LINE_COLOR;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_EXTERNAL_IMU;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_HEATMAP;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_LOCATION_ACCURACY;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MAP_TYPE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MARKER_UNVISITED_COLOR;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_MARKER_VISITED_COLOR;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_TRAVEL_MODE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFS_TRIGGER_AREA_VALUE;
+import static com.paydayme.spatialguide.core.Constant.TRIGGER_AREA_DISTANCE;
 
 /**
  * Created by cvagos on 31-03-2018.
@@ -57,41 +71,6 @@ public final class Utils {
         return false;
     }
 
-    public static Call fetchJSONfromURL(String url, Callback callback) {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-        Call call = client.newCall(request);
-        call.enqueue(callback);
-        return call;
-    }
-
-    public static <T> Collection<List<T>> generatePermutationsNoRepetition(Set<T> availableNumbers) {
-        Collection<List<T>> permutations = new HashSet<>();
-
-        for (T number : availableNumbers) {
-            Set<T> numbers = new HashSet<>(availableNumbers);
-            numbers.remove(number);
-
-            if (!numbers.isEmpty()) {
-                Collection<List<T>> childPermutations = generatePermutationsNoRepetition(numbers);
-                for (List<T> childPermutation : childPermutations) {
-                    List<T> permutation = new ArrayList<>();
-                    permutation.add(number);
-                    permutation.addAll(childPermutation);
-                    permutations.add(permutation);
-                }
-            } else {
-                List<T> permutation = new ArrayList<>();
-                permutation.add(number);
-                permutations.add(permutation);
-            }
-        }
-
-        return permutations;
-    }
-
     public static float distance(double x1, double y1, double x2, double y2)
     {
         float dist;
@@ -99,16 +78,10 @@ public final class Utils {
         return dist;
     }
 
-    public static String generateDate(int date) {
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-        SimpleDateFormat finalDate = new SimpleDateFormat("dd-MM-yyyy");
-        Date d = null;
-        try {
-            d = df.parse(String.valueOf(date));
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return finalDate.format(d);
+    public static void deleteAllSharedPreferences(Context context) {
+        Log.d(TAG, "deleteAllSharedPreferences: delete all sharedpreferences");
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor spEditor = sharedPreferences.edit();
+        spEditor.clear().apply();
     }
 }

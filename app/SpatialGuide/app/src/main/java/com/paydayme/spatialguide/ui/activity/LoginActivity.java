@@ -243,6 +243,8 @@ public class LoginActivity extends AppCompatActivity {
                     spEditor.putString(Constant.SHARED_PREFERENCES_AUTH_KEY, Credentials.basic(emailUsername, password));
                     spEditor.apply();
 
+                    Log.d(TAG, "onResponse: CREDENTIALS: " + Credentials.basic(emailUsername, password));
+
                     // delay login to 1 second just to present dialog
                     new android.os.Handler().postDelayed(
                             new Runnable() {

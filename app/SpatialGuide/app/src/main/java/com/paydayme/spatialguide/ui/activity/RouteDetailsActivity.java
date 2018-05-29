@@ -261,14 +261,14 @@ public class RouteDetailsActivity extends AppCompatActivity {
                         alertDialog = new AlertDialog.Builder(RouteDetailsActivity.this, R.style.CustomDialogTheme)
                                 .setTitle("Reset this Route")
                                 .setMessage("Looks like you've already visited some points of this route. You want to start it all again or continue travelling?")
-                                .setPositiveButton(getString(android.R.string.yes), new DialogInterface.OnClickListener() {
+                                .setPositiveButton("Continue", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         // continue, normal behavior
                                         onNavigateRoute(false);
                                     }
                                 })
-                                .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
+                                .setNegativeButton("Reset Route", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         onNavigateRoute(true);
