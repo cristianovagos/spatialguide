@@ -87,6 +87,7 @@ public final class Constant {
     public static final String SHARED_PREFERENCES_LOGIN_USERNAME = "com.paydayme.spatialguide.shared.login-username";
     public static final String SHARED_PREFERENCES_PASSWORD = "com.paydayme.spatialguide.shared.login-password";
     public static final String SHARED_PREFERENCES_LAST_ROUTE = "com.paydayme.spatialguide.shared.last_route";
+    public static final String SHARED_PREFERENCES_RESET_ROUTE = "com.paydayme.spatialguide.shared.reset_route";
     public static final String SHARED_PREFERENCES_USER_NAMES = "com.paydayme.spatialguide.shared.user_names";
     public static final String SHARED_PREFERENCES_USER_IMAGE = "com.paydayme.spatialguide.shared.user_image";
     public static final String SHARED_PREFERENCES_USER_EMAIL = "com.paydayme.spatialguide.shared.user_email";

@@ -70,6 +70,7 @@ import static com.paydayme.spatialguide.core.Constant.BROADCAST_NO_POINTS;
 import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 import static com.paydayme.spatialguide.core.Constant.ROUTE_STORAGE_SEPARATOR;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_RESET_ROUTE;
 
 /**
  * Created by cvagos on 22-03-2018.
@@ -471,9 +472,11 @@ public class RouteDetailsActivity extends AppCompatActivity {
                 .putCustomAttribute("Route", route.getRouteName()));
 
         spEditor.putInt(SHARED_PREFERENCES_LAST_ROUTE, routeSelected);
+        spEditor.putBoolean(SHARED_PREFERENCES_RESET_ROUTE, reset);
         spEditor.apply();
 
         Intent intent = new Intent(RouteDetailsActivity.this, MapActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         Bundle bundle = new Bundle();
 
         if(reset)

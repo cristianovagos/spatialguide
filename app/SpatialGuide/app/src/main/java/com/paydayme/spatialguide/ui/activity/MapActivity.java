@@ -193,6 +193,7 @@ public class MapActivity extends AppCompatActivity implements
     private final static String KEY_LOCATION = "location";
     private final static String KEY_LAST_UPDATED_TIME_STRING = "last-updated-time-string";
     private final static String KEY_ROUTE = "route";
+    private final static String KEY_RESET_ROUTE = "reset-route";
 
     // Provides access to the Fused Location Provider API.
     private FusedLocationProviderClient mFusedLocationClient;
@@ -913,6 +914,10 @@ public class MapActivity extends AppCompatActivity implements
             // Update the value of mRouteSelected from the Bundle and update the UI.
             if (savedInstanceState.keySet().contains(KEY_ROUTE)) {
                 mRouteSelected = savedInstanceState.getInt(KEY_ROUTE);
+            }
+
+            if(savedInstanceState.keySet().contains(KEY_RESET_ROUTE)) {
+                resetVisitedPoints = savedInstanceState.getBoolean(KEY_RESET_ROUTE);
             }
 
             updateUI();
@@ -1959,6 +1964,7 @@ public class MapActivity extends AppCompatActivity implements
         savedInstanceState.putParcelable(KEY_LOCATION, mCurrentLocation);
         savedInstanceState.putString(KEY_LAST_UPDATED_TIME_STRING, mLastUpdateTime);
         savedInstanceState.putInt(KEY_ROUTE, mRouteSelected);
+        savedInstanceState.putBoolean(KEY_RESET_ROUTE, resetVisitedPoints);
         super.onSaveInstanceState(savedInstanceState);
     }
 

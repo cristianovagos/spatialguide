@@ -60,6 +60,7 @@ import static com.paydayme.spatialguide.core.Constant.BASE_URL;
 import static com.paydayme.spatialguide.core.Constant.CONNECTIVITY_ACTION;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_AUTH_KEY;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_LAST_ROUTE;
+import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_RESET_ROUTE;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_EMAIL;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_IMAGE;
 import static com.paydayme.spatialguide.core.Constant.SHARED_PREFERENCES_USER_NAMES;
@@ -81,6 +82,7 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
 
     private String authenticationHeader;
     private int routeSelected;
+    private boolean resetVisitedPoints;
     private List<VisitedPoint> pointsVisited;
     private List<Object> pointsList = new ArrayList<>();
 
@@ -123,6 +125,7 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         spEditor = sharedPreferences.edit();
         routeSelected = sharedPreferences.getInt(SHARED_PREFERENCES_LAST_ROUTE, -1);
+        resetVisitedPoints = sharedPreferences.getBoolean(SHARED_PREFERENCES_RESET_ROUTE, false);
 
         swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.primary));
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -303,7 +306,9 @@ public class HistoryActivity extends AppCompatActivity implements NavigationView
                 break;
             case R.id.nav_map:
                 startActivity(new Intent(HistoryActivity.this, MapActivity.class)
-                        .putExtra("route", routeSelected));
+                        .putExtra("route", routeSelected)
+                        .putExtra("reset_points", resetVisitedPoints)
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
                 finish();
                 break;
             case R.id.nav_route:
