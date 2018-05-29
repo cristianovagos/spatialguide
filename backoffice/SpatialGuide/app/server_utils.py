@@ -62,7 +62,7 @@ def get_allPoints():
 
     point_list = []
     for point in tmp_list:
-        point_list.append(dict(point))
+        point_list.append(point)
 
     return point_list
 
