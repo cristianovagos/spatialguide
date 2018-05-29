@@ -688,7 +688,7 @@ class ChangePassword(APIView):
         else:
             return Response(status=status.HTTP_304_NOT_MODIFIED)
 
-# changepass/
+# changeemail/
 class ChangeEmail(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -817,11 +817,11 @@ class UserCommentsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, point_id=None):
-        if point_id:
-            comments = User_Comments.objects.filter(Point=point_id).all()
+        point = Point.objects.get(pk=point_id)
 
-            if not comments:
-                raise ValidationError('Point does not exist')
+        if point:
+            comments = User_Comments.objects.filter(Point__id=point_id).all()
+
 
             serializer = UserCommentsSerializer(comments, many=True)
             return Response(serializer.data)
