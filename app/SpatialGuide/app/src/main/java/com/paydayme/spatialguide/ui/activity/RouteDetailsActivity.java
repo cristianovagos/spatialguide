@@ -102,6 +102,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private boolean hasUpdate = false;
     private List<Point> visitedPointsList = new ArrayList<>();
     private boolean noPoints = false;
+    private boolean updatedRoute = false;
 
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.routeList) RecyclerView recyclerView;
@@ -380,7 +381,6 @@ public class RouteDetailsActivity extends AppCompatActivity {
             public void onResponse(Call<Route> call, Response<Route> response) {
                 if(response.isSuccessful() && response.body() != null) {
                     if(isOnStorage(routeSelected)) {
-                        Log.d(TAG, "getRouteAPI - onResponse: route on storage");
                         currentRoute = response.body();
                         routeOnStorage = true;
 
@@ -400,14 +400,12 @@ public class RouteDetailsActivity extends AppCompatActivity {
                         // se houver update na rota/pontos perguntar ao utilizador se quer atualizar
                         // caso contrario mantem-se os dados que tem ate agora pois estao no dispositivo
                         if(hasUpdate) {
-                            Log.d(TAG, "getRouteAPI - onResponse: route has update");
                             showUpdateRouteDialog();
                             return;
                         }
                         getUserInfo();
                         return;
                     }
-                    Log.d(TAG, "getRouteAPI - onResponse: route not on storage");
                     route = response.body();
                     getUserInfo();
                 } else {
@@ -521,7 +519,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive: intent " + intent.getAction());
+//            Log.d(TAG, "onReceive: intent " + intent.getAction());
             if(intent.getAction().equals(BROADCAST_MESSAGE_PROGRESS)){
                 Download download = intent.getParcelableExtra("download");
                 Integer index = intent.getIntExtra("index", -1);
@@ -552,9 +550,13 @@ public class RouteDetailsActivity extends AppCompatActivity {
     private void onDownloadCompleted() {
         progressDialog.dismiss();
         routeOnStorage = true;
-        fabButton.setImageDrawable(null);
-        fabText.setVisibility(View.VISIBLE);
         Toast.makeText(RouteDetailsActivity.this, R.string.download_toast_completed, Toast.LENGTH_SHORT).show();
+        if(updatedRoute) {
+            getUserInfo();
+        } else {
+            fabButton.setImageDrawable(null);
+            fabText.setVisibility(View.VISIBLE);
+        }
     }
 
     private void onDownloadFailed() {
@@ -609,7 +611,13 @@ public class RouteDetailsActivity extends AppCompatActivity {
                         route = currentRoute;
                         Answers.getInstance().logCustom(new CustomEvent("Route Updated")
                                 .putCustomAttribute("Route", route.getRouteName()));
+                        updatedRoute = true;
                         onDownloadRoute();
+                    }
+                })
+                .setNegativeButton(getString(android.R.string.no), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
                     }
                 })
                 .setCancelable(false)

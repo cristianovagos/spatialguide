@@ -71,15 +71,13 @@ public final class Utils {
         return false;
     }
 
-    public static float distance(double x1, double y1, double x2, double y2)
-    {
+    public static float distance(double x1, double y1, double x2, double y2) {
         float dist;
         dist = (float) Math.sqrt((x2-x1) * (x2-x1) + (y2-y1) * (y2-y1));
         return dist;
     }
 
     public static void deleteAllSharedPreferences(Context context) {
-        Log.d(TAG, "deleteAllSharedPreferences: delete all sharedpreferences");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor spEditor = sharedPreferences.edit();
         spEditor.clear().apply();

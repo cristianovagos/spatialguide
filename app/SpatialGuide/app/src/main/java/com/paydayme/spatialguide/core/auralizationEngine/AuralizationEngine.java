@@ -24,7 +24,7 @@ public class AuralizationEngine {
         //Initialize the Google VR Audio Engine
         gvrAudioEngine =
                 new GvrAudioEngine(context, GvrAudioEngine.RenderingMode.BINAURAL_HIGH_QUALITY);
-        Log.d(TAG, "AuralizationEngine: constructor - creating new thread");
+//        Log.d(TAG, "AuralizationEngine: constructor - creating new thread");
         this.soundplayThread = new Thread(
                 new Runnable() {
                     @Override
@@ -33,7 +33,8 @@ public class AuralizationEngine {
                         gvrAudioEngine.preloadSoundFile(soundFile);
                         sourceId = gvrAudioEngine.createSoundObject(soundFile);
                         gvrAudioEngine.setSoundObjectPosition(sourceId, 0,0,0);
-                        gvrAudioEngine.playSound(sourceId, false);
+                        gvrAudioEngine.playSound(sourceId, true);
+                        // todo change looping for true
                     }
                 });
     }
@@ -41,7 +42,7 @@ public class AuralizationEngine {
     public void play() {
         //load the sound file
         if(soundplayThread != null && !soundplayThread.isAlive()) {
-            Log.d(TAG, "AuralizationEngine: play - starting thread");
+//            Log.d(TAG, "AuralizationEngine: play - starting thread");
             try {
                 soundplayThread.start();
             } catch (Exception e) {

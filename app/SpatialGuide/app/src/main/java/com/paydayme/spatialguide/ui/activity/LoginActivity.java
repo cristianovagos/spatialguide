@@ -243,8 +243,6 @@ public class LoginActivity extends AppCompatActivity {
                     spEditor.putString(Constant.SHARED_PREFERENCES_AUTH_KEY, Credentials.basic(emailUsername, password));
                     spEditor.apply();
 
-                    Log.d(TAG, "onResponse: CREDENTIALS: " + Credentials.basic(emailUsername, password));
-
                     // delay login to 1 second just to present dialog
                     new android.os.Handler().postDelayed(
                             new Runnable() {
@@ -275,14 +273,14 @@ public class LoginActivity extends AppCompatActivity {
         if(requestCode == REQUEST_SIGNUP) {
             if(resultCode == RESULT_OK) {
                 // What to do when signup completed successfully
-                Log.d(TAG, "RESULT_OK from SignupActivity");
+//                Log.d(TAG, "RESULT_OK from SignupActivity");
                 Toast.makeText(this, getString(R.string.login_toast), Toast.LENGTH_SHORT).show();
             }
         }
         if(requestCode == REQUEST_FORGOT_PASSWORD) {
             if(resultCode == RESULT_OK) {
                 // What to do when password recovery completed successfully
-                Log.d(TAG, "RESULT_OK from ForgotPasswordActivity");
+//                Log.d(TAG, "RESULT_OK from ForgotPasswordActivity");
             }
         }
     }
@@ -346,7 +344,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = passwordText.getText().toString();
 
         // Check email
-        if(email.isEmpty()) {
+        if(email.isEmpty() || email.trim().isEmpty()) {
             emailText.setError(getString(R.string.error_username_email));
             valid = false;
         } else {
@@ -354,7 +352,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Check password
-        if(password.isEmpty() || password.length() < 4 || password.length() > 10) {
+        if(password.isEmpty() || password.trim().isEmpty() || password.length() < 4 || password.length() > 10) {
             passwordText.setError(getString(R.string.error_password));
             valid = false;
         } else {

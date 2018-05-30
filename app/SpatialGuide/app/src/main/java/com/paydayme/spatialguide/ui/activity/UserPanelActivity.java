@@ -25,10 +25,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.Gravity;
@@ -46,12 +43,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.paydayme.spatialguide.R;
-import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.core.image.ImagePicker;
-import com.paydayme.spatialguide.model.User;
-import com.paydayme.spatialguide.ui.adapter.PointAdapter;
-import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
 import com.paydayme.spatialguide.utils.NetworkUtil;
 import com.paydayme.spatialguide.utils.Utils;
@@ -59,7 +52,6 @@ import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 
 import butterknife.BindView;
@@ -384,7 +376,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                 }
 
                 // check password
-                if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
+                if (password.isEmpty() || password.trim().isEmpty() || password.length() < 4 || password.length() > 10) {
                     passwordEditText.setError(getString(R.string.error_password));
                     valid = false;
                 } else {
@@ -465,7 +457,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                 String reEnterNewPassword = reEnterNewPasswordEditText.getText().toString();
 
                 // check password
-                if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
+                if (password.isEmpty() || password.trim().isEmpty() || password.length() < 4 || password.length() > 10) {
                     passwordEditText.setError(getString(R.string.error_password));
                     valid = false;
                 } else {
@@ -473,7 +465,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                 }
 
                 // check password
-                if (newPassword.isEmpty() || newPassword.length() < 4 || newPassword.length() > 10) {
+                if (newPassword.isEmpty() || newPassword.trim().isEmpty() || newPassword.length() < 4 || newPassword.length() > 10) {
                     newPasswordEditText.setError(getString(R.string.error_password));
                     valid = false;
                 } else if(newPassword.equals(password)) {
@@ -484,7 +476,8 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                 }
 
                 // check password
-                if (reEnterNewPassword.isEmpty() || reEnterNewPassword.length() < 4 || reEnterNewPassword.length() > 10) {
+                if (reEnterNewPassword.isEmpty() || reEnterNewPassword.trim().isEmpty() || reEnterNewPassword.length() < 4 ||
+                        reEnterNewPassword.length() > 10) {
                     reEnterNewPasswordEditText.setError(getString(R.string.error_password));
                     valid = false;
                 } else if(reEnterNewPassword.equals(password)) {
@@ -528,8 +521,6 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if(response.isSuccessful()) {
-                    Log.d(TAG, "onChangeEmail - onResponse (changed email successfully): " + response.body().toString());
-
                     // If on sharedpreferences checkbox remember me is enabled
                     // if the stored username/email is the email, it should be updated
                     String checkbox = sharedPreferences.getString(SHARED_PREFERENCES_REMEMBER_ME, "False");
@@ -548,8 +539,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                     dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Email changed successfully", Toast.LENGTH_SHORT).show();
                 } else {
-                    Log.d(TAG, "onChangeEmail - onResponse: failed to send location to API");
-                    Log.d(TAG, "onChangeEmail - onResponse: " + response.errorBody().toString());
+                    Log.e(TAG, "onChangeEmail - onResponse: " + response.errorBody().toString());
                     dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Some error occurred while changing email", Toast.LENGTH_SHORT).show();
                 }
@@ -575,8 +565,6 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if(response.isSuccessful()) {
-                    Log.d(TAG, "onChangePassword - onResponse (changed password successfully): " + response.body().toString());
-
                     // If on sharedpreferences checkbox remember me is enabled
                     // the stored password should be updated
                     String checkbox = sharedPreferences.getString(SHARED_PREFERENCES_REMEMBER_ME, "False");
@@ -588,8 +576,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                     dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Password changed successfully", Toast.LENGTH_SHORT).show();
                 } else {
-                    Log.d(TAG, "onChangePassword - onResponse: failed to send location to API");
-                    Log.d(TAG, "onChangePassword - onResponse: " + response.errorBody().toString());
+                    Log.e(TAG, "onChangePassword - onResponse: " + response.errorBody().toString());
                     dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Some error occurred while changing password", Toast.LENGTH_SHORT).show();
                 }

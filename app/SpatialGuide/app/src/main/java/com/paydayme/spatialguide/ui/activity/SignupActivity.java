@@ -165,8 +165,6 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     public void signup() {
-        Log.d(TAG, "signup");
-
         if(!isSignupValid()) {
             onSignupFailure();
             return;
@@ -224,7 +222,6 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     public void onSignupSuccess() {
-        Log.d(TAG, "signup success, going back to LoginActivity...");
         signupButton.setEnabled(true);
         Answers.getInstance().logSignUp(new SignUpEvent()
                 .putMethod("SpatialGuide Signup")
@@ -265,7 +262,7 @@ public class SignupActivity extends AppCompatActivity {
         String reEnterPassword = reEnterPasswordText.getText().toString();
 
         // check username
-        if(username.isEmpty() || username.length() < 3) {
+        if(username.isEmpty() || username.trim().isEmpty() || username.length() < 3) {
             usernameText.setError(getString(R.string.error_name));
 
             // todo future work - check if username exists via API
@@ -276,7 +273,7 @@ public class SignupActivity extends AppCompatActivity {
         }
 
         // check firstname
-        if(firstname.isEmpty() || firstname.length() < 3) {
+        if(firstname.isEmpty() || firstname.trim().isEmpty() || firstname.length() < 3) {
             firstnameText.setError(getString(R.string.error_name));
             valid = false;
         } else {
@@ -284,7 +281,7 @@ public class SignupActivity extends AppCompatActivity {
         }
 
         // check lastname
-        if(lastname.isEmpty() || lastname.length() < 3) {
+        if(lastname.isEmpty() || lastname.trim().isEmpty() || lastname.length() < 3) {
             lastnameText.setError(getString(R.string.error_name));
             valid = false;
         } else {
@@ -308,7 +305,7 @@ public class SignupActivity extends AppCompatActivity {
         }
 
         // check password
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
+        if (password.isEmpty() || password.trim().isEmpty() || password.length() < 4 || password.length() > 10) {
             passwordText.setError(getString(R.string.error_password));
             valid = false;
         } else {
@@ -316,7 +313,8 @@ public class SignupActivity extends AppCompatActivity {
         }
 
         // check re-entered password
-        if (reEnterPassword.isEmpty() || reEnterPassword.length() < 4 || reEnterPassword.length() > 10 || !(reEnterPassword.equals(password))) {
+        if (reEnterPassword.isEmpty() || reEnterPassword.trim().isEmpty() || reEnterPassword.length() < 4 ||
+                reEnterPassword.length() > 10 || !(reEnterPassword.equals(password))) {
             reEnterPasswordText.setError(getString(R.string.error_password_match));
             valid = false;
         } else {

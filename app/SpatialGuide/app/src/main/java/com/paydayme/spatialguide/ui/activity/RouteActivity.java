@@ -289,7 +289,7 @@ public class RouteActivity extends AppCompatActivity implements NavigationView.O
 
             @Override
             public void onFailure(Call<List<Route>> call, Throwable t) {
-                Log.d(TAG, "getRoutes - onFailure: " + t.getMessage());
+                Log.e(TAG, "getRoutes - onFailure: " + t.getMessage());
                 onRouteFetchError();
             }
         });

@@ -113,7 +113,6 @@ import com.paydayme.spatialguide.model.Point;
 import com.paydayme.spatialguide.model.Route;
 import com.paydayme.spatialguide.model.User;
 import com.paydayme.spatialguide.model.VisitedPoint;
-import com.paydayme.spatialguide.ui.adapter.BTDeviceAdapter;
 import com.paydayme.spatialguide.ui.adapter.CommentAdapter;
 import com.paydayme.spatialguide.ui.adapter.PointAdapter;
 import com.paydayme.spatialguide.ui.helper.RouteOrderRecyclerHelper;
@@ -491,7 +490,9 @@ public class MapActivity extends AppCompatActivity implements
                     break;
                 case Constant.MESSAGE_READ:
                     if(!prefs_auralization) break;
-                    Log.d(TAG, "handleMessage: received message from bluetooth");
+                    if(isSensorListenerActivated) break;
+                    if(!prefs_external_imu) break;
+//                    Log.d(TAG, "handleMessage: received message from bluetooth");
                     
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
@@ -504,9 +505,9 @@ public class MapActivity extends AppCompatActivity implements
                     }
 
                     if(auralizationEngine != null && auralizationEngine.isPlaying()) {
-                        Log.d(TAG, "handleMessage: updating auralization engine");
+//                        Log.d(TAG, "handleMessage: updating auralization engine");
 
-                        Log.d(TAG, "handleMessage: Rotations: " + rotation[0] + "Y: " + rotation[1] + "Z: " + rotation[2]);
+//                        Log.d(TAG, "handleMessage: Rotations: " + rotation[0] + "Y: " + rotation[1] + "Z: " + rotation[2]);
                         if(!auralizationEngine.update(lastLocation.getLongitude(),
                                 lastLocation.getLatitude(), mCurrentLocation.getLongitude(),
                                 mCurrentLocation.getLatitude(), rotation[0], rotation[1], rotation[2])) {
@@ -521,6 +522,7 @@ public class MapActivity extends AppCompatActivity implements
                     String connectedDeviceName = msg.getData().getString(Constant.DEVICE_NAME);
                     break;
                 case Constant.MESSAGE_TOAST:
+                    Log.d(TAG, "handleMessage: message TOAST: " + msg.getData().getString(Constant.TOAST));
                     Toast.makeText(MapActivity.this, msg.getData().getString(Constant.TOAST),
                                 Toast.LENGTH_SHORT).show();
                     break;
@@ -566,7 +568,7 @@ public class MapActivity extends AppCompatActivity implements
         prefs_trigger_area_value = sharedPreferences.getInt(SHARED_PREFS_TRIGGER_AREA_VALUE, TRIGGER_AREA_DISTANCE);
         prefs_heatmap = sharedPreferences.getBoolean(SHARED_PREFS_HEATMAP, false);
         prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
-        prefs_map_type = sharedPreferences.getString(SHARED_PREFS_MAP_TYPE, "1");
+        prefs_map_type = sharedPreferences.getString(SHARED_PREFS_MAP_TYPE, "4");
         prefs_location_accuracy = sharedPreferences.getString(SHARED_PREFS_LOCATION_ACCURACY, "1");
         prefs_travelmode = sharedPreferences.getString(SHARED_PREFS_TRAVEL_MODE, "1");
         prefs_unvisited_marker_color = sharedPreferences.getString(SHARED_PREFS_MARKER_UNVISITED_COLOR, "1");
@@ -851,7 +853,7 @@ public class MapActivity extends AppCompatActivity implements
                         showInfoDialog(false, markerPoint);
                     }
                 } catch (ClassCastException e) {
-                    Log.d(TAG, "onMarkerClick: " + e.getMessage());
+                    Log.e(TAG, "onMarkerClick: " + e.getMessage());
                 }
 
                 try {
@@ -860,7 +862,7 @@ public class MapActivity extends AppCompatActivity implements
                         showSuggestionDialog(markerLatLng);
                     }
                 } catch (ClassCastException e) {
-                    Log.d(TAG, "onMarkerClick: " + e.getMessage());
+                    Log.e(TAG, "onMarkerClick: " + e.getMessage());
                 }
 
                 return false;
@@ -890,9 +892,9 @@ public class MapActivity extends AppCompatActivity implements
         try {
             return (Route) InternalStorage.readObject(this, Constant.ROUTE_STORAGE_SEPARATOR + mRouteSelected);
         } catch (IOException e) {
-            Log.d(TAG, "IOException: " + e.getMessage());
+            Log.e(TAG, "IOException: " + e.getMessage());
         } catch (ClassNotFoundException e) {
-            Log.d(TAG, "ClassNotFoundException: " + e.getMessage());
+            Log.e(TAG, "ClassNotFoundException: " + e.getMessage());
         }
         return null;
     }
@@ -1124,7 +1126,7 @@ public class MapActivity extends AppCompatActivity implements
             }
 
             mMap.clear();
-            addPolyline(directionsResult, mMap);
+            addPolyline(directionsResult);
             addMarkers();
         }
 
@@ -1175,13 +1177,13 @@ public class MapActivity extends AppCompatActivity implements
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if(response.isSuccessful()) {
-                    Log.d(TAG, "onPointVisited - onResponse: point marked as visited in API");
+//                    Log.d(TAG, "onPointVisited - onResponse: point marked as visited in API");
                     if(mMap != null) {
                         mMap.clear();
                         addMarkers();
                     }
                     if(directionsResult != null && mMap != null)
-                        addPolyline(directionsResult, mMap);
+                        addPolyline(directionsResult);
                 } else {
                     Log.e(TAG, "onPointVisited - onResponse: error while marking point as visited: " + response.errorBody().toString());
                 }
@@ -1218,14 +1220,14 @@ public class MapActivity extends AppCompatActivity implements
                 request.optimizeWaypoints(true);
 
             switch (Integer.valueOf(prefs_travelmode)) {
-                case 1:
-                    request.mode(TravelMode.WALKING);
-                    break;
                 case 2:
                     request.mode(TravelMode.DRIVING);
                     break;
                 case 3:
                     request.mode(TravelMode.BICYCLING);
+                    break;
+                default:
+                    request.mode(TravelMode.WALKING);
                     break;
             }
 
@@ -1236,7 +1238,7 @@ public class MapActivity extends AppCompatActivity implements
         }
     }
 
-    private void addPolyline(DirectionsResult results, GoogleMap mMap) {
+    private void addPolyline(DirectionsResult results) {
         try {
             List<LatLng> decodedPath = PolyUtil.decode(results.routes[0].overviewPolyline.getEncodedPath());
             PolylineOptions options = new PolylineOptions().addAll(decodedPath);
@@ -1292,6 +1294,7 @@ public class MapActivity extends AppCompatActivity implements
                 if(auralizationEngine != null) {
                     auralizationEngine.stopAndUnload();
                     auralizationEngine.play();
+                    pauseSound.setText(getString(R.string.pause_sound));
                 }
             }
         });
@@ -1343,6 +1346,7 @@ public class MapActivity extends AppCompatActivity implements
 
         LayoutInflater inflater = LayoutInflater.from(this);
         View view = inflater.inflate(R.layout.dialog_suggestion, null);
+        final TextInputLayout tilSuggestion = (TextInputLayout) view.findViewById(R.id.tilSuggestion);
         final AppCompatEditText suggestionText = (AppCompatEditText) view.findViewById(R.id.input_suggestion);
         AppCompatButton confirmButton = (AppCompatButton) view.findViewById(R.id.confirmSuggestionBtn);
         ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
@@ -1358,11 +1362,13 @@ public class MapActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 String suggestion = suggestionText.getText().toString();
-                if(suggestion.isEmpty()) {
-                    Toast.makeText(MapActivity.this, "Please enter a suggestion to proceed.", Toast.LENGTH_LONG).show();
+                if(suggestion.isEmpty() || suggestion.trim().isEmpty()) {
+                    //todo
+                    tilSuggestion.setError("Please enter a suggestion to proceed.");
                     return;
                 }
 
+                tilSuggestion.setError(null);
                 HashMap tmpMap = new HashMap(3);
                 tmpMap.put("latitude", latLng.latitude);
                 tmpMap.put("longitude", latLng.longitude);
@@ -1610,7 +1616,6 @@ public class MapActivity extends AppCompatActivity implements
                     if(response.body().isEmpty()) {
                         noCommentsText.setVisibility(View.VISIBLE);
                     } else {
-                        Log.d(TAG, "onResponse: comments: " + response.body());
                         CommentAdapter commentAdapter = new CommentAdapter(response.body());
                         recyclerView.setAdapter(commentAdapter);
                         recyclerView.setLayoutManager(new LinearLayoutManager(MapActivity.this));
@@ -1644,42 +1649,42 @@ public class MapActivity extends AppCompatActivity implements
         sendCommentBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(commentEdit.getText().toString().isEmpty()){
+                if(commentEdit.getText().toString().isEmpty() || commentEdit.getText().toString().trim().isEmpty()){
                     tilComment.setError("Please insert a comment.");
                     return;
-                } else {
-                    sendCommentBtn.setEnabled(false);
-                    tilComment.setError(null);
+                }
 
-                    HashMap<String, Object> tmpMap = new HashMap(2);
-                    tmpMap.put("point", point.getPointID());
-                    tmpMap.put("comment", commentEdit.getText().toString());
+                sendCommentBtn.setEnabled(false);
+                tilComment.setError(null);
 
-                    Call<ResponseBody> call = sgApiClient.sendComment(authenticationHeader, tmpMap);
-                    call.enqueue(new Callback<ResponseBody>() {
-                        @Override
-                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                            if(response.isSuccessful()) {
-                                Answers.getInstance().logCustom(new CustomEvent("Comment on Point")
-                                        .putCustomAttribute("Point", point.getPointName()));
-                                Toast.makeText(MapActivity.this, "Comment sent successfully", Toast.LENGTH_SHORT).show();
-                                sendCommentBtn.setEnabled(true);
-                                dialog.dismiss();
-                            } else {
-                                Log.e(TAG, "comment onResponse: something failed");
-                                Toast.makeText(MapActivity.this, "Failed to send comment", Toast.LENGTH_LONG).show();
-                                sendCommentBtn.setEnabled(true);
-                            }
-                        }
+                HashMap<String, Object> tmpMap = new HashMap(2);
+                tmpMap.put("point", point.getPointID());
+                tmpMap.put("comment", commentEdit.getText().toString());
 
-                        @Override
-                        public void onFailure(Call<ResponseBody> call, Throwable t) {
-                            Log.e(TAG, "comment onFailure: " + t.getMessage());
+                Call<ResponseBody> call = sgApiClient.sendComment(authenticationHeader, tmpMap);
+                call.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if(response.isSuccessful()) {
+                            Answers.getInstance().logCustom(new CustomEvent("Comment on Point")
+                                    .putCustomAttribute("Point", point.getPointName()));
+                            Toast.makeText(MapActivity.this, "Comment sent successfully", Toast.LENGTH_SHORT).show();
+                            sendCommentBtn.setEnabled(true);
+                            dialog.dismiss();
+                        } else {
+                            Log.e(TAG, "comment onResponse: something failed");
                             Toast.makeText(MapActivity.this, "Failed to send comment", Toast.LENGTH_LONG).show();
                             sendCommentBtn.setEnabled(true);
                         }
-                    });
-                }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e(TAG, "comment onFailure: " + t.getMessage());
+                        Toast.makeText(MapActivity.this, "Failed to send comment", Toast.LENGTH_LONG).show();
+                        sendCommentBtn.setEnabled(true);
+                    }
+                });
             }
         });
 
@@ -1799,53 +1804,6 @@ public class MapActivity extends AppCompatActivity implements
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
     }
 
-    private void showBluetoothDevicesDialog() {
-        // Check if the dialog exists and if its showing
-        if(dialog != null && dialog.isShowing()) return;
-
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View view = inflater.inflate(R.layout.dialog_bt_connection, null);
-
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.btRecyclerView);
-
-        final BTDeviceAdapter btDeviceAdapter = new BTDeviceAdapter(this, bluetoothAdapter.getBondedDevices(),
-                new BTDeviceAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BluetoothDevice item) {
-                bluetoothAdapter.cancelDiscovery();
-                connectDevice(item.getAddress(), false);
-            }
-        });
-
-        recyclerView.setAdapter(btDeviceAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        //Ask the user if they want to quit
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme)
-                .setTitle("Select Bluetooth Device")
-                .setView(view)
-                .setCancelable(true);
-
-        // Creating dialog and adjusting size
-        dialog = builder.create();
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.show();
-
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(dialog.getWindow().getAttributes());
-        if(lp.width > 1000)
-            lp.width = 1000;
-        else
-            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        if(lp.height > 1100)
-            lp.height = 1100;
-        else
-            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        lp.gravity = Gravity.CENTER;
-        dialog.getWindow().setAttributes(lp);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-    }
-
     private Pair<Location, Point> getNearestPointLocation(Location currentLocation) {
         float minDistance = Float.MAX_VALUE;
         Location minLocation = new Location("");
@@ -1927,6 +1885,7 @@ public class MapActivity extends AppCompatActivity implements
 
         if(bluetoothService != null) {
             if(bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
+                Log.d(TAG, "onResume: starting bluetooth service");
                 bluetoothService.start();
             }
         }
@@ -2190,12 +2149,10 @@ public class MapActivity extends AppCompatActivity implements
                     prefs_trigger_area_value = sharedPreferences.getInt(SHARED_PREFS_TRIGGER_AREA_VALUE, TRIGGER_AREA_DISTANCE);
                     break;
                 case SHARED_PREFS_AURALIZATION:
-                    Log.d(TAG, "onSharedPreferenceChanged: toggled auralization option");
                     prefs_auralization = sharedPreferences.getBoolean(SHARED_PREFS_AURALIZATION, true);
                     onAuralizationSettingsChange();
                     break;
                 case SHARED_PREFS_EXTERNAL_IMU:
-                    Log.d(TAG, "onSharedPreferenceChanged: toggled external IMU option");
                     prefs_external_imu = sharedPreferences.getBoolean(SHARED_PREFS_EXTERNAL_IMU, true);
                     onExternalIMUSettingsChange();
                     break;
@@ -2240,7 +2197,7 @@ public class MapActivity extends AppCompatActivity implements
                 isSensorListenerActivated = false;
                 sensorManager.unregisterListener(MapActivity.this);
             }
-            if(bluetoothService != null && bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
+            if(bluetoothService != null) {
                 Log.d(TAG, "onExternalIMUSettingsChange: starting bluetooth service");
                 bluetoothService.start();
             }
@@ -2295,6 +2252,7 @@ public class MapActivity extends AppCompatActivity implements
                     sensorManager.unregisterListener(MapActivity.this);
                 }
                 if(bluetoothService != null && bluetoothService.getState() == SGBluetoothService.STATE_NONE) {
+                    Log.e(TAG, "onAuralizationSettingsChange: starting bluetooth service");
                     bluetoothService.start();
                 }
             }
@@ -2307,9 +2265,9 @@ public class MapActivity extends AppCompatActivity implements
         rotation[0] = Float.valueOf(tmp[0]);
         rotation[1] = Float.valueOf(tmp[1]);
         rotation[2] = Float.valueOf(tmp[2]);
-        Log.d(TAG, "convertData: float converted 0: " + Math.toDegrees(rotation[0]));
-        Log.d(TAG, "convertData: float converted 1: " + Math.toDegrees(rotation[1]));
-        Log.d(TAG, "convertData: float converted 2: " + Math.toDegrees(rotation[2]));
+//        Log.d(TAG, "convertData: float converted 0: " + Math.toDegrees(rotation[0]));
+//        Log.d(TAG, "convertData: float converted 1: " + Math.toDegrees(rotation[1]));
+//        Log.d(TAG, "convertData: float converted 2: " + Math.toDegrees(rotation[2]));
     }
 
     @Override
@@ -2326,7 +2284,7 @@ public class MapActivity extends AppCompatActivity implements
         SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
         SensorManager.getOrientation(rotationMatrix, rotation);
 
-//        Log.d(TAG, "onSensorChanged: getting values");
+        Log.d(TAG, "onSensorChanged: getting values");
 
         if(auralizationEngine != null && auralizationEngine.isPlaying() && !auralizationEngine.update(lastLocation.getLongitude(),
                     lastLocation.getLatitude(), mCurrentLocation.getLongitude(),
@@ -2397,9 +2355,7 @@ public class MapActivity extends AppCompatActivity implements
     private BroadcastReceiver headsetPlugReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "headsetPlugReceiver onReceive: ");
             int headsetConnectedInt = intent.getIntExtra("state", 1);
-            Log.d(TAG, "headsetPlugReceiver onReceive - headsetConnectedInt: " + headsetConnectedInt);
             if(headsetConnectedInt == 0 && prefs_auralization){
                 showDialogConnectHeadset();
             }

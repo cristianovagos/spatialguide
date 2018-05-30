@@ -181,7 +181,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     }
 
     public void onRecoverPassswordSuccess() {
-        Log.d(TAG, "recovery success, going back to LoginActivity...");
+//        Log.d(TAG, "recovery success, going back to LoginActivity...");
         Toast.makeText(ForgotPasswordActivity.this, "Password recovered successfully!", Toast.LENGTH_SHORT).show();
         recoverPasswordButton.setEnabled(true);
         loginLink.setEnabled(true);
