@@ -1,0 +1,65 @@
+{% extends "navbar.html" %}
+
+
+
+{% block content %}
+
+    <div class="container-fluid">
+        <!-- Breadcrumbs-->
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home' %}" >Dashboard</a>
+            </li>
+            <li class="breadcrumb-item active">{{ title }}s</li>
+        </ol>
+        <!-- Example DataTables Card-->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fa fa-table"></i> All {{ title }}s</div>
+            <div class="card-body">
+
+                {% if route_list|length > 0 %}
+                    <div>
+                        <a class="btn btn-primary" href="{% url add_btn %}" id="toggleNavPosition">Add {{ title }}</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+
+                            <thead style="background-color:#e9ecef">
+                            <tr>
+                                {% for key,value in route_list.0.items %}
+                                    <th>{{ key }}</th>
+                                {% endfor %}
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tfoot style="background-color:#e9ecef">
+                            <tr>
+                                {% for key,value in route_list.0.items %}
+                                    <th>{{ key }}</th>
+                                {% endfor %}
+                                <th></th>
+                            </tr>
+                            </tfoot>
+                            <tbody style="background-color:#ffffff">
+                            {% for route in route_list %}
+                                <tr>
+                                    {% for val in route.values %}
+                                        <td>
+                                            {{ val }}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                    </div>
+                {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
+

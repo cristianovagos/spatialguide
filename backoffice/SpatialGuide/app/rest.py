@@ -807,7 +807,7 @@ class UserSuggestionsAdminView(APIView):
             'route_list': user_suggestion
         }
 
-        return render(request, 'tables.html', tparams)
+        return render(request, 'suggestion.html', tparams)
 
 # comment/
 class UserCommentsView(APIView):
