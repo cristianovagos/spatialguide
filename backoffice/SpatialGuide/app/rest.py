@@ -579,9 +579,15 @@ class UserCreateView(CreateAPIView):
                 to_list = [user.email, settings.EMAIL_HOST_USER]
                 send_mail(subject, message, from_email, to_list)
 
-            return redirect('show_routes')
+                return redirect('show_routes')
+            else:
+                user = User.objects.filter(username=new_data['username']).first()
+                user_att = User_Attributes(User_id=user)
+                user_att.save()
+                return Response(serializer.errors, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # login/
 class UserLoginView(APIView):
