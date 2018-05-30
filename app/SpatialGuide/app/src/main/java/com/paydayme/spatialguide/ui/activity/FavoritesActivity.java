@@ -137,6 +137,8 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                if(favoritesList != null)
+                    favoritesList.clear();
                 getFavorites();
             }
         });
@@ -254,8 +256,9 @@ public class FavoritesActivity extends AppCompatActivity implements NavigationVi
                 @Override
                 public void onResponse(Call<Route> call, Response<Route> response) {
                     if(response.isSuccessful() && response.body() != null) {
-                        if(favoritesList != null && !favoritesList.contains(response.body()))
+                        if(favoritesList != null && !favoritesList.contains(response.body())) {
                             favoritesList.add(response.body());
+                        }
                         getPoints();
                     } else {
                         Log.e(TAG, "getRoutes - onResponse: some error occurred: " + response.errorBody().toString());

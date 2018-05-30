@@ -298,7 +298,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
 
         ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
-        AppCompatButton confirmChangeButton = (AppCompatButton) view.findViewById(R.id.confirmChangeEmailBtn);
+        final AppCompatButton confirmChangeButton = (AppCompatButton) view.findViewById(R.id.confirmChangeEmailBtn);
 
         TextInputLayout tilPassword = view.findViewById(R.id.tilPassword);
         TextInputLayout tilEmail = view.findViewById(R.id.tilEmail);
@@ -335,6 +335,8 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         confirmChangeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                confirmChangeButton.setEnabled(false);
+
                 boolean valid = true;
 
                 String password = passwordEditText.getText().toString();
@@ -385,6 +387,8 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
 
                 if(valid)
                     onChangeEmail(password, email, newEmail, reEnterNewEmail);
+                else
+                    confirmChangeButton.setEnabled(true);
             }
         });
 
@@ -415,7 +419,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                 .setCancelable(true);
 
         ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
-        AppCompatButton confirmChangeButton = (AppCompatButton) view.findViewById(R.id.confirmChangePasswordBtn);
+        final AppCompatButton confirmChangeButton = (AppCompatButton) view.findViewById(R.id.confirmChangePasswordBtn);
 
         Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
 
@@ -450,6 +454,7 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
         confirmChangeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                confirmChangeButton.setEnabled(false);
                 boolean valid = true;
 
                 String password = passwordEditText.getText().toString();
@@ -492,6 +497,8 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
 
                 if(valid)
                     onChangePassword(password, newPassword, reEnterNewPassword);
+                else
+                    confirmChangeButton.setEnabled(true);
             }
         });
 

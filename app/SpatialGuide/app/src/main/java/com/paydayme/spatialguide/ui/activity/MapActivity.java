@@ -1348,7 +1348,7 @@ public class MapActivity extends AppCompatActivity implements
         View view = inflater.inflate(R.layout.dialog_suggestion, null);
         final TextInputLayout tilSuggestion = (TextInputLayout) view.findViewById(R.id.tilSuggestion);
         final AppCompatEditText suggestionText = (AppCompatEditText) view.findViewById(R.id.input_suggestion);
-        AppCompatButton confirmButton = (AppCompatButton) view.findViewById(R.id.confirmSuggestionBtn);
+        final AppCompatButton confirmButton = (AppCompatButton) view.findViewById(R.id.confirmSuggestionBtn);
         ImageButton closeButton = (ImageButton) view.findViewById(R.id.closeDialogButton);
 
         closeButton.setOnClickListener(new View.OnClickListener() {
@@ -1368,6 +1368,7 @@ public class MapActivity extends AppCompatActivity implements
                     return;
                 }
 
+                confirmButton.setEnabled(false);
                 tilSuggestion.setError(null);
                 HashMap tmpMap = new HashMap(3);
                 tmpMap.put("latitude", latLng.latitude);
@@ -1381,12 +1382,20 @@ public class MapActivity extends AppCompatActivity implements
                         if(response.isSuccessful()) {
                             Toast.makeText(MapActivity.this, "Suggestion sent! Thank you!", Toast.LENGTH_LONG).show();
                             dialog.dismiss();
+                        } else {
+                            try {
+                                Log.e(TAG, "showSuggestionDialog confirmButton - onResponse: some error occurred:" + response.errorBody().string());
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
+                        confirmButton.setEnabled(true);
                     }
 
                     @Override
                     public void onFailure(Call<ResponseBody> call, Throwable t) {
                         Toast.makeText(MapActivity.this, "Failed to send suggestion. Want to try sending again?", Toast.LENGTH_LONG).show();
+                        confirmButton.setEnabled(true);
                     }
                 });
             }
@@ -1510,6 +1519,7 @@ public class MapActivity extends AppCompatActivity implements
                                 Log.e(TAG, "liked - onResponse: " + response.errorBody().toString());
                                 Toast.makeText(MapActivity.this, R.string.point_favourite_error, Toast.LENGTH_SHORT).show();
                             }
+                            likeButton.setLiked(true);
                             likeButton.setEnabled(true);
                         }
 
@@ -1540,6 +1550,7 @@ public class MapActivity extends AppCompatActivity implements
                                 Log.e(TAG, "unliked - onResponse: " + response.errorBody().toString());
                                 Toast.makeText(MapActivity.this, R.string.point_unfavourite_error, Toast.LENGTH_SHORT).show();
                             }
+                            likeButton.setLiked(false);
                             likeButton.setEnabled(true);
                         }
 
