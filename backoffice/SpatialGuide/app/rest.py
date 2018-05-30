@@ -794,6 +794,12 @@ class UserSuggestionView(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
+# {
+#     "latitude":"20",
+#     "longitude" : "20",
+#     "comment": "funciona caralho"
+# }
+
 class UserSuggestionsAdminView(APIView):
     permission_classes = [AllowAny]
 
@@ -802,12 +808,14 @@ class UserSuggestionsAdminView(APIView):
             return redirect('login')
         user_suggestion = get_Suggestions()
 
+        print(user_suggestion)
+
         tparams = {
             'title': 'User Suggestion',
             'route_list': user_suggestion
         }
 
-        return render(request, 'tables.html', tparams)
+        return render(request, 'suggestion.html', tparams)
 
 # comment/
 class UserCommentsView(APIView):
