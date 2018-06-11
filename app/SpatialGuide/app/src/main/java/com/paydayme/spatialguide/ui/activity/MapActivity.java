@@ -21,6 +21,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -492,7 +493,7 @@ public class MapActivity extends AppCompatActivity implements
                     if(!prefs_auralization) break;
                     if(isSensorListenerActivated) break;
                     if(!prefs_external_imu) break;
-//                    Log.d(TAG, "handleMessage: received message from bluetooth");
+                    Log.d(TAG, "handleMessage: received message from bluetooth");
                     
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
@@ -818,6 +819,22 @@ public class MapActivity extends AppCompatActivity implements
         } else {
             mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         }
+
+        // TODO remove this for non-demo
+        // ONLY FOR DEMO PURPOSES!!
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                if(!prefs_heatmap) return;
+
+                Toast.makeText(MapActivity.this, "Sending heatmap...", Toast.LENGTH_LONG).show();
+
+                Location location = new Location(LocationManager.GPS_PROVIDER);
+                location.setLatitude(latLng.latitude);
+                location.setLongitude(latLng.longitude);
+                sendLocationHeatmap(location);
+            }
+        });
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -1294,6 +1311,7 @@ public class MapActivity extends AppCompatActivity implements
                 if(auralizationEngine != null) {
                     auralizationEngine.stopAndUnload();
                     auralizationEngine.play();
+                    pauseSound.setCompoundDrawablesWithIntrinsicBounds(0,R.drawable.ic_pause_btn, 0,0);
                     pauseSound.setText(getString(R.string.pause_sound));
                 }
             }

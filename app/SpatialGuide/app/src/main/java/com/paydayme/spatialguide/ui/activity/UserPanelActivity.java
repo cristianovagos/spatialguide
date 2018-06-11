@@ -43,6 +43,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.paydayme.spatialguide.R;
+import com.paydayme.spatialguide.core.Constant;
 import com.paydayme.spatialguide.core.api.SGApiClient;
 import com.paydayme.spatialguide.core.image.ImagePicker;
 import com.paydayme.spatialguide.ui.preferences.SGPreferencesActivity;
@@ -57,6 +58,7 @@ import java.util.HashMap;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
+import okhttp3.Credentials;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -577,8 +579,11 @@ public class UserPanelActivity extends AppCompatActivity implements NavigationVi
                     String checkbox = sharedPreferences.getString(SHARED_PREFERENCES_REMEMBER_ME, "False");
                     if(checkbox.equals("True")) {
                         spEditor.putString(SHARED_PREFERENCES_PASSWORD, newPassword);
-                        spEditor.apply();
                     }
+                    String username = sharedPreferences.getString(SHARED_PREFERENCES_LOGIN_USERNAME, "");
+                    if(!username.isEmpty())
+                        spEditor.putString(SHARED_PREFERENCES_AUTH_KEY, Credentials.basic(username, newPassword));
+                    spEditor.apply();
 
                     dialog.dismiss();
                     Toast.makeText(UserPanelActivity.this, "Password changed successfully", Toast.LENGTH_SHORT).show();

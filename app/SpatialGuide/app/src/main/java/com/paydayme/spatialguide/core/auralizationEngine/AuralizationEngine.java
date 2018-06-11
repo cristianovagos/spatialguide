@@ -55,7 +55,7 @@ public class AuralizationEngine {
                                 gvrAudioEngine.preloadSoundFile(soundFile);
                                 sourceId = gvrAudioEngine.createSoundObject(soundFile);
                                 gvrAudioEngine.setSoundObjectPosition(sourceId, 0,0,0);
-                                gvrAudioEngine.playSound(sourceId, true);
+                                gvrAudioEngine.playSound(sourceId, false);
                             }
                         });
                 soundplayThread.start();

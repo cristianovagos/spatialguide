@@ -244,6 +244,7 @@ public class SignupActivity extends AppCompatActivity {
         Typeface tf = ResourcesCompat.getFont(getApplicationContext(), R.font.catamaran);
         textView.setTypeface(tf);
 
+        loginLink.setEnabled(true);
         signupButton.setEnabled(true);
         Answers.getInstance().logSignUp(new SignUpEvent()
                 .putMethod("SpatialGuide Signup")
