@@ -28,7 +28,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener, AdapterView.OnItemClickListener{
+public class MainActivity extends AppCompatActivity {
 
     private final BroadcastReceiver socketReceiver = new BroadcastReceiver() {
         @Override
@@ -191,6 +191,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         registerReceiver(socketReceiver,filtro2);
         IntentFilter filtro3 = new IntentFilter("CONNECTION LOST");
         registerReceiver(socketReceiver,filtro3);
+        
+        IntentFilter sensorFilter = new IntentFilter("imu-service");
+        registerReceiver(sensorReceiver, sensorFilter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startService(new Intent(this, IMUService.class));
     }
 
     @Override
@@ -201,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         unregisterReceiver(mReceiver3);
         unregisterReceiver(mBroadcastReceiver4);
         unregisterReceiver(socketReceiver);
+        unregisterReceiver(sensorReceiver);
     }
 
     private void sensorConfig()
@@ -209,10 +219,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         magneticSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         accel = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        mSensorManager.registerListener(MainActivity.this, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(MainActivity.this, accel, SensorManager.SENSOR_DELAY_NORMAL);
-        //Log.d(TAG, "onCreate: registered sensor listener");
 
         yawText = (TextView) findViewById(R.id.yaw);
         pitchText = (TextView) findViewById(R.id.pitch);
@@ -225,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         for (BluetoothDevice device : bluetoothAdapter.getBondedDevices()) {
-            if(device.getName().equals("SpatialG")) {
+            if(device.getName().equals("SpatialDemo")) {
                 mBluetoothDevice = device;
                 bluetoothConnectionService = new BluetoothConnectionService(MainActivity.this);
                 startConnection();
@@ -273,79 +279,56 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //cancel discover
-        bluetoothAdapter.cancelDiscovery();
-        //Log.d(TAG, "onItemClick: Clicked");
-        String dname = btDevice.get(position).getName();
-        //create the bond
-        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            //Log.d(TAG, "Trying to pair with " + dname);
-            btDevice.get(position).createBond();
-            mBluetoothDevice = btDevice.get(position);
-            bluetoothConnectionService = new BluetoothConnectionService(MainActivity.this);
-        }
-    }
-
     public void startBTConnection(BluetoothDevice device, UUID uuid)
     {
         //Log.d(TAG, "startConnection: starting connection");
         bluetoothConnectionService.startClient(device, uuid);
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    private BroadcastReceiver sensorReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //Log.d(TAG, "onReceive: receiving from IMU service");
+            
+            final float[] values = intent.getFloatArrayExtra("values");
+            if(intent.getFloatArrayExtra("accel-values") != null)
+                accelerometerReading = intent.getFloatArrayExtra("accel-values");
+            if(intent.getFloatArrayExtra("magnetic-values") != null)
+                magnetometerReading = intent.getFloatArrayExtra("magnetic-values");
 
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-
-        if(event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
-        {
-            magnetometerReading = event.values;
-            //Log.d(TAG, "Magnetic: X" + magnetometerReading[0] + " Y:" + magnetometerReading[1] + " Z:" + magnetometerReading[2]);
-        }
-
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
-        {
-            accelerometerReading = event.values;
-            //Log.d(TAG, "Accelarator: X" + accelerometerReading[0] + " Y:" + accelerometerReading[1] + " Z:" + accelerometerReading[2]);
-        }
-
-        // Rotation matrix based on current readings from accelerometer and magnetometer.
-        final float[] rotationMatrix = new float[9];
-        mSensorManager.getRotationMatrix(rotationMatrix, null,
-                accelerometerReading, magnetometerReading);
+            // Rotation matrix based on current readings from accelerometer and magnetometer.
+            final float[] rotationMatrix = new float[9];
+            mSensorManager.getRotationMatrix(rotationMatrix, null,
+                    accelerometerReading, magnetometerReading);
 
 // Express the updated rotation matrix as three orientation angles.
-        final float[] orientationAngles = new float[3];
-        mSensorManager.getOrientation(rotationMatrix, orientationAngles);
-        rotation = orientationAngles;
+            final float[] orientationAngles = new float[3];
+            mSensorManager.getOrientation(rotationMatrix, orientationAngles);
+            rotation = orientationAngles;
 
-        yawText.setText("Pitch: "+Math.toDegrees(orientationAngles[0]));
-        pitchText.setText("Yaw: "+Math.toDegrees(orientationAngles[1]));
-        rollText.setText("Roll: "+Math.toDegrees(orientationAngles[2]));
+            yawText.setText("Pitch: "+Math.toDegrees(orientationAngles[0]));
+            pitchText.setText("Yaw: "+Math.toDegrees(orientationAngles[1]));
+            rollText.setText("Roll: "+Math.toDegrees(orientationAngles[2]));
 
-        float degree = Math.round(event.values[1]);
-        // create a rotation animation (reverse turn degree degrees)
-        RotateAnimation ra = new RotateAnimation(currentDegree, -degree, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-        // how long the animation will take place
-        ra.setDuration(210);
-        // set the animation after the end of the reservation status
-        ra.setFillAfter(true);
-        // Start the animation
-        headOri.startAnimation(ra);
-        currentDegree = -degree;
-        String test = ("" + String.valueOf(rotation[0]) + "/" + String.valueOf(rotation[1]) + "/" + String.valueOf(rotation[2])+"/");
-        //Log.d(TAG, "onClick: " + test);
-        byte[] bytes = test.getBytes(Charset.defaultCharset());
-        //Log.d(TAG, "SENDING: " + sending);
-        if(sending) {
-            if (bluetoothConnectionService != null) {
-                bluetoothConnectionService.write(bytes);
+            float degree = Math.round(values[1]);
+            // create a rotation animation (reverse turn degree degrees)
+            RotateAnimation ra = new RotateAnimation(currentDegree, -degree, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+            // how long the animation will take place
+            ra.setDuration(210);
+            // set the animation after the end of the reservation status
+            ra.setFillAfter(true);
+            // Start the animation
+            headOri.startAnimation(ra);
+            currentDegree = -degree;
+            String test = ("" + String.valueOf(rotation[0]) + "/" + String.valueOf(rotation[1]) + "/" + String.valueOf(rotation[2])+"/");
+            //Log.d(TAG, "onClick: " + test);
+            byte[] bytes = test.getBytes(Charset.defaultCharset());
+            //Log.d(TAG, "SENDING: " + sending);
+            if(sending) {
+                if (bluetoothConnectionService != null) {
+                    bluetoothConnectionService.write(bytes);
+                }
             }
         }
-    }
+    };
 }
