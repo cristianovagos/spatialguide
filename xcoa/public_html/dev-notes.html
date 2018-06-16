@@ -107,6 +107,9 @@
               <li class="nav-item">
                 <a class="nav-link" href="#auralization" style="color: black;">&nbsp;&nbsp;&nbsp;&nbsp;Auralization Engine</a>
               </li>
+			  <li class="nav-item">
+                <a class="nav-link" href="#btComm" style="color: black;">&nbsp;&nbsp;&nbsp;&nbsp;Bluetooth Communication</a>
+              </li>
               <li class="nav-item">
                 <a class="nav-link" href="#backend" style="color: black;">Backend Development</a>
               </li>
@@ -245,45 +248,61 @@
 
       <h3 id="appfunctioning">App Development</h3>
       <p style="text-align: justify;">
-        As said before, the Android app is one of the most important parts of the system, as it will be the most used for the end users that will indeed use
-        our system and navigate through places. As for the design, we follow the Android Material Design guidelines and appearance, as it's commonly used on many
-        Android apps today, and got inspiration on the today's most used Android apps. We are not any design experts neither aspire to be it, however we built it
-        at our taste. The colors used are inspired by this website, as we tried to be consistent between the website and the app itself. Upon entering the app, 
-        we use the commonly used DrawerLayout, with the left side Navigation Menu, and Toolbar so user can see the current status of the app usage.<br><br>
+        As said before, the Android app is one of the most important parts of the system, as it will be the most used for the users that will indeed use our system 
+		and navigate through places (as referred in the user scenarios), so taking that in consideration it's crucial that the development of the app takes in consideration 
+		multiple concerns such as usability, a clean and straight-up design, as well as being responsive in general usage.<br><br>
 
-        In the App development, all UI widgets are instantiated on the Java code using the library <a href="http://jakewharton.github.io/butterknife/" target="_blank">
-        ButterKnife</a>, for Dependency Injection use on the Java code, as well as <a href="https://projectlombok.org/" target="_blank">Lombok</a> for our data classes. 
-        ButterKnife binds all the views to variables on our code by only getting the view IDs and call them once. Lombok injects getters/setters and constructors on our 
-        data/entity classes, so we can write less code and have them built for us.<br><br>
+		The app architecture and main functioning was built to consume the system data via our own REST (Representational State Transfer) API (Application Programming Interface), 
+		which provide all the data via the endpoints required for both way communication, which is how we interact with our system.<br><br>
+		
+		As for the design, we follow the Android Material Design guidelines and appearance, as it's commonly used on many Android apps today, and got inspiration from the most 
+		used Android apps. We are not any design experts neither aspire to be it, however we built it thinking that the common user will know how to use the app without much effort. 
+		Almost every action is done with few taps, and the app has icons and a color scheme that helps identify them. The colors used are inspired by our website, as we tried to be 
+		consistent between the website and the app itself. Upon entering the app, we use the commonly used DrawerLayout, with the left side Navigation Menu, and a Toolbar so the user 
+		can see the current status and indication on app usage.<br><br>
+		
+		We can sum the Android development in two stages: design and code. The design is made on the layout folder, placed on resources folder, by creating a XML file which will be the 
+		layout of a part of the app. For simplicity we used Activities for each action instead of Fragments, and each file placed in that folder is used to draw and place UI widgets 
+		(Text, Images, Progress Bar, Toolbar, etc) which are part of the whole app design.
+		<br>Then, on the Java code, in the java folder we place the code responsible for handling the Activity of each file, only setting the content view on the onCreate function with 
+		the same name as the layout file which we want to use. <br><br>
+	
+		In the App development, the majority of UI widgets are instantiated on the Java code using the library <a href="http://jakewharton.github.io/butterknife/" target="_blank">
+        ButterKnife</a> - a library that uses Dependency Injection - as well as the 
+		library <a href="https://projectlombok.org/" target="_blank">Lombok</a> for our data classes. ButterKnife binds all the views to variables on our code by only getting the view 
+		IDs and call them once. Lombok injects getters/setters and constructors on our data/entity classes, so we can write less code and have them built for us. <br>
+		As we use the devices' location to find the current user location so the map interactions and general usage is done, we use the Google Play Services API to find out user location given 
+		customizable parameters such as location precision (GPS+Network, GPS only or Network only) and their refresh rates.<br><br>
 
-        As we open the app, it has the basic user creation / access screens, to let users use the app and the system. By letting have an user account, each user can 
-        then make track of the routes and points, and use the system anywhere. We also provide a way of set a new password, to recover system access.
+        As we open the app, it has the basic user creation / access screens, to let users use the app and the system. By letting have an user account, each user can then make track of the routes and points, 
+		and use the system anywhere. We also provide a way of set a new password, to recover system access
         <br><br>
 
-        After the successful sign in, the user should then choose the route which will navigate on, which data is downloaded and stored on the internal device storage 
-        and then used upon selection. The route data is fetched via our system REST API. To handle the HTTP requests to our custom built API, it's used the library 
-        <a href="http://square.github.io/retrofit/" target="_blank">Retrofit</a> for a safe, easy and async request onto our API. Retrofit then lets us use a factory that 
-        gets the data from a API and converts it into a POJO object, to be used on the Java side. We use the Google's <a href="https://github.com/google/gson" target="_blank">
-        GSON converter factory</a>, as it's the most common used converter, and lets us then annotate on the data/entity classes the exact field names on the JSON object,
-        and then it sets the object for us.<br><br>
+		After the successful sign in, the user should then choose the route which will navigate on, which data is downloaded and stored on the internal device storage and then used upon selection. 
+		The route data is fetched via our system REST API. To handle the HTTP requests to our custom built API, it's used the library <a href="http://square.github.io/retrofit/" target="_blank">Retrofit</a> for a safe, easy and async request onto our API. Retrofit 
+		then lets us use a factory that gets the data from a API and converts it into a POJO object, to be used on the Java side. We use the Google's <a href="https://github.com/google/gson" target="_blank">
+        GSON converter factory</a>, as it's the most common used 
+		converter, and lets us then annotate on the data/entity classes the exact field names on the JSON object, and then it sets the object for us. As the Android uses its main thread for drawing, we cannot 
+		stop that thread from running when doing network requests like we constantly do to gather/push information onto our system. So, Retrofit helps us handling the thread creation for each API call, which will
+		return one of two responses (successful / not-successful) via callback, and then we can handle it the way we want.<br><br>
 
-        Our custom built REST API provides the information we need about routes, points of interest, among many other useful related information to the general app usage,
-        as we will describe later.
-        The images URL fetched on the REST API is then injected on Android's ImageView using <a href="http://square.github.io/picasso/" target="_blank">Picasso</a>, 
-        which downloads and caches the image in a easy and straight-forward way. This libraries are used throughout the app when needed (displaying images / 
-        fetch information from the API).<br><br>
+		Our custom built REST API provides the information we need about routes, points of interest, among many other useful related information to the general app usage, as we will describe later. For the images 
+		displayed in the app, we decided to use URLs and then handle the download and display in the app, instead of downloading and storing the images having them locally (which we could do, but it required more 
+		work on manipulating them in the internal storage). It’s a interesting feature having a dynamic way of loading the images, because they can be changed. The images URL fetched via the REST API is then injected 
+		on Android's ImageView using the library <a href="http://square.github.io/picasso/" target="_blank">Picasso</a>, which downloads and caches the image in a easy and straight-forward way. Picasso and Retrofit are libraries from the same developer team, so they handle the 
+		thread creation and callback similarly.<br><br>
       
-        After the route selection, the user will enter in the route map screen, which will track the user current location with GPS, and with the markers of the route 
-        points of interest, as well as the directions to the points of interest, fetched with <a href="https://developers.google.com/maps/documentation/directions/" target="_blank">
-        Google Directions API</a>, and then all displayed on a Google Map, provided by <a href="https://developers.google.com/maps/documentation/android-sdk/intro" target="_blank">
-        Google's Maps SDK</a>, as we integrate it on the app so users can see the current location and have a visual feedback on using the app and guidance.<br>
-        On the bottom we can see a options menu that provides the possiblity of customize the route order of the points to visit by setting it using drag and drop 
-        in the selection menu, as well as the user can select one of two modes for it: "Shortest Path", which will take on the shortest route between the points 
-        selected, and "Adventure Mode", which will randomize the order of the point visit. The map will then show the recommended direction based on the order of 
-        the points selected or the mode selected.<br><br>
+		After the route selection, the user will enter in the route map screen, which will track the user current location with GPS, and with the markers of the route points of interest, as well as the directions to the points 
+		of interest, fetched with <a href="https://developers.google.com/maps/documentation/directions/" target="_blank">Google Directions API</a>, and then all displayed on a Google Map fragment, provided by <a href="https://developers.google.com/maps/documentation/android-sdk/intro" target="_blank">
+        Google's Maps SDK</a>, as we integrate it on the app so users can see the current location and have a visual 
+		feedback on using the app and guidance.<br>
+	  
+		On the bottom we can see a options menu that provides the possibility of customize the route order of the points to visit by setting it using drag and drop in the selection menu, as well as the user can select 
+		one of two modes for it: "Shortest Path", which will take on the shortest route between the points selected, and "Adventure Mode", which will randomize the order of the point visit. The map will then show the 
+		recommended direction based on the order of the points selected or the mode selected..<br><br>
 
-        When the user location approaches the point of interest (as we call this distance the <i>Trigger Area</i>), a popup window will appear with the point information, 
-        and the app will then play the sound spatialized according to that point and to the user's head position.
+		When the user location approaches the point of interest (as we call this distance the <i>Trigger Area</i>), a popup window will appear with the point information, and the app will then play the sound spatialized 
+		according to that point and to the user's head position.
       </p>
       <br><br>
 
@@ -298,13 +317,87 @@
         "sensor smartphone", being able to communicating both ways.
         Then we can provide the user position to the auralization engine to then compute the spatial audio according to the user position and the position related to 
         the point of interest.
+		<br><br>
+		Android smartphones have a big array of sensors. For the tracking of the head rotation we
+		used two common sensors: the magnetic sensor, and the accelerometer sensor. The
+		accelerometer sensor measures the acceleration force applied in all three axes (x,y,z),
+		it also takes into account the gravity. It is an hardware sensor and is mostly used for motion
+		detection. The magnetic sensor measures the magnetic field, it is also an hardware sensor
+		and it is used for compass.<br><br>
+		Combining this two sensors it is possible to obtain a calibrated head rotation using the native
+		android methods getRotationMatrix and getOrientation. getRotationMatrix creates the
+		rotation matrix defined between both sensors, and the getOrientation generates the values
+		for pitch/yaw/roll based on that rotation matrix.<br><br>
+		Then it will pass this values into a byte buffer and send this buffer to the smartphone with the
+		application through bluetooth. <br><br>	
       </p>
+	  <h3 id="btComm">Bluetooth Communication</h3>
+			<p style="text-align: justify;">
+			Since the early stages of development we decided to implement the communication between
+		sensor and application with bluetooth., in order to make the system easy to use and less
+		cumbersome to the user. As long as the cell phone with the SpatialGuide app has the name
+		SpatialDemo and it’s paired with the sensor device, the connection and data trade between
+		them will be automatic. The bluetooth communication is done through a class named
+		BluetoothConnectionService that contains several threads:<br><br>
+		● AcceptThread: thread that accepts a connection<br>
+		● ConnectThread: thread that tries to connect to a certain device<br>
+		● ConnectedThread: thread that tries to send data through bluetooth<br><br>
+		
+		The sensor searches for its list of paired devices for a device named ​SpatialDemo, ​if it finds
+		one, it will try to connect to it through the ConnectThread. If the connection failed, then the
+		process starts anew, otherwise the connection is accepted. When the tracking sensors
+		detect some change on the rotation, the bluetooth will try to send its the byte buffer created
+		mentioned above through its output stream. The SpatialGuide app will receive these values
+		and convert them back into floats and update the auralization engine with this new data.
       <br><br>
-
+		</p>
+		<img src="img/imu_diagram.png" class="img-fluid" alt="" >
+			  <br><br>
+	  <br><br>
+	  </p>
       <h3 id="auralization">Auralization Engine</h3>
 			<p style="text-align: justify;">
-        Coming soon...
-      </p>
+        For the implementation of the auralization  we opted to use the <a href=" https://developers.google.com/resonance-audio/" target="_blank">Google’s Resonance Audio</a>. Resonance audio is a  SDK that aims to create spatialized audio for AR and VR environments. It supports multi platforms (such as Unity, Unreal, FMOD, Web, wwise, digital workstation, Android and iOS) and streamlines the implementation of na Auralization engine.
+		Resonance Audio takes into account the mobile’s limited resources, so it is  optimized for those devices. As we were working on within a limited time frame, creating our own audio engine was prohibitive, and as this is a powerful optimized tool for mobile devices, we have decided to implement Resonance Audio on SpatialGuide system.
+		As Resonance Audio was made for interactive virtual environments, we have to define the position and rotation for the user on this virtual world.
+		<br><br>
+		<b>Implementation:</b> <br>
+		We created a class named AuralizationEngine, there we implemented Resonance Audio. For it to work, it needs the following atributes <br>
+		+ GoogleVR’s audio engine(GvrAudioEngine) <br>
+		+ sound source ID (sourceID). <br>
+		<br>
+		Besides this attributes, it was defined a reference to a thread called soundplayThread. <br>
+		When the user enters the trigger area, the system will initialize the AuralizationEngine passing a sound file name. It starts by initializing gvrAudioEngine, and it starts a new thread   to load the named sound file. It is also needed to define a user position in the virtual world, it was defined that the user it’s always in the center of that world (x=0; y=0; z=0, this axis is based on the right handed OpenGL axis). For now it is also defined that the sound is at position (0,0,0) but that will change immediately in another function. <br>
+		When  the GPS updates the user position or when the system detects that the rotation of the head changed, the AuralizationEngine’s update method is invoked that accepts as input the GPS coordinates of the user/point of interest and the head’s rotation as pitch yaw and roll angles. Knowing that the user is in the center of the axis, the position on the virtual world of the point of interest (position of the source of sound)  is calculated accordingly. As in an open space, the human ears cannot distinguish between a far loud sound and a low close sound, we decided to make the virtual distance  between user and the sound source a constante (R=1). To discover this virtual position at a distance R, first we need to know the angle between user and point of interest, for such we used the following formulas:
+		<br>
+		</p>
+		<br><br>
+				<img src="img/FormulaArc.png" class="img-fluid" alt="" >
+			  <br><br>
+		<p style="text-align: justify;">
+		After we discover the angle formed between user and point, we need to find the projection of that angle for a distance of R=1. <br>
+		For that we use the following: 
+		</p>
+		<br><br>
+		<img src="img/projection.png" class="img-fluid" alt="" >
+		<br><br>
+		<p style="text-align: justify;">
+		Then you can updated the sound source position of the gvrAudioEngine using this coordinates using the setSoundObjectPosition method passing these coordinates alongside the sourceID that we want to update. It is also needed to update the user’s head rotation. As gvrAudioEngine accepts quaternions, first we need to convert from euler angles to quaternion and then we pass this quaternion to the method setHeadRotation.
+		<br>
+		After any change made to the Resonance Audio, it is recommended to use gvrAudioEngine.update in order to confirm the changes made.	
+		<br>
+		Sound is played in a thread created by the auralization engine. When the user enters a new
+		tigger area, the old thread will be stopped, the sound unloaded from the gvrAudioEngine and
+		the AuralizationEngine will start anew with the new values for that point of interest.
+		With this methods, the gvrAudioEngine will be able to play a spatialized sound on a virtual
+		world built around real world values.<br>
+		</p>
+		<br><br>
+		<img src="img/auralization_diagram.png" class="img-fluid" alt="" >
+		<br><br>
+		<p style="text-align: justify;">
+		
+		</p>
       <br><br>
 
       <h3 id="backend">Backend Development</h3>
@@ -351,11 +444,12 @@
         as more customization and user interaction to provide a better user experience (Street View, etc).<br><br>
         
         What's left to be done in the current and final development stage:
-        <br>- Write documentation related to system development and usage;
-        <br>- Perform usability and overall development tests;
+        <br>- System UI/UX improvement;
+        <br>- Develop and embed a IMU sensor on headphones;
         <br>- Deploy and test the system outdoors (possibly with a real Tourism company);
         <br>- Hunting / fixing wild bugs it may have;
-        <br>- Preparing for public presentations (setting up demo videos, etc).
+        <br>- Build point information screens;
+		<br>- Offer a streaming tourist guide talk while on bus, for example.
       </p>
       <br><br>
       
