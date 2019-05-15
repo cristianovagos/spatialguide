@@ -13,3 +13,13 @@ Also featured and presented on APEA (Associação Portuguesa de Engenharia Áudi
 SpatialGuide is an audio guide App for Android smartphones, which tracks the tourist location using the smartphone GPS position and provides interesting information 
 in both text and audio format about points of interest using a spatialized audio effect (“3D audio”). 
 For this to be possible the system will gather the tourist's head rotation to create a audible 3D audio effect, giving the illusion that the sound is actually coming from the point location.
+
+### Screenshots
+
+<p align="center">
+  <img width="400" src="app-screenshot.gif">
+</p>
+
+<p align="center">
+  <img src="backend-screenshot.png">
+</p>
